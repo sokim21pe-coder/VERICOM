@@ -1,0 +1,35 @@
+-- Sprint 0. MASTER_SPEC 18.1 필수 테이블 목록만 기록한다.
+-- CREATE TABLE 컬럼은 추측하지 않는다. 스키마 확정 후 작성한다.
+--
+-- users
+-- persons
+-- companies
+-- company_memberships
+-- platform_roles
+-- user_platform_roles
+-- deals
+-- deal_participants
+-- deal_permissions
+-- opportunities
+-- company_metrics
+-- valuations
+-- buyer_intents
+-- documents
+-- document_versions
+-- document_access
+-- approvals
+-- activities
+-- tasks
+-- relationships
+-- introductions
+-- experts
+-- expert_assignments
+-- dd_workstreams
+-- dd_requests
+-- dd_findings
+-- expert_reports
+-- expert_document_access
+-- workflow_events
+-- audit_logs
+-- conversations
+-- structured_memories

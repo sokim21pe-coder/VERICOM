@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --ink: #171717;
+  --muted: #5c5c5c;
+  --navy: #002147;
+  --navy-hover: #001830;
+  --ink-mid: #171717;
+  --paper: #ffffff;
+  --accent: #002147;
+  --accent-soft: #002147;
+  --line: #e8eaed;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-ink: var(--ink);
+  --color-navy: var(--navy);
+  --color-navy-hover: var(--navy-hover);
+  --color-ink-mid: var(--ink-mid);
+  --color-paper: var(--paper);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --font-sans: var(--font-noto);
+  --font-display: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  scroll-behavior: smooth;
+  background: #ffffff;
+  color-scheme: light;
+}
+
+section[id] {
+  scroll-margin-top: 5.5rem;
+}
+
+body {
+  background: #ffffff;
+  color: var(--foreground);
+  font-family: var(--font-sans), "Apple SD Gothic Neo", "Malgun Gothic",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display), var(--font-sans), "Apple SD Gothic Neo",
+    "Malgun Gothic", sans-serif;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--navy) 18%, white);
+  color: var(--foreground);
+}
