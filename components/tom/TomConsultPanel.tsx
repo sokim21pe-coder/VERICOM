@@ -2,8 +2,13 @@
 
 import { FormEvent, useState } from "react";
 import { sendTomMessage } from "@/lib/tom/actions";
+import {
+  informationStateLabel,
+  intentRouterLabel,
+} from "@/lib/tom/extract-intent";
 import type { TomIntent } from "@/lib/tom/paths";
-import type { TomMessage } from "@/types/tom";
+import type { TomIntentRouter, TomMemoryItem, TomMessage } from "@/types/tom";
+import { InformationState } from "@/types/enums";
 
 const sellChoices = [
   "우리 회사의 기업가치가 궁금해요",
@@ -17,22 +22,52 @@ const buyChoices = [
   "아직 무엇부터 해야 할지 모르겠어요",
 ];
 
+function intentFromMemories(memories: TomMemoryItem[]): {
+  router: TomIntentRouter;
+  state: InformationState;
+} | null {
+  const row = memories.find((item) => item.key === "intent_router");
+  if (!row?.value) return null;
+  const router = row.value as TomIntentRouter;
+  if (
+    router !== "SELL" &&
+    router !== "BUY" &&
+    router !== "FUNDRAISE" &&
+    router !== "SUCCESSION" &&
+    router !== "PARTNERSHIP" &&
+    router !== "UNDECIDED"
+  ) {
+    return null;
+  }
+  const state =
+    row.informationState === InformationState.CONFIRMED
+      ? InformationState.CONFIRMED
+      : row.informationState === InformationState.ESTIMATED
+        ? InformationState.ESTIMATED
+        : InformationState.UNKNOWN;
+  return { router, state };
+}
+
 export function TomConsultPanel({
   intent,
   conversationId,
   initialMessages,
+  initialMemories,
 }: {
   intent: TomIntent;
   conversationId: string;
   initialMessages: TomMessage[];
+  initialMemories: TomMemoryItem[];
 }) {
   const [messages, setMessages] = useState(initialMessages);
+  const [memories, setMemories] = useState(initialMemories);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const started = messages.some((item) => item.authorRole === "user");
   const choices = intent === "buy" ? buyChoices : sellChoices;
+  const extracted = intentFromMemories(memories);
 
   async function send(text: string) {
     const trimmed = text.trim();
@@ -46,6 +81,7 @@ export function TomConsultPanel({
       return;
     }
     setMessages(result.messages);
+    setMemories(result.memories);
     setInput("");
   }
 
@@ -63,6 +99,15 @@ export function TomConsultPanel({
       <p className="mt-2.5 text-sm leading-relaxed text-muted">
         이 대화는 계정에 저장됩니다. TOM 모델 연결은 후속 단계입니다.
       </p>
+      {extracted ? (
+        <p className="mt-3 rounded-md border border-line bg-white px-3 py-2 text-sm text-foreground">
+          상담 방향: {intentRouterLabel[extracted.router]} (
+          {informationStateLabel[extracted.state]})
+          <span className="mt-1 block text-xs leading-5 text-muted">
+            대화에서 고른 방향입니다. 매각·인수·투자의 확정 의사가 아닙니다.
+          </span>
+        </p>
+      ) : null}
 
       <div className="mt-6 max-h-72 space-y-3 overflow-y-auto text-sm leading-relaxed">
         {messages.map((item) => (

@@ -225,49 +225,29 @@ export async function registerNewCompany(form: {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return envError();
 
-  const { data: company, error: companyError } = await supabase
-    .from("companies")
-    .insert({
-      name,
-      legal_name: form.legalName.trim() || null,
-      industry: form.industry.trim() || null,
-      website: form.website.trim() || null,
-      business_registration_number:
+  const { data: companyId, error: companyError } = await supabase.rpc(
+    "register_company_for_current_user",
+    {
+      p_name: name,
+      p_legal_name: form.legalName.trim() || null,
+      p_industry: form.industry.trim() || null,
+      p_website: form.website.trim() || null,
+      p_business_registration_number:
         form.businessRegistrationNumber.trim() || null,
-      company_status: "active",
-      verification_status: "unverified",
-    })
-    .select("id")
-    .single();
+    },
+  );
 
-  if (companyError || !company) {
+  if (companyError || !companyId) {
     return {
       ok: false,
       message: authErrorMessage[ErrorCode.COMPANY_CREATE_FAILED],
     };
   }
 
-  const { error: membershipError } = await supabase
-    .from("company_memberships")
-    .insert({
-      user_id: context.user.id,
-      company_id: company.id,
-      membership_role: MembershipRole.OWNER,
-      status: MembershipStatus.ACTIVE,
-      verification_status: "unverified",
-    });
-
-  if (membershipError) {
-    return {
-      ok: false,
-      message: authErrorMessage[ErrorCode.MEMBERSHIP_CREATE_FAILED],
-    };
-  }
-
   await recordAudit({
     action: "CREATE_COMPANY_MEMBERSHIP",
     entityType: "companies",
-    entityId: company.id,
+    entityId: companyId as string,
   });
 
   const next = await getCurrentContext();
