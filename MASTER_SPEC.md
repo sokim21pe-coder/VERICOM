@@ -1540,7 +1540,7 @@ Navigation:
 - [x] deal_participants / deal_permissions (테이블·RLS. Deal 생성 UI는 후속)
 - [x] Role-aware Workspace Router
 - [x] Guest Session → Signup Data Linking — **현재 제품 정책에서 Sprint 0 구현 대상 제외** (Guest 익명 TOM 미사용. 쿠키·users.guest_session_id 연결은 하지 않음)
-- [ ] Private Storage Bucket (버킷 SQL·업로드/허용/차단 E2E는 **실 Supabase 연결 후 검증**. 코드에 버킷명 `vericom-private`만 있음)
+- [ ] Private Storage Bucket (원격 `vericom-private` Public=false·Storage RLS·Seller 업로드·Signed URL 60초·재로그인 유지·Audit는 **검증 완료**. **교차회사 계정 E2E는 미검증** → 체크 보류)
 - [x] Server-only Privileged Writes
 - [x] Activity / Audit Helper
 - [x] DD-ready Expert / Workstream Tables (스키마만)

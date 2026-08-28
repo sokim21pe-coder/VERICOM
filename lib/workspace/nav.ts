@@ -6,9 +6,9 @@ export const sellerNav: WorkspaceNavItem[] = [
   { href: "/seller/company", label: "내 회사", todo: true },
   { href: "/seller/buyers", label: "인수후보", todo: true },
   { href: "/seller/deals", label: "진행 중 거래", todo: true },
-  { href: "/seller/docs", label: "자료실", todo: true },
+  { href: "/seller/docs", label: "자료실" },
   { href: "/seller/experts", label: "전문가", todo: true },
-  { href: "/seller/tom", label: "TOM" },
+  { href: "/consult?intent=sell", label: "TOM" },
 ];
 
 /** MASTER_SPEC 6.2 */
@@ -19,7 +19,7 @@ export const buyerNav: WorkspaceNavItem[] = [
   { href: "/buyer/interest", label: "관심 Deal", todo: true },
   { href: "/buyer/deals", label: "진행 거래", todo: true },
   { href: "/buyer/docs", label: "자료실", todo: true },
-  { href: "/buyer/tom", label: "TOM" },
+  { href: "/consult?intent=buy", label: "TOM" },
 ];
 
 /** MASTER_SPEC 6.3 */
@@ -51,11 +51,6 @@ export const sellerTodoPages: Record<
     title: "진행 중 거래",
     screenId: "S-DEALS",
     note: "Deal 데이터는 아직 연결하지 않습니다.",
-  },
-  docs: {
-    title: "자료실",
-    screenId: "S-DOCS",
-    note: "문서함(VDR)은 후속 단계입니다.",
   },
   experts: {
     title: "전문가",

@@ -15,3 +15,13 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 2026-08-25 Sprint 0 마감: Guest Session → Signup Linking은 구현하지 않는다. 실DB E2E·RLS·Storage·Test Seed 적용은 `.env.local`의 `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`가 준비된 뒤에만 검증한다. 키는 임의 생성하지 않는다.
 
 2026-08-26 Sprint 1 Intent: 로그인 TOM 대화에서 규칙 기반으로 Intent Router(SELL/BUY/FUNDRAISE/SUCCESSION/PARTNERSHIP/UNDECIDED)를 추출해 tom_memory_items에 저장한다. Information State를 붙이며 매각 확정 의사 등 Critical Fact는 추정하지 않는다. LLM은 사용하지 않는다.
+
+2026-08-28 Seller TOM 후속 질문: 매각 상담은 한 번에 질문 하나(업종 → 매출). 회사 프로필 업종이 있으면 업종을 다시 묻지 않는다. 화면 표시명은 LEVEL 1(32.6 티저·LEVEL 1 가치평가)이다. 계산은 EV/Sales 간단 Proxy이며, 배수 0.5~2.0은 시장 비교가 아닌 내부 PLACEHOLDER다. 현금·차입 미확인 시 Equity Value는 계산하지 않는다. 3년 실적·현금·차입 정밀평가와 Buyer Top3는 하지 않았다.
+
+2026-08-28 표시명: 사용자 요청으로 예비평가 표기를 LEVEL 0에서 LEVEL 1로 통일했다. 명세 9.2 엔진 단계 정의(LEVEL 0 입력/LEVEL 1 3년·현금·차입)는 바꾸지 않았다.
+
+2026-08-28 Sprint 0 Private Storage: 버킷 `vericom-private`(비공개)와 회사 Membership RLS를 추가한다. 업로드·받기는 서버 Action과 만료 서명 URL만 사용한다. Deal/NDA/VDR 공개 규칙과 가짜 거래 상태는 넣지 않는다.
+
+2026-08-28 원격 Private Storage: 프로젝트 `nzsgxxuyvbirnlwtqmmc`에 `0010_private_storage.sql`을 적용했다. `vericom-private` Public=false, Storage RLS 4개, Seller 업로드·Signed URL 60초·재로그인 유지·Audit는 검증했다. 두 번째 회사 계정으로 교차 접근 E2E는 하지 않았다.
+
+2026-08-29 원격 Private Storage 재확인: `0010`은 재실행하지 않았다. `storage.buckets`에서 `vericom-private` public=false, `can_access_vericom_private_object` 존재, Storage policy 4개(`select/insert/update/delete`), 기존 object 1건 유지. public object URL은 HTTP 400. 교차회사 계정 E2E는 미검증이다.

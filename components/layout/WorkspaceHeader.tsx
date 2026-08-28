@@ -39,61 +39,63 @@ export function WorkspaceHeader({
   platformRoles = [],
   currentRole = null,
 }: WorkspaceHeaderProps) {
+  const accountAction = signedIn ? (
+    <LogoutButton />
+  ) : (
+    <Link href="/login" className="text-sm text-navy underline">
+      로그인
+    </Link>
+  );
+
   return (
     <header className="border-b border-line bg-[#FFFFFF]">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-3 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center justify-between gap-4">
-          <Link href="/" className="bg-[#FFFFFF]" aria-label="베리컴 홈">
-            <BrandLogo className="h-10 sm:h-12" priority />
-          </Link>
-          <div className="lg:hidden">
-            {signedIn ? (
-              <div className="flex items-center gap-3">
-                <WorkspaceSwitcher
-                  roles={platformRoles}
-                  current={currentRole}
-                />
-                <LogoutButton />
-              </div>
-            ) : (
-              <Link href="/login" className="text-sm text-navy underline">
-                로그인
-              </Link>
-            )}
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-3 sm:px-8 lg:flex-nowrap">
+        <Link
+          href="/"
+          className="order-1 bg-[#FFFFFF]"
+          aria-label="베리컴 홈"
+        >
+          <BrandLogo className="h-10 sm:h-12" priority />
+        </Link>
+        <div className="order-2 flex items-center gap-3 lg:order-3">
+          <div className="hidden items-center gap-4 lg:flex">
+            <p className="text-xs text-muted">{roleLabel}</p>
+            {companyName ? (
+              <p className="text-xs text-muted">{companyName}</p>
+            ) : null}
+            {userName ? (
+              <p className="text-xs text-foreground">{userName}</p>
+            ) : null}
+            <WorkspaceSwitcher
+              roles={platformRoles}
+              current={currentRole}
+            />
           </div>
+          <div className="lg:hidden">
+            <WorkspaceSwitcher
+              roles={platformRoles}
+              current={currentRole}
+            />
+          </div>
+          {accountAction}
         </div>
         <nav
           aria-label="워크스페이스 메뉴"
-          className="-mx-1 flex gap-1 overflow-x-auto text-[13px] text-muted"
+          className="order-3 -mx-1 w-full overflow-x-auto text-[13px] text-muted lg:order-2 lg:w-auto"
         >
-          {nav.map((item) => (
-            <Link
-              key={`${item.href}-${item.label}`}
-              href={item.href}
-              className="shrink-0 rounded-md px-2 py-1.5 hover:text-foreground"
-              title={item.todo ? "TODO: 화면 미연결" : undefined}
-            >
-              {item.label}
-            </Link>
-          ))}
+          <div className="flex gap-1">
+            {nav.map((item) => (
+              <Link
+                key={`${item.href}-${item.label}`}
+                href={item.href}
+                className="shrink-0 rounded-md px-2 py-1.5 hover:text-foreground"
+                title={item.todo ? "TODO: 화면 미연결" : undefined}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </nav>
-        <div className="hidden items-center gap-4 lg:flex">
-          <p className="text-xs text-muted">{roleLabel}</p>
-          {companyName ? (
-            <p className="text-xs text-muted">{companyName}</p>
-          ) : null}
-          {userName ? (
-            <p className="text-xs text-foreground">{userName}</p>
-          ) : null}
-          <WorkspaceSwitcher roles={platformRoles} current={currentRole} />
-          {signedIn ? (
-            <LogoutButton />
-          ) : (
-            <Link href="/login" className="text-sm text-navy underline">
-              로그인
-            </Link>
-          )}
-        </div>
       </div>
     </header>
   );
