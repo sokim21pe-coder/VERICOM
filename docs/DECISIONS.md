@@ -31,3 +31,16 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 2026-08-30 Sprint 0 최종 종료: CurrentContext는 최신 deal_participants를 자동 선택하지 않는다. Active Deal은 httpOnly 쿠키 `vericom_active_deal_id`이며, 서버가 participant·회사 역할·permissions를 검증한다. 미선택 시 deal/dealRole/permissions는 null/빈 배열. `0013_sprint0_company_deal_roles.sql`로 TEST_DEV_SELLER_CO가 DEAL_A Seller / DEAL_Y Buyer가 됨을 검증했다. Company 테이블에 영구 Seller/Buyer 속성은 없다. Seller 자료실 UI 업로드로 UPLOAD_PRIVATE_FILE을 남겼다. SELECT_PLATFORM_ROLE은 이용목적 화면, WORKSPACE_SWITCHED는 Switcher. ROLE_ADDED는 현재 제품 Flow에서 검증 대상이 아니다. 브라우저에서 httpOnly Role/Deal 쿠키 직접 수정은 불가하여 Unit으로 검증한다.
 
 2026-08-30 Sprint 1 TOM Foundation: PurposePage는 서버 Action `redirect`로 Role을 저장해 hydration 이후 세션 유실을 막는다. WorkspaceHeader Switcher는 한 번만 렌더한다. 로그인 Seller TOM은 LLM 없이 `lib/tom/intent-router.ts` 규칙으로 Intent를 추출해 기존 `tom_memory_items`에 upsert한다. Valuation LEVEL 0/1·Buyer Matching·티저 생성은 하지 않는다. 필요한 컬럼만 `0014_tom_intent_memory.sql`로 추가한다.
+
+2026-08-30 경영진 미팅(MM): Macro Process에 Q&A와 MM을 CIM/IM과 LOI 사이에 넣었다. MM은 Buyer Participant 단위이며 생략 시 사유가 필요하다. `0015_management_meetings.sql`과 `/seller/mm` `/buyer/mm` Workspace는 구조·권한·템플릿이다. 가짜 Buyer 실적·LLM·실제 LOI 문서는 넣지 않았다.
+
+2026-08-30 TOM AI M&A Operating Principles: `MASTER_SPEC` 0.3절과 `docs/TOM_ARCHITECTURE.md`를 공식 Architecture로 확정했다. TOM은 챗봇이 아니라 Deal Copilot / Operating Agent이다. 3계층(Knowledge / Deal Context / Action)과 `Understand → Analyze → Recommend → Draft → Ask Approval → Execute → Record`를 깨지 않는다. CurrentContext는 서버가 Source of Truth이며 Active Deal 자동 선택은 금지. Deal과 Opportunity는 분리. Company에 영구 Seller/Buyer 속성 금지. 구현 전 명세·Architecture를 읽고 Context를 고려한다. 충돌 시 코드를 먼저 쓰지 않고 보고한다. 이번 작업은 문서화만 하며 기능 대규모 구현은 하지 않았다.
+
+충돌·우선 기록:
+
+- Intent: 8.1 이용목적 FUNDRAISE/SUCCESSION/PARTNERSHIP/UNDECIDED는 유지. 목표 taxonomy(0.3)가 앞으로의 확장 기준. Sprint 1 `DEAL_PROGRESS` → 목표 `DEAL_STATUS`, `DOCUMENT` → `DOCUMENT_REVIEW`/`DOCUMENT_DRAFT`. 코드 enum은 해당 Sprint에서 바꾼다.
+- Information State: CONFIRMED/ESTIMATED/UNKNOWN은 표시용으로 유지. 저장 성격 FACT/USER_CLAIM/ASSUMPTION/INFERENCE를 병행. 불확실 정보는 FACT 금지.
+- 질문 정책: 2026-08-28 「한 번에 질문 하나」보다 0.3절 「핵심 1~3개」가 우선. Memory/DB에 있는 값은 다시 묻지 않는다.
+- Agent Loop: 20.2의 Identify Context/Retrieve/상태 분리는 7단계 North Star 안의 세부일 뿐, 순서를 대체하지 않는다.
+- 범위: 1.1 MVP는 Management Meeting까지 실행, Architecture는 SPA/Closing/PMI까지 설계. 구현은 33절 Sprint를 건너뛰지 않는다.
+- Guest 익명 TOM 금지는 유지(0.3과 충돌 없음).

@@ -5,7 +5,8 @@
 > **문서 목적:** Cursor 및 AI 개발도구가 베리컴 프로젝트를 일관되게 구현하기 위한 최상위 개발 기준 문서  
 > **기준 원문:** `VERICOM 플랫폼 개발기획서 최종통합본 v2.0` (2026-08-18)  
 > **문서 성격:** Source of Truth / Product + Engineering Master Spec  
-> **기본 언어:** 한국어 UI, 한국어 사용자 문구, 코드/Enum/API 식별자는 영문 사용
+> **기본 언어:** 한국어 UI, 한국어 사용자 문구, 코드/Enum/API 식별자는 영문 사용  
+> **TOM Architecture 상세:** `docs/TOM_ARCHITECTURE.md` (충돌 시 이 파일 0.3절·20절이 우선)
 
 ---
 
@@ -38,7 +39,103 @@ Cursor는 매 작업 시작 전 다음을 확인한다.
 - 기존 Business Rule을 깨뜨리는지
 - 테스트가 필요한지
 
+**새로운 TOM 또는 M&A 기능을 구현하기 전에 `MASTER_SPEC.md`(특히 0.3절·4절·7절·8절·20절)와 `docs/TOM_ARCHITECTURE.md`를 먼저 읽고, 현재 User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage Context를 고려해야 한다.**
+
+**기능 구현이 위 Architecture와 충돌하면 코드를 먼저 작성하지 말고 충돌을 보고해야 한다.**
+
 불확실하면 임의 구현하지 말고 `TODO`를 남기거나 사용자에게 확인 질문을 한다.
+
+### 0.3 TOM AI M&A Operating Principles (영구)
+
+이 절은 일회성 지시가 아니라 **VERICOM 플랫폼 개발 전체에 계속 적용하는 상위 원칙**이다. 다른 절과 충돌하면 이 절과 `docs/DECISIONS.md`의 최신 결정을 우선한다. 상세는 `docs/TOM_ARCHITECTURE.md`.
+
+#### TOM의 정의
+
+TOM은 단순한 챗봇이 아니다. 최종 목표는 사용자의 실제 M&A Deal과 현재 Context를 이해하고, M&A 전 과정에서 분석·판단·추천·초안작성·다음 행동 제안·승인 후 실행·기록까지 지원하는 **AI-native M&A Deal Copilot / Operating Agent**이다.
+
+TOM은 다음 역량을 **하나의 AI Architecture 안에** 통합한다. 글로벌 IB M&A Banker, Sell-side / Buy-side Advisor, PE 투자심사, Corporate Development, Big4 FDD / TAX DD, CDD / Strategy, M&A Legal 계약·협상 보조, 기업가치평가, Deal Structuring, LOI / SPA / Closing / PMI 실무, AI / Data / Workflow Automation.
+
+**TOM은 실제 인간 경력이나 실제 Deal 경험이 있다고 허위로 말하지 않는다.**
+
+#### 3-Layer Architecture
+
+모든 TOM 기능은 다음 계층을 유지한다.
+
+1. **M&A Knowledge Layer** — 전략, Sell/Buy-side, Screening, Valuation(DCF, Trading Comp, Precedent, EV/Equity, EBITDA, Net Debt), Deal Structure(Earn-out, Rollover, Seller Financing, Escrow, Holdback, Share/Asset Deal), Teaser~PMI 문서·실사(FDD/LDD/TAX DD/CDD/TDD), SPA/APA/SHA, Negotiation, Financing, Synergy, Strategic/Financial Buyer. 한국 비상장·중소중견 실무와 미국 Mid-market 실무를 함께 이해하되 **둘이 다르면 구분해서 설명**한다.
+2. **Deal Context Layer** — 질문만 보고 답하지 않는다. 가능한 범위에서 User, Company, Platform Role, Active Deal, Deal Role, Deal Stage, Permissions, Conversation, Structured Memory, Documents, Deal Data를 먼저 확인한다. 같은 질문이라도 Seller와 Buyer의 답은 달라야 한다.
+3. **Action / Agent Layer** — 답변으로 끝나지 않는다. 필요 시 분석, 리스크 식별, 다음 행동 추천, 문서 초안, 승인 요청, 승인 후 실행, Activity/Audit 기록까지 연결한다.
+
+기본 실행 순서(1.2 North Star와 동일, **순서를 깨지 않는다**):
+
+`Understand → Analyze → Recommend → Draft → Ask Approval → Execute → Record`
+
+#### Current Context는 Source of Truth
+
+Client 값만 믿지 않는다. TOM과 모든 Deal 기능은 **서버 기준 CurrentContext**를 사용한다: `user`, `company`, `platformRole`, `deal`, `dealRole`, `permissions`.
+
+Active Deal은 **명시적으로 선택**되어야 한다. 가장 최근 Deal을 자동 선택하지 않는다. 미선택 시 `deal = null`, `dealRole = null`, `permissions = []` 가 정상 상태이다.
+
+#### Deal과 Opportunity
+
+Deal = Seller의 전체 매각 프로젝트. Opportunity = Seller ↔ 특정 Buyer의 1:1 Deal Path. **합치지 않는다.** Buyer A와 Buyer B는 서로의 정보에 접근할 수 없다.
+
+#### Company 역할
+
+Company에 영구 Seller / Buyer 속성을 만들지 않는다. 한 Company는 Deal A에서 Seller, Deal B에서 Buyer가 될 수 있다. Role은 Deal Context에서 결정된다.
+
+#### Intent
+
+Intent는 확장 가능한 구조다. 목표 최상위 예: SELL, BUY, VALUATION, BUYER_SEARCH, TARGET_SEARCH, DEAL_STRUCTURE, TEASER, NDA, MANDATE, CIM_IM, IOI, LOI, DD, SPA, CLOSING, PMI, FINANCING, NEGOTIATION, DEAL_STATUS, DOCUMENT_REVIEW, DOCUMENT_DRAFT, FINANCIAL_ANALYSIS, STRATEGY, LEGAL_QUESTION, TAX_QUESTION, ACCOUNTING_QUESTION, GENERAL_MA, UNKNOWN. SubIntent 허용(예: LOI → PRICE / EXCLUSIVITY / PAYMENT / FINANCING / DD_SCOPE / CONDITIONS).
+
+현재 Sprint 1 구현은 8.1의 규칙 기반 부분집합이다. 목표 taxonomy로 확장할 때 이 절을 따른다.
+
+#### Structured Memory
+
+대화를 통째로 기억하지 않는다. 구조화된 사실만 저장한다. 카테고리 예: USER_PREFERENCE, COMPANY_FACT, DEAL_FACT, SELLER_OBJECTIVE, BUYER_CRITERIA, VALUATION_ASSUMPTION, NEGOTIATION_POSITION, DOCUMENT_STATUS, DEAL_RISK, NEXT_ACTION.
+
+가능하면 `user`, `company`, `deal`(nullable), `conversation`, `category`, `value`, `source`, `confidence`, `created_at`, `updated_at`를 가진다. 정보 성격: FACT / USER_CLAIM / ASSUMPTION / INFERENCE. **불확실한 정보를 FACT로 저장하지 않는다.**
+
+#### Source Priority
+
+1. 현재 Deal 실제 DB → 2. 사용자 업로드 문서 → 3. VERICOM 검증 Knowledge Base → 4. 공식 법령/규정/공시 → 5. 신뢰 가능한 외부 자료 → 6. 일반 M&A 지식 → 7. AI 추론. 충돌 시 상위 Source를 우선하고 **충돌 사실을 사용자에게 알린다.**
+
+#### Valuation
+
+`Financial Engine → Benchmark Engine → AI Interpretation`. LLM은 설명·비교·Sensitivity·리스크·추천을 담당한다. LLM이 EBITDA, WACC, Multiple, EV, Equity Value **최종값을 임의 생성하지 않는다.**
+
+#### Document Intelligence
+
+문서 기반 답변은 **문서에 명시된 내용 / 문서에 없는 내용 / AI 추론**을 구분한다. DB와 문서가 충돌하면 숨기지 않는다.
+
+#### Next Best Action
+
+Deal Stage를 기준으로 다음 행동을 추천할 수 있다. 가능하면 `action`, `reason`, `priority`, `owner`, `deal`, `stage`로 구조화한다.
+
+#### 실행 승인
+
+Buyer 자료 전송, Seller Identity 공개, IM 공개, NDA 상태 변경, Deal Stage 변경, LOI 승인, SPA 확정, Closing, 외부 이메일, 최종 문서 확정은 **자동 실행 금지**. `Draft → User Review → Explicit Approval → Execute → Audit`.
+
+#### Security
+
+권한은 UI가 아니라 서버와 DB가 강제한다. Client privileged write 금지, Buyer/Company isolation, Expert scoped access, Internal 제한, Private Storage, Signed URL, Activity/Audit. **Sprint 0 Security Architecture를 약화시키지 않는다.**
+
+#### 응답 품질
+
+질문 수준에 맞춰 깊이를 조절한다. 「쉽게」=초등학생도 이해, 「실무적으로」=실무자, 「전문가답게」=구조/리스크/대안/Recommendation, 「심층 분석」=전제/분석/시나리오/리스크/Recommendation. Memory/DB에 있는 정보는 반복해 묻지 않는다. 한 번에 핵심 질문 **1~3개**.
+
+#### TomResponse (확장 가능)
+
+`intent`, `subIntent`, `answer`, `confidence`, `assumptions`, `risks`, `missingInformation`, `recommendations`, `nextBestAction`, `extractedEntities`, `memoryUpdates`, `sources`, `requiresApproval`.
+
+#### 전문가 Escalation
+
+법률·세무·회계 등에서 인간 전문가를 완전히 대체한다고 표현하지 않는다. `AI Issue Detection → Expert Assignment → Expert Review → Result Integration`. 대상: Legal, Tax, Accounting, Technical, Environmental, HR.
+
+#### Roadmap / 완료 순서
+
+33절 Sprint를 임의로 뛰어넘지 않는다. 기반이 없으면 UI만 먼저 만들지 않는다. 각 Sprint는 **Architecture → Permission → DB → Server Logic → UI → Audit → Test → GitHub → Supabase** 순으로 완성도를 확인한다.
+
+`.env.local`, `service_role`, DB password, private key, secret token은 GitHub에 올리지 않는다.
 
 ---
 
@@ -201,6 +298,10 @@ type CurrentContext = {
 
 한 사용자가 여러 역할을 가진 경우 마지막 Workspace를 기본으로 열고 상단 Workspace Switcher에서 전환할 수 있다.
 
+Active Deal은 사용자가 명시적으로 선택한 값만 서버가 검증해 Context에 넣는다. **가장 최근 `deal_participants` 행을 자동 선택하지 않는다.** Deal 미선택 시 `deal = null`, `dealRole = null`, `permissions = []` 이며 이는 오류가 아니라 정상 상태이다.
+
+Client가 보낸 role / dealId / permissions는 Source of Truth가 아니다.
+
 ### 절대 금지
 
 - 클라이언트가 role을 임의 변경
@@ -219,7 +320,7 @@ type CurrentContext = {
 ## 5.2 Seller Onboarding
 
 - 회원가입/로그인 후 이용목적 선택 → 회사 연결 → Workspace → TOM 상담
-- 상담 내용은 로그인한 User 계정에 저장하고, 이후 Teaser / NDA / IM / LOI / DD와 연결한다
+- 상담 내용은 로그인한 User 계정에 저장하고, 이후 Teaser / NDA / IM / Q&A / MM / LOI / DD와 연결한다
 - Guest 익명 TOM 상담은 사용하지 않는다
 - 첫 질문: **“회사와 관련해 요즘 가장 고민되는 것이 무엇인가요?”**
 - 대화에서 업종/매출/이익/거래의도 등을 구조화 추출
@@ -256,7 +357,7 @@ Buyer Acquisition Profile은 버전관리한다.
 
 ## 6.1 Seller Top Navigation
 
-`홈 / 내 회사 / 인수후보 / 진행 중 거래 / 자료실 / 전문가 / TOM`
+`홈 / 내 회사 / 인수후보 / 진행 중 거래 / 경영진 미팅 / 자료실 / 전문가 / TOM`
 
 ### Seller Home
 
@@ -270,7 +371,7 @@ Buyer Acquisition Profile은 버전관리한다.
 
 ## 6.2 Buyer Top Navigation
 
-`홈 / 인수조건 / 추천 Deal / 관심 Deal / 진행 거래 / 자료실 / TOM`
+`홈 / 인수조건 / 추천 Deal / 관심 Deal / 진행 거래 / 경영진 미팅 / 자료실 / TOM`
 
 ### Buyer Home
 
@@ -320,6 +421,7 @@ DISCOVERY
 → OUTREACH
 → NDA
 → IM
+→ QNA
 → MANAGEMENT_MEETING
 → IOI
 → LOI
@@ -339,6 +441,7 @@ CANDIDATE
 → NDA_IN_PROGRESS
 → NDA_COMPLETED
 → IM_RELEASED
+→ QNA
 → MEETING
 → IOI
 → LOI
@@ -375,9 +478,13 @@ CANDIDATE
 - DD
 - OTHER
 
-## 7.7 베리컴 표준 M&A 10단계 Macro Process
+## 7.7 베리컴 표준 M&A Macro Process
 
-사용자를 위한 **상위 Deal Process**이다. 7.2 Deal Stage / 7.3 Opportunity Stage를 대체하거나 삭제하지 않는다. 내부 Workflow 제어는 기존 Stage를 유지하고, 화면 상단 Progress는 아래 10단계를 표시한다.
+사용자를 위한 **상위 Deal Process**이다. 7.2 Deal Stage / 7.3 Opportunity Stage를 대체하거나 삭제하지 않는다. 내부 Workflow 제어는 기존 Stage를 유지하고, 화면 상단 Progress는 아래 순서를 표시한다.
+
+화면 표시명 **경영진 미팅(MM)**. 코드 `MANAGEMENT_MEETING`.
+
+01 티저·LEVEL 1은 전략수립·딜소싱·매각준비·티저를 포함한다.
 
 ```text
 01 티저·LEVEL 1 가치평가
@@ -385,14 +492,22 @@ CANDIDATE
 → 03 매각자문 제안·LEVEL 2 가치평가
 → 04 Mandate
 → 05 CIM / IM
-→ 06 LOI
-→ 07 DD
-→ 08 SPA
-→ 09 Closing
-→ 10 PMI
+→ 06 Q&A 및 추가자료 검토
+→ 07 경영진 미팅(MM)
+→ 08 LOI
+→ 09 DD
+→ 10 SPA
+→ 11 Closing
+→ 12 PMI
 ```
 
-10단계는 PMI를 포함하며, PMI는 Closing 이후 확장 모듈이다.
+**CIM/IM → Q&A → Management Meeting → LOI** 가 기본 권장 흐름이다.
+
+예외: Buyer가 MM 없이 LOI를 내면 Opportunity는 `MM 생략`과 사유를 기록한 뒤 LOI로 갈 수 있다. 사유 예: Buyer가 MM 없이 LOI 제출, 일정상 LOI 선제출, Seller와 기존 관계, Preliminary LOI 이후 MM 합의.
+
+MM은 Deal 전체 단일 상태가 아니다. 같은 Deal의 Buyer A/B/C는 서로 다른 MM 상태를 가진다.
+
+PMI는 Closing 이후 확장 모듈이다.
 
 Macro Stage 상태:
 
@@ -422,28 +537,41 @@ Hard Gate (서버에서 강제, UI만으로 우회 금지):
 
 ## 8.1 Intent Router
 
-- SELL
-- BUY
-- FUNDRAISE
-- SUCCESSION
-- PARTNERSHIP
-- UNDECIDED
+목표 taxonomy(확장 가능, 0.3절). SubIntent를 둘 수 있다.
 
-Sprint 1 상담 분류(규칙 기반, 확정 매각·인수 의사가 아님):
+- SELL, BUY, VALUATION, BUYER_SEARCH, TARGET_SEARCH, DEAL_STRUCTURE
+- TEASER, NDA, MANDATE, CIM_IM, IOI, LOI, DD, SPA, CLOSING, PMI
+- FINANCING, NEGOTIATION, DEAL_STATUS
+- DOCUMENT_REVIEW, DOCUMENT_DRAFT, FINANCIAL_ANALYSIS, STRATEGY
+- LEGAL_QUESTION, TAX_QUESTION, ACCOUNTING_QUESTION
+- GENERAL_MA, UNKNOWN
 
-- VALUATION
-- DEAL_PROGRESS
-- DOCUMENT
-- GENERAL_MA
-- UNKNOWN
+이용목적·초기 상담에서 쓰는 분류(확정 매각·인수 의사가 아님):
+
+- FUNDRAISE, SUCCESSION, PARTNERSHIP, UNDECIDED
+
+Sprint 1 규칙 기반 구현 부분집합: SELL, BUY, FUNDRAISE, SUCCESSION, PARTNERSHIP, VALUATION, DEAL_PROGRESS(목표명 DEAL_STATUS), DOCUMENT(목표명 DOCUMENT_REVIEW / DOCUMENT_DRAFT로 분화 예정), GENERAL_MA, UNDECIDED, UNKNOWN. 확정 매각·인수 의사가 아니다.
 
 ## 8.2 Information State
+
+검색·표시용 상태(기존):
 
 | State | 처리 |
 |---|---|
 | CONFIRMED | 사용자/공식/전문가 확인 사실 |
 | ESTIMATED | 공개정보/모델 추정. UI에서 추정임을 표시 |
 | UNKNOWN | 미확인. 임의 생성 금지 |
+
+저장 시 정보 성격(0.3절, 병행):
+
+| Character | 의미 |
+|---|---|
+| FACT | 확인된 사실만. 불확실하면 FACT로 저장하지 않는다 |
+| USER_CLAIM | 사용자 주장 |
+| ASSUMPTION | 전제 |
+| INFERENCE | AI/모델 추론 |
+
+CONFIRMED ≈ FACT 후보, ESTIMATED ≈ ASSUMPTION 또는 INFERENCE, UNKNOWN은 FACT가 될 수 없다.
 
 ## 8.3 절대 추정 금지 Critical Facts
 
@@ -461,7 +589,7 @@ Sprint 1 상담 분류(규칙 기반, 확정 매각·인수 의사가 아님):
 - Tool/API/DB로 찾을 수 있으면 먼저 찾는다.
 - 없어도 진행 가능하면 진행한다.
 - Blocking이거나 정말 중요한 것만 묻는다.
-- 기본적으로 한 번에 질문 하나.
+- 한 번에 핵심 질문 1~3개. 이미 Memory/DB에 있는 정보는 다시 묻지 않는다.
 
 ---
 
@@ -688,14 +816,25 @@ Identity Release와 IM Release는 Seller의 별도 Approval이다.
 
 UNKNOWN은 그대로 UNKNOWN으로 둔다.
 
-## 14.4 Management Meeting
+## 14.4 경영진 미팅(MM)
 
-- Buyer Request
-- Seller Approve / Request Questions
-- TOM Meeting Brief
-- Calendar/Video 외부연동 가능
-- Meeting Summary
-- Next Action: IOI / 추가자료 / 보류
+MM = Management Meeting. 코드 `MANAGEMENT_MEETING`. UI 표시명 **경영진 미팅(MM)**.
+
+정의: 인수후보자가 CIM/IM을 검토한 이후 매도기업 경영진과 만나 사업, 경쟁력, 성장전략, 재무, 핵심인력, 거래배경을 확인하고 LOI 제출 여부와 조건을 검토하는 단계.
+
+목적: 회사 이해도 제고, 상호 검증, CIM/IM 심층 Q&A, 시너지·핵심인력 확인, 거래구조 사전 협의, LOI 조건 구체화.
+
+위치: CIM/IM → Q&A → **MM** → LOI. 기본 권장. Skip 가능하나 사유 필수.
+
+Workspace: 미팅 기본정보, Buyer별 상태, Agenda, Buyer 질문, Seller Checklist, Meeting Notes, Buyer 평가(1~5점·A~D), Next Action, LOI 제출기한, Previous Stage Summary.
+
+권한: Seller는 자기 Deal. Buyer는 자기 회사 MM만. Advisor는 담당 Deal 전체 Buyer MM. Expert는 초대된 MM만. 다른 Buyer의 일정·질문·평가·LOI는 열람 금지.
+
+Activity: MM 생성/일정/참석자/아젠다/질문/완료/노트/자료요청/LOI 요청·기한/취소/생략.
+
+문서 종류: 아젠다, 경영진 발표자료, 질문목록, 회의록, 후속질의, 추가자료 요청서, 현장방문 자료.
+
+AI Copilot은 Agenda·질문 초안·노트 요약 등을 Draft로만 제공하며, Advisor 검토 전 확정하지 않는다. 이번 구현은 LLM을 연결하지 않는다.
 
 ---
 
@@ -1010,6 +1149,10 @@ UI
 
 # 20. TOM AI Brain Architecture
 
+0.3절과 `docs/TOM_ARCHITECTURE.md`가 이 절보다 우선하는 운영 원칙이다. 구현은 Sprint Roadmap을 건너뛰지 않는다.
+
+3계층: **M&A Knowledge Layer / Deal Context Layer / Action·Agent Layer**.
+
 ## 20.1 Logical Brains
 
 - Strategy
@@ -1022,7 +1165,11 @@ UI
 
 ## 20.2 Agent Loop
 
-`Understand → Identify Context → Retrieve → Separate Confirmed/Estimated/Unknown → Analyze → Recommend → Draft → Approval Check → Execute Tool → Record Activity/Task`
+필수 순서(깨지 않음):
+
+`Understand → Analyze → Recommend → Draft → Ask Approval → Execute → Record`
+
+Identify Context / Retrieve / Confirmed·Estimated·Unknown 분리는 **Understand·Analyze 안의 세부 단계**이며 위 7단계를 대체하거나 순서를 바꾸지 않는다.
 
 ## 20.3 Memory
 
@@ -1471,7 +1618,7 @@ Navigation:
 - 투자유치를 검토하고 있어요
 - 아직 무엇부터 해야 할지 모르겠어요
 
-랜딩 TOM 영역은 안내 패널이다. 상담 내용은 User 계정에 저장하고, 이후 Teaser / NDA / IM / LOI / DD와 연결한다.
+랜딩 TOM 영역은 안내 패널이다. 상담 내용은 User 계정에 저장하고, 이후 Teaser / NDA / IM / Q&A / MM / LOI / DD와 연결한다.
 
 핵심 CTA:
 
@@ -1492,7 +1639,7 @@ Navigation:
 
 ## 32.6 Deal Journey Preview
 
-랜딩의 「거래 진행 흐름」은 7.7 베리컴 표준 M&A 10단계 Macro Process를 표시한다. TOM 상담은 계정 연결 후 `/consult`에서 시작한다.
+랜딩의 「거래 진행 흐름」은 7.7 베리컴 표준 M&A Macro Process를 표시한다. TOM 상담은 계정 연결 후 `/consult`에서 시작한다.
 
 ```text
 01 티저·LEVEL 1 가치평가
@@ -1500,11 +1647,13 @@ Navigation:
 → 03 매각자문 제안·LEVEL 2 가치평가
 → 04 Mandate
 → 05 CIM / IM
-→ 06 LOI
-→ 07 DD
-→ 08 SPA
-→ 09 Closing
-→ 10 PMI
+→ 06 Q&A 및 추가자료 검토
+→ 07 경영진 미팅(MM)
+→ 08 LOI
+→ 09 DD
+→ 10 SPA
+→ 11 Closing
+→ 12 PMI
 ```
 
 내부 제어용 Deal Stage / Opportunity Stage(7.2, 7.3)는 이 목록으로 대체하지 않는다.
@@ -1521,6 +1670,12 @@ Navigation:
 ---
 
 # 33. Sprint Roadmap
+
+Sprint 순서를 임의로 뛰어넘지 않는다. 기반(Architecture·Permission·DB·Server)이 없는 상태에서 UI만 먼저 만들지 않는다.
+
+각 Sprint 완성 확인 순서:
+
+`Architecture → Permission → DB → Server Logic → UI → Audit → Test → GitHub → Supabase`
 
 | Sprint | 목표 |
 |---|---|
@@ -1601,6 +1756,8 @@ Navigation:
 
 하나의 Feature가 완료되었다고 판단하려면 아래를 모두 만족해야 한다.
 
+- [ ] Architecture가 0.3절·`docs/TOM_ARCHITECTURE.md`와 충돌하지 않음 (충돌 시 코드 작성 전에 보고)
+- [ ] Permission / CurrentContext 서버 강제
 - [ ] UI 동작
 - [ ] Input / Output Schema 정의
 - [ ] DB 저장 또는 Source of Truth 연결
@@ -1633,7 +1790,9 @@ Risk: Low / Medium / High
 
 ## Step 2. 관련 규칙 검색
 
-이 `MASTER_SPEC.md`에서 관련 섹션을 먼저 읽는다.
+이 `MASTER_SPEC.md`(0.3절 포함)와, TOM/M&A 기능이면 `docs/TOM_ARCHITECTURE.md`를 먼저 읽는다. 서버 CurrentContext(User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage)를 확인한다.
+
+기능이 Architecture와 충돌하면 **코드를 작성하지 말고 충돌을 보고**한다.
 
 ## Step 3. 변경계획 제시
 
@@ -1656,14 +1815,9 @@ Plan
 
 ## Step 5. 검증
 
-- TypeScript 오류
-- Build 오류
-- Lint
-- Browser render
-- Mobile width
-- 관련 Permission/Business Rule
+가능한 경우 TypeScript Test, Unit Test, E2E, Build, 필요 시 Supabase 반영, Browser render, Permission/Business Rule을 확인한다. `.env.local` / `service_role` / DB password / private key / secret token은 커밋하지 않는다.
 
-을 확인한다.
+작업 단위가 끝나면 가능한 경우 `git status` / `git diff` / secret check 후 commit·push하고 `origin/main`을 확인한다.
 
 ## Step 6. 결과 요약
 

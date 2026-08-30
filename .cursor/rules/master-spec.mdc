@@ -5,13 +5,19 @@ alwaysApply: true
 
 # 베리컴 개발 기준
 
-**최상위 Source of Truth는 프로젝트 루트의 `MASTER_SPEC.md`이다.**  
+**최상위 Source of Truth는 프로젝트 루트의 `MASTER_SPEC.md`이다.**
 `docs/MASTER_SPEC.md`는 동일 원문의 사본이다. 내용이 다르면 루트 파일을 따른다.
 
 매 작업 전 `MASTER_SPEC.md`의 관련 절을 읽는다. 화면이면 Screen ID(예: S01), 역할, Approval Gate, Source of Truth를 확인한다.
+
+**새로운 TOM 또는 M&A 기능을 구현하기 전에 `MASTER_SPEC.md`(0.3절 포함)와 `docs/TOM_ARCHITECTURE.md`를 먼저 읽고, 현재 User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage Context를 고려해야 한다.**
+
+**기능 구현이 위 Architecture와 충돌하면 코드를 먼저 작성하지 말고 충돌을 보고해야 한다.**
 
 1. 인터넷에서 동명 회사, `vericom.co.kr`, 치과재료/의료/제조 정보를 검색해 제품·카피·회사정보·연락처·로고에 반영하지 않는다.
 2. 명세서에 없는 사실은 추측하지 말고 `TODO` / `PLACEHOLDER` / `UNKNOWN`으로 남긴다.
 3. 사용자에게 보이는 UI 문구와 Cursor 답변은 한국어로 작성한다. 영문 슬로건 `M&A, Your Way`와 TOM, NDA, IM, DD 등 명세가 허용한 고유명사/약어만 유지한다. 약어는 최초 등장 시 한국어를 병기한다.
 4. 사용자가 제공한 로고 파일은 `public/brand/vericom-logo.jpg`를 사용한다. 법인명·주소·연락처·실적 등은 명세 38절대로 Placeholder로 둔다.
-5. 지금 구현 범위는 S01 Landing / TOM (MASTER_SPEC 32절)이다. Sprint 0 이후 기능은 백엔드를 임의로 만들지 않는다.
+5. Sprint 순서를 건너뛰지 않는다. 기반 없이 UI만 먼저 만들지 않는다. 현재 제품 구현은 해당 Sprint 범위만 한다.
+6. CurrentContext는 서버가 Source of Truth다. Client 권한 값을 믿지 않는다. Active Deal을 최신 행으로 자동 선택하지 않는다.
+7. `.env.local`, service_role, DB password, private key, secret token은 커밋하지 않는다.
