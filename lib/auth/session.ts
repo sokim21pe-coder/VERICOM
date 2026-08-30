@@ -5,7 +5,12 @@ import {
   ACTIVE_PLATFORM_ROLE_COOKIE,
   resolveActivePlatformRole,
 } from "@/lib/auth/active-role";
-import type { CurrentContext } from "@/types/context";
+import {
+  ACTIVE_DEAL_COOKIE,
+  asDealId,
+  isCompanyAllowedOnDeal,
+} from "@/lib/auth/active-deal";
+import type { AccessibleDeal, CurrentContext } from "@/types/context";
 import {
   DealRole,
   MembershipRole,
@@ -85,33 +90,46 @@ export async function getCurrentContext(): Promise<CurrentContext | null> {
     }
   }
 
-  const { data: participant } = await supabase
-    .from("deal_participants")
-    .select("deal_id, deal_role")
-    .eq("user_id", appUser.id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
   let deal = null;
   let dealRole: DealRole | null = null;
   let permissions: string[] = [];
 
-  if (participant?.deal_id) {
-    const { data: dealRow } = await supabase
-      .from("deals")
-      .select("id, title")
-      .eq("id", participant.deal_id)
+  const requestedDealId = asDealId(
+    (await cookies()).get(ACTIVE_DEAL_COOKIE)?.value ?? "",
+  );
+
+  if (requestedDealId) {
+    const { data: participant } = await supabase
+      .from("deal_participants")
+      .select("deal_id, deal_role")
+      .eq("user_id", appUser.id)
+      .eq("deal_id", requestedDealId)
       .maybeSingle();
-    if (dealRow) {
-      deal = { id: dealRow.id, title: dealRow.title };
-      dealRole = asDealRole(participant.deal_role);
-      const { data: permRows } = await supabase
-        .from("deal_permissions")
-        .select("permission_code")
-        .eq("user_id", appUser.id)
-        .eq("deal_id", dealRow.id);
-      permissions = (permRows ?? []).map((row) => row.permission_code);
+
+    const role = asDealRole(participant?.deal_role ?? "");
+    if (participant?.deal_id && role) {
+      const { data: dealRow } = await supabase
+        .from("deals")
+        .select("id, title, seller_company_id")
+        .eq("id", participant.deal_id)
+        .maybeSingle();
+      if (
+        dealRow &&
+        isCompanyAllowedOnDeal({
+          companyId: company?.id ?? null,
+          sellerCompanyId: dealRow.seller_company_id,
+          dealRole: role,
+        })
+      ) {
+        deal = { id: dealRow.id, title: dealRow.title };
+        dealRole = role;
+        const { data: permRows } = await supabase
+          .from("deal_permissions")
+          .select("permission_code")
+          .eq("user_id", appUser.id)
+          .eq("deal_id", dealRow.id);
+        permissions = (permRows ?? []).map((row) => row.permission_code);
+      }
     }
   }
 
@@ -138,3 +156,42 @@ export async function getCurrentContext(): Promise<CurrentContext | null> {
     permissions,
   };
 }
+
+/** 현재 User가 참여하고 회사 역할이 맞는 Deal만. 자동 선택은 하지 않는다. */
+export async function listAccessibleDeals(): Promise<AccessibleDeal[]> {
+  if (!isSupabaseConfigured()) return [];
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+  const context = await getCurrentContext();
+  if (!context) return [];
+
+  const { data: parts } = await supabase
+    .from("deal_participants")
+    .select("deal_id, deal_role")
+    .eq("user_id", context.user.id)
+    .order("created_at", { ascending: true });
+
+  const out: AccessibleDeal[] = [];
+  for (const row of parts ?? []) {
+    const role = asDealRole(row.deal_role);
+    if (!role || !row.deal_id) continue;
+    const { data: dealRow } = await supabase
+      .from("deals")
+      .select("id, title, seller_company_id")
+      .eq("id", row.deal_id)
+      .maybeSingle();
+    if (!dealRow) continue;
+    if (
+      !isCompanyAllowedOnDeal({
+        companyId: context.company?.id ?? null,
+        sellerCompanyId: dealRow.seller_company_id,
+        dealRole: role,
+      })
+    ) {
+      continue;
+    }
+    out.push({ id: dealRow.id, title: dealRow.title, dealRole: role });
+  }
+  return out;
+}
+

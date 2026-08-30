@@ -26,6 +26,12 @@ export type AppDeal = {
   title: string | null;
 };
 
+export type AccessibleDeal = {
+  id: string;
+  title: string | null;
+  dealRole: DealRole;
+};
+
 /** MASTER_SPEC 4절. Deal이 없으면 deal / dealRole은 null. */
 export type CurrentContext = {
   user: AppUser;

@@ -1,2 +1,2 @@
 -- TODO (MASTER_SPEC 34): Auth 사용자는 앱 회원가입 또는 시드 스크립트로 만든다.
--- 공개 스키마 시드는 supabase/migrations/0011_sprint0_test_seed.sql 를 따른다.
+-- 공개 스키마 시드는 0011_sprint0_test_seed.sql, 회사 Deal 양역할은 0013_sprint0_company_deal_roles.sql 를 따른다.

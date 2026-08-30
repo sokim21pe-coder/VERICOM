@@ -2,7 +2,9 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
+import { ActiveDealSwitcher } from "@/components/layout/ActiveDealSwitcher";
 import type { PlatformRole } from "@/types/enums";
+import type { AccessibleDeal } from "@/types/context";
 
 export type WorkspaceNavItem = {
   href: string;
@@ -28,6 +30,8 @@ type WorkspaceHeaderProps = {
   signedIn?: boolean;
   platformRoles?: PlatformRole[];
   currentRole?: PlatformRole | null;
+  accessibleDeals?: AccessibleDeal[];
+  currentDealId?: string | null;
 };
 
 export function WorkspaceHeader({
@@ -38,6 +42,8 @@ export function WorkspaceHeader({
   signedIn = false,
   platformRoles = [],
   currentRole = null,
+  accessibleDeals = [],
+  currentDealId = null,
 }: WorkspaceHeaderProps) {
   const accountAction = signedIn ? (
     <LogoutButton />
@@ -70,11 +76,19 @@ export function WorkspaceHeader({
               roles={platformRoles}
               current={currentRole}
             />
+            <ActiveDealSwitcher
+              deals={accessibleDeals}
+              currentDealId={currentDealId}
+            />
           </div>
-          <div className="lg:hidden">
+          <div className="flex items-center gap-2 lg:hidden">
             <WorkspaceSwitcher
               roles={platformRoles}
               current={currentRole}
+            />
+            <ActiveDealSwitcher
+              deals={accessibleDeals}
+              currentDealId={currentDealId}
             />
           </div>
           {accountAction}

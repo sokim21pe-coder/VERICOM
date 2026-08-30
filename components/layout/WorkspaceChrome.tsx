@@ -1,6 +1,7 @@
 import { WorkspaceHeader, type WorkspaceNavItem } from "@/components/layout/WorkspaceHeader";
 import { EnvNotice } from "@/components/system/EnvNotice";
 import { requireWorkspace } from "@/lib/auth/require-workspace";
+import { listAccessibleDeals } from "@/lib/auth/session";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { buyerNav, expertNav, internalNav, sellerNav } from "@/lib/workspace/nav";
 import type { WorkspaceKind } from "@/lib/auth/workspace-router";
@@ -28,6 +29,7 @@ export async function WorkspaceChrome({
 }) {
   const configured = isSupabaseConfigured();
   const context = await requireWorkspace(workspace);
+  const accessibleDeals = context ? await listAccessibleDeals() : [];
 
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-foreground">
@@ -39,6 +41,8 @@ export async function WorkspaceChrome({
         companyName={context?.company?.name}
         platformRoles={context?.platformRoles ?? []}
         currentRole={context?.platformRole ?? null}
+        accessibleDeals={accessibleDeals}
+        currentDealId={context?.deal?.id ?? null}
       />
       {!configured ? (
         <div className="mx-auto max-w-6xl px-5 pt-4 sm:px-8">

@@ -1545,6 +1545,7 @@ Navigation:
 - [x] Activity / Audit Helper
 - [x] DD-ready Expert / Workstream Tables (스키마만)
 - [x] Current Context Builder
+- [x] Active Deal Context (httpOnly 쿠키. 최신 participant 자동 선택 없음. 미선택 시 deal=null)
 - [x] Test Seed: Seller Company (`TEST_DEV_SELLER_CO`, migration `0011_sprint0_test_seed.sql`)
 - [x] Test Seed: Buyer Company (`TEST_DEV_BUYER_CO_A`, `TEST_DEV_BUYER_CO_B`)
 - [x] Test Seed: Expert (`TEST_DEV_EXPERT`, DEAL_A assignment only)
@@ -1571,7 +1572,7 @@ Navigation:
 ## Multi-role Gate
 
 - [x] 한 User가 Seller / Buyer Role 모두 가질 수 있음 (`TEST_DEV_MULTI`, Switcher에 보유 Role만 표시)
-- [ ] 한 Company가 Deal별 Seller / Buyer가 될 수 있음 — 스키마는 유지. 한 Company가 Deal별로 양역할을 오가는 E2E는 이번 시드에 없음
+- [x] 한 Company가 Deal별 Seller / Buyer가 될 수 있음 (`TEST_DEV_SELLER_CO`는 DEAL_A Seller · DEAL_Y Buyer. Company에 영구 Seller/Buyer 컬럼 없음. Active Deal은 쿠키+서버 검증)
 - [x] Workspace Switching (`setActivePlatformRole` + `WORKSPACE_SWITCHED`)
 - [x] Seller / Buyer Permission 분리 (Buyer A는 DEAL_A만, Buyer B는 DEAL_A·Seller 회사 데이터 불가)
 - [x] Expert 별도 Login / Workspace (`/expert`, DEAL_B 미배정 차단)

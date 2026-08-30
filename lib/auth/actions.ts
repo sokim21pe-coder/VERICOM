@@ -7,6 +7,11 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getCurrentContext } from "@/lib/auth/session";
 import { GUEST_COOKIE } from "@/lib/auth/guest-session";
 import { ACTIVE_PLATFORM_ROLE_COOKIE } from "@/lib/auth/active-role";
+import {
+  ACTIVE_DEAL_COOKIE,
+  asDealId,
+  isCompanyAllowedOnDeal,
+} from "@/lib/auth/active-deal";
 import { resolvePostAuthPath, workspacePathForRole } from "@/lib/auth/workspace-router";
 import { recordAudit } from "@/lib/audit";
 import { authErrorMessage } from "@/lib/auth/errors";
@@ -16,6 +21,7 @@ import {
   safeNextPath,
 } from "@/lib/tom/paths";
 import {
+  DealRole,
   ErrorCode,
   MembershipRole,
   MembershipStatus,
@@ -331,6 +337,87 @@ export async function setActivePlatformRole(
     message: null,
     redirectTo: workspacePathForRole(role),
   };
+}
+
+export async function setActiveDeal(dealId: string | null): Promise<ActionResult> {
+  if (!isSupabaseConfigured()) return envError();
+  const context = await getCurrentContext();
+  if (!context) {
+    return { ok: false, message: authErrorMessage[ErrorCode.AUTH_REQUIRED] };
+  }
+
+  const jar = await cookies();
+  if (!dealId) {
+    jar.set(ACTIVE_DEAL_COOKIE, "", {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 0,
+    });
+    await recordAudit({
+      action: "ACTIVE_DEAL_CLEARED",
+      entityType: "deals",
+      entityId: context.user.id,
+    });
+    revalidatePath("/", "layout");
+    return { ok: true, message: null };
+  }
+
+  const id = asDealId(dealId);
+  if (!id) {
+    return { ok: false, message: authErrorMessage[ErrorCode.PERMISSION_DENIED] };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return envError();
+
+  const { data: participant } = await supabase
+    .from("deal_participants")
+    .select("deal_id, deal_role")
+    .eq("user_id", context.user.id)
+    .eq("deal_id", id)
+    .maybeSingle();
+
+  const role = (Object.values(DealRole) as string[]).includes(
+    participant?.deal_role ?? "",
+  )
+    ? (participant?.deal_role as DealRole)
+    : null;
+
+  if (!participant?.deal_id || !role) {
+    return { ok: false, message: authErrorMessage[ErrorCode.PERMISSION_DENIED] };
+  }
+
+  const { data: dealRow } = await supabase
+    .from("deals")
+    .select("id, seller_company_id")
+    .eq("id", participant.deal_id)
+    .maybeSingle();
+
+  if (
+    !dealRow ||
+    !isCompanyAllowedOnDeal({
+      companyId: context.company?.id ?? null,
+      sellerCompanyId: dealRow.seller_company_id,
+      dealRole: role,
+    })
+  ) {
+    return { ok: false, message: authErrorMessage[ErrorCode.PERMISSION_DENIED] };
+  }
+
+  jar.set(ACTIVE_DEAL_COOKIE, id, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 90,
+  });
+  await recordAudit({
+    action: "ACTIVE_DEAL_SELECTED",
+    entityType: "deals",
+    entityId: id,
+  });
+  revalidatePath("/", "layout");
+  return { ok: true, message: null };
 }
 
 export async function signOutAction(): Promise<ActionResult> {
