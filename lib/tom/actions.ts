@@ -1,25 +1,18 @@
 "use server";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { ensureAppProfile } from "@/lib/auth/actions";
 import { getCurrentContext } from "@/lib/auth/session";
 import { authErrorMessage } from "@/lib/auth/errors";
-import { ErrorCode, InformationState } from "@/types/enums";
+import { recordAudit } from "@/lib/audit";
+import { ErrorCode, PlatformRole } from "@/types/enums";
+import type { CurrentContext } from "@/types/context";
 import type { TomIntent } from "@/lib/tom/paths";
-import type {
-  TomConversation,
-  TomIntentRouter,
-  TomMemoryItem,
-  TomMessage,
-} from "@/types/tom";
-import {
-  extractIntentFromUtterance,
-  mergeExtractedIntent,
-  type ExtractedIntent,
-} from "@/lib/tom/extract-intent";
-
-const INTENT_MEMORY_KEY = "intent_router";
+import type { TomConversation, TomMemoryItem, TomMessage } from "@/types/tom";
+import { replyForIntent, routeIntent } from "@/lib/tom/intent-router";
+import { intentFromMemories, upsertIntentMemory } from "@/lib/tom/memory";
 
 function mapMessage(row: {
   id: string;
@@ -32,6 +25,16 @@ function mapMessage(row: {
     authorRole: row.author_role as TomMessage["authorRole"],
     body: row.body,
     createdAt: row.created_at,
+  };
+}
+
+function envConversationError(message: string) {
+  return {
+    ok: false,
+    message,
+    conversation: null as TomConversation | null,
+    messages: [] as TomMessage[],
+    memories: [] as TomMemoryItem[],
   };
 }
 
@@ -51,7 +54,7 @@ async function loadConversation(
 
   const { data: conversation } = await supabase
     .from("tom_conversations")
-    .select("id, intent, company_id, deal_id")
+    .select("id, intent, company_id, deal_id, user_id")
     .eq("id", conversationId)
     .eq("user_id", userId)
     .maybeSingle();
@@ -66,10 +69,19 @@ async function loadConversation(
     .eq("conversation_id", conversation.id)
     .order("created_at", { ascending: true });
 
-  const { data: memoryRows } = await supabase
+  const extraMemory = await supabase
     .from("tom_memory_items")
-    .select("memory_key, memory_value, information_state")
+    .select("memory_key, memory_value, information_state, source, confidence")
     .eq("conversation_id", conversation.id);
+  const memoryRows =
+    extraMemory.error
+      ? (
+          await supabase
+            .from("tom_memory_items")
+            .select("memory_key, memory_value, information_state")
+            .eq("conversation_id", conversation.id)
+        ).data
+      : extraMemory.data;
 
   return {
     conversation: {
@@ -79,69 +91,88 @@ async function loadConversation(
       dealId: conversation.deal_id,
     },
     messages: (rows ?? []).map(mapMessage),
-    memories: (memoryRows ?? []).map((row) => ({
-      key: row.memory_key,
-      value: row.memory_value,
-      informationState: row.information_state,
-    })),
+    memories: (memoryRows ?? []).map((row) => {
+      const extra = row as {
+        memory_key: string;
+        memory_value: string | null;
+        information_state: string;
+        source?: string | null;
+        confidence?: number | null;
+      };
+      return {
+        key: extra.memory_key,
+        value: extra.memory_value,
+        informationState: extra.information_state,
+        source: extra.source ?? null,
+        confidence:
+          typeof extra.confidence === "number" ? extra.confidence : null,
+      };
+    }),
   };
 }
 
-function previousIntentFromMemories(
-  memories: TomMemoryItem[],
-): ExtractedIntent | null {
-  const row = memories.find((item) => item.key === INTENT_MEMORY_KEY);
-  if (!row?.value) return null;
-  const router = row.value as TomIntentRouter;
-  if (
-    router !== "SELL" &&
-    router !== "BUY" &&
-    router !== "FUNDRAISE" &&
-    router !== "SUCCESSION" &&
-    router !== "PARTNERSHIP" &&
-    router !== "UNDECIDED"
-  ) {
-    return null;
+function requireSellerOrBuyerCompany(context: CurrentContext): string | null {
+  const role = context.platformRole;
+  const needsCompany =
+    role === PlatformRole.SELLER_USER || role === PlatformRole.BUYER_USER;
+  if (!context.companyMembership || !context.company) {
+    return needsCompany
+      ? "회사 연결이 필요합니다."
+      : authErrorMessage[ErrorCode.PERMISSION_DENIED];
   }
-  const state =
-    row.informationState === InformationState.CONFIRMED
-      ? InformationState.CONFIRMED
-      : row.informationState === InformationState.ESTIMATED
-        ? InformationState.ESTIMATED
-        : InformationState.UNKNOWN;
-  return { router, state };
+  return null;
 }
 
-async function upsertIntentMemory(
-  conversationId: string,
-  extracted: ExtractedIntent,
-): Promise<void> {
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return;
-
-  const { data: existing } = await supabase
-    .from("tom_memory_items")
-    .select("id")
-    .eq("conversation_id", conversationId)
-    .eq("memory_key", INTENT_MEMORY_KEY)
-    .maybeSingle();
-
-  if (existing) {
-    await supabase
-      .from("tom_memory_items")
-      .update({
-        memory_value: extracted.router,
-        information_state: extracted.state,
-      })
-      .eq("id", existing.id);
-    return;
+function conversationAllowed(
+  conversation: TomConversation,
+  context: CurrentContext,
+): boolean {
+  if (!context.company?.id) return false;
+  if (conversation.companyId && conversation.companyId !== context.company.id) {
+    return false;
   }
+  return true;
+}
 
-  await supabase.from("tom_memory_items").insert({
+function resolvedDealId(context: CurrentContext): string | null {
+  return context.deal?.id ?? null;
+}
+
+async function bindConversationContext(
+  supabase: SupabaseClient,
+  conversationId: string,
+  context: CurrentContext,
+): Promise<void> {
+  const bound = await supabase
+    .from("tom_conversations")
+    .update({
+      company_id: context.company?.id ?? null,
+      deal_id: context.deal?.id ?? null,
+      platform_role: context.platformRole,
+    })
+    .eq("id", conversationId)
+    .eq("user_id", context.user.id);
+  if (bound.error) {
+    await supabase
+      .from("tom_conversations")
+      .update({
+        company_id: context.company?.id ?? null,
+        deal_id: context.deal?.id ?? null,
+      })
+      .eq("id", conversationId)
+      .eq("user_id", context.user.id);
+  }
+}
+
+async function appendTomMessage(
+  supabase: SupabaseClient,
+  conversationId: string,
+  body: string,
+): Promise<void> {
+  await supabase.from("tom_messages").insert({
     conversation_id: conversationId,
-    memory_key: INTENT_MEMORY_KEY,
-    memory_value: extracted.router,
-    information_state: extracted.state,
+    author_role: "tom",
+    body,
   });
 }
 
@@ -155,47 +186,38 @@ export async function getOrCreateTomConversation(
   memories: TomMemoryItem[];
 }> {
   if (!isSupabaseConfigured()) {
-    return {
-      ok: false,
-      message: authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED],
-      conversation: null,
-      messages: [],
-      memories: [],
-    };
+    return envConversationError(authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED]);
   }
 
   const ensured = await ensureAppProfile();
   if (!ensured.ok) {
-    return {
-      ok: false,
-      message: ensured.message,
-      conversation: null,
-      messages: [],
-      memories: [],
-    };
+    return envConversationError(ensured.message ?? authErrorMessage[ErrorCode.AUTH_REQUIRED]);
   }
 
   const context = await getCurrentContext();
   if (!context) {
-    return {
-      ok: false,
-      message: authErrorMessage[ErrorCode.AUTH_REQUIRED],
-      conversation: null,
-      messages: [],
-      memories: [],
-    };
+    return envConversationError(authErrorMessage[ErrorCode.AUTH_REQUIRED]);
+  }
+
+  const membershipError = requireSellerOrBuyerCompany(context);
+  if (membershipError) {
+    return envConversationError(membershipError);
   }
 
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
-    return {
-      ok: false,
-      message: authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED],
-      conversation: null,
-      messages: [],
-      memories: [],
-    };
+    return envConversationError(authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED]);
   }
+
+  const { data: existing } = await supabase
+    .from("tom_conversations")
+    .select("id")
+    .eq("user_id", context.user.id)
+    .eq("intent", intent)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   const { data: conversationId, error } = await supabase.rpc(
     "get_or_create_tom_conversation",
@@ -203,13 +225,17 @@ export async function getOrCreateTomConversation(
   );
 
   if (error || !conversationId) {
-    return {
-      ok: false,
-      message: "상담을 시작하지 못했습니다.",
-      conversation: null,
-      messages: [],
-      memories: [],
-    };
+    return envConversationError("상담을 시작하지 못했습니다.");
+  }
+
+  await bindConversationContext(supabase, conversationId as string, context);
+
+  if (!existing) {
+    await recordAudit({
+      action: "TOM_CONVERSATION_STARTED",
+      entityType: "tom_conversation",
+      entityId: conversationId as string,
+    });
   }
 
   const loaded = await loadConversation(
@@ -217,14 +243,8 @@ export async function getOrCreateTomConversation(
     context.user.id,
     intent,
   );
-  if (!loaded.conversation) {
-    return {
-      ok: false,
-      message: "상담을 불러오지 못했습니다.",
-      conversation: null,
-      messages: [],
-      memories: [],
-    };
+  if (!loaded.conversation || !conversationAllowed(loaded.conversation, context)) {
+    return envConversationError("상담을 불러오지 못했습니다.");
   }
 
   return {
@@ -273,6 +293,16 @@ export async function sendTomMessage(
     };
   }
 
+  const membershipError = requireSellerOrBuyerCompany(context);
+  if (membershipError) {
+    return {
+      ok: false,
+      message: membershipError,
+      messages: [],
+      memories: [],
+    };
+  }
+
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
     return {
@@ -283,9 +313,22 @@ export async function sendTomMessage(
     };
   }
 
-  const { error } = await supabase.rpc("append_tom_user_message", {
-    p_conversation_id: conversationId,
-    p_body: text,
+  const before = await loadConversation(conversationId, context.user.id, "sell");
+  if (!before.conversation || !conversationAllowed(before.conversation, context)) {
+    return {
+      ok: false,
+      message: authErrorMessage[ErrorCode.PERMISSION_DENIED],
+      messages: [],
+      memories: [],
+    };
+  }
+
+  const dealId = resolvedDealId(context);
+
+  const { error } = await supabase.from("tom_messages").insert({
+    conversation_id: conversationId,
+    author_role: "user",
+    body: text,
   });
 
   if (error) {
@@ -305,20 +348,48 @@ export async function sendTomMessage(
     };
   }
 
-  const loaded = await loadConversation(
+  await recordAudit({
+    action: "TOM_MESSAGE_CREATED",
+    entityType: "tom_message",
+    entityId: conversationId,
+  });
+
+  const incoming = routeIntent(text);
+  const previous = intentFromMemories(before.memories);
+  const memoryResult = await upsertIntentMemory({
+    supabase,
     conversationId,
-    context.user.id,
-    "sell",
+    userId: context.user.id,
+    companyId: context.company?.id ?? null,
+    dealId,
+    previous,
+    incoming,
+  });
+
+  await recordAudit({
+    action: "TOM_INTENT_EXTRACTED",
+    entityType: "tom_memory_item",
+    entityId: conversationId,
+  });
+
+  if (memoryResult.updated) {
+    await recordAudit({
+      action: "TOM_MEMORY_UPDATED",
+      entityType: "tom_memory_item",
+      entityId: conversationId,
+    });
+  }
+
+  await appendTomMessage(
+    supabase,
+    conversationId,
+    replyForIntent(memoryResult.stored.intent),
   );
-  const merged = mergeExtractedIntent(
-    previousIntentFromMemories(loaded.memories),
-    extractIntentFromUtterance(text),
-  );
-  await upsertIntentMemory(conversationId, merged);
+
   const refreshed = await loadConversation(
     conversationId,
     context.user.id,
-    "sell",
+    before.conversation.intent,
   );
   return {
     ok: true,

@@ -429,6 +429,14 @@ Hard Gate (서버에서 강제, UI만으로 우회 금지):
 - PARTNERSHIP
 - UNDECIDED
 
+Sprint 1 상담 분류(규칙 기반, 확정 매각·인수 의사가 아님):
+
+- VALUATION
+- DEAL_PROGRESS
+- DOCUMENT
+- GENERAL_MA
+- UNKNOWN
+
 ## 8.2 Information State
 
 | State | 처리 |

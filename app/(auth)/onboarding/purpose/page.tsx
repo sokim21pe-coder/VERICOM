@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function PurposePage() {
   if (!isSupabaseConfigured()) {
     return (
-      <>
+      <div>
         <h1 className="text-2xl font-semibold text-foreground">
           베리컴에서 무엇을 하시려고 하나요?
         </h1>
@@ -20,7 +20,7 @@ export default async function PurposePage() {
           <EnvNotice />
         </div>
         <PurposeForm existingRoles={[]} />
-      </>
+      </div>
     );
   }
 
@@ -30,7 +30,7 @@ export default async function PurposePage() {
   }
 
   return (
-    <>
+    <div>
       <h1 className="text-2xl font-semibold text-foreground">
         베리컴에서 무엇을 하시려고 하나요?
       </h1>
@@ -38,6 +38,6 @@ export default async function PurposePage() {
         선택한 이용목적만 저장합니다. 이후 다른 역할도 추가할 수 있습니다.
       </p>
       <PurposeForm existingRoles={context.platformRoles} />
-    </>
+    </div>
   );
 }

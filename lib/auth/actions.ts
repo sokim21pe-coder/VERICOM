@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getCurrentContext } from "@/lib/auth/session";
@@ -193,6 +194,23 @@ export async function selectPlatformRole(
     message: null,
     redirectTo: resolvePostAuthPath(next),
   };
+}
+
+export async function submitPurposeRole(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const raw = String(formData.get("role") ?? "");
+  const role = (Object.values(PlatformRole) as string[]).includes(raw)
+    ? (raw as PlatformRole)
+    : null;
+  if (!role) {
+    return { ok: false, message: authErrorMessage[ErrorCode.PERMISSION_DENIED] };
+  }
+
+  const result = await selectPlatformRole(role);
+  if (!result.ok) return result;
+  redirect(result.redirectTo ?? "/onboarding/purpose");
 }
 
 export async function searchCompanies(

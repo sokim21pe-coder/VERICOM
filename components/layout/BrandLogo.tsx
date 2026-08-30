@@ -25,7 +25,6 @@ export function BrandLogo({
         quality={95}
         sizes="180px"
         className="h-full w-auto max-w-none bg-[#FFFFFF] object-contain object-left"
-        style={{ width: "auto", height: "100%" }}
       />
     </span>
   );

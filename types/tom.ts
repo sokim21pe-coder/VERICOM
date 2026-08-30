@@ -14,17 +14,24 @@ export type TomConversation = {
   dealId: string | null;
 };
 
-/** MASTER_SPEC 8.1 Intent Router */
+/** MASTER_SPEC 8.1 + Sprint 1 상담 Intent. 매각 확정 의사가 아니다. */
 export type TomIntentRouter =
   | "SELL"
   | "BUY"
   | "FUNDRAISE"
   | "SUCCESSION"
   | "PARTNERSHIP"
-  | "UNDECIDED";
+  | "VALUATION"
+  | "DEAL_PROGRESS"
+  | "DOCUMENT"
+  | "GENERAL_MA"
+  | "UNDECIDED"
+  | "UNKNOWN";
 
 export type TomMemoryItem = {
   key: string;
   value: string | null;
   informationState: string;
+  source?: string | null;
+  confidence?: number | null;
 };

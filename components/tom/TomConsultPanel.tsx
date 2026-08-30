@@ -3,22 +3,24 @@
 import { FormEvent, useState } from "react";
 import { sendTomMessage } from "@/lib/tom/actions";
 import {
-  informationStateLabel,
+  INTENT_MEMORY_KEY,
   intentRouterLabel,
-} from "@/lib/tom/extract-intent";
+} from "@/lib/tom/intent-router";
+import { informationStateLabel } from "@/lib/tom/extract-intent";
 import type { TomIntent } from "@/lib/tom/paths";
 import type { TomIntentRouter, TomMemoryItem, TomMessage } from "@/types/tom";
 import { InformationState } from "@/types/enums";
 
 const sellChoices = [
-  "우리 회사의 기업가치가 궁금해요",
-  "회사를 매각하고 싶어요",
-  "투자유치를 검토하고 있어요",
-  "아직 무엇부터 해야 할지 모르겠어요",
+  "회사를 매각하고 싶습니다.",
+  "기업을 팔고 싶습니다.",
+  "내 회사 가치가 궁금하다",
+  "인수자를 찾고 싶다",
+  "티저를 만들고 싶다",
 ];
 
 const buyChoices = [
-  "인수할 회사를 찾고 있어요",
+  "기업을 인수하고 싶습니다.",
   "아직 무엇부터 해야 할지 모르겠어요",
 ];
 
@@ -26,19 +28,10 @@ function intentFromMemories(memories: TomMemoryItem[]): {
   router: TomIntentRouter;
   state: InformationState;
 } | null {
-  const row = memories.find((item) => item.key === "intent_router");
+  const row = memories.find((item) => item.key === INTENT_MEMORY_KEY);
   if (!row?.value) return null;
   const router = row.value as TomIntentRouter;
-  if (
-    router !== "SELL" &&
-    router !== "BUY" &&
-    router !== "FUNDRAISE" &&
-    router !== "SUCCESSION" &&
-    router !== "PARTNERSHIP" &&
-    router !== "UNDECIDED"
-  ) {
-    return null;
-  }
+  if (!(router in intentRouterLabel)) return null;
   const state =
     row.informationState === InformationState.CONFIRMED
       ? InformationState.CONFIRMED
@@ -97,24 +90,27 @@ export function TomConsultPanel({
         {intent === "buy" ? "기업 인수 상담" : "기업 매각 상담"}
       </h1>
       <p className="mt-2.5 text-sm leading-relaxed text-muted">
-        이 대화는 계정에 저장됩니다. TOM 모델 연결은 후속 단계입니다.
+        이 대화는 로그인 계정에 저장됩니다. 입력은 규칙 기반으로 상담 방향만
+        분류합니다. 매각·인수의 확정 의사가 아닙니다.
       </p>
       {extracted ? (
         <p className="mt-3 rounded-md border border-line bg-white px-3 py-2 text-sm text-foreground">
           상담 방향: {intentRouterLabel[extracted.router]} (
           {informationStateLabel[extracted.state]})
           <span className="mt-1 block text-xs leading-5 text-muted">
-            대화에서 고른 방향입니다. 매각·인수·투자의 확정 의사가 아닙니다.
+            대화에서 고른 방향입니다. 확정 거래 의사가 아닙니다.
           </span>
         </p>
       ) : null}
 
-      <div className="mt-6 max-h-72 space-y-3 overflow-y-auto text-sm leading-relaxed">
+      <div className="mt-6 max-h-[28rem] space-y-3 overflow-y-auto text-sm leading-relaxed">
         {messages.map((item) => (
           <p
             key={item.id}
             className={
-              item.authorRole === "tom" ? "text-foreground" : "text-right text-navy"
+              item.authorRole === "tom"
+                ? "whitespace-pre-wrap text-foreground"
+                : "text-right text-navy"
             }
           >
             {item.body}

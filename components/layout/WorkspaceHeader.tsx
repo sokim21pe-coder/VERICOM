@@ -64,33 +64,21 @@ export function WorkspaceHeader({
           <BrandLogo className="h-10 sm:h-12" priority />
         </Link>
         <div className="order-2 flex items-center gap-3 lg:order-3">
-          <div className="hidden items-center gap-4 lg:flex">
-            <p className="text-xs text-muted">{roleLabel}</p>
-            {companyName ? (
-              <p className="text-xs text-muted">{companyName}</p>
-            ) : null}
-            {userName ? (
-              <p className="text-xs text-foreground">{userName}</p>
-            ) : null}
-            <WorkspaceSwitcher
-              roles={platformRoles}
-              current={currentRole}
-            />
-            <ActiveDealSwitcher
-              deals={accessibleDeals}
-              currentDealId={currentDealId}
-            />
-          </div>
-          <div className="flex items-center gap-2 lg:hidden">
-            <WorkspaceSwitcher
-              roles={platformRoles}
-              current={currentRole}
-            />
-            <ActiveDealSwitcher
-              deals={accessibleDeals}
-              currentDealId={currentDealId}
-            />
-          </div>
+          <p className="hidden text-xs text-muted lg:block">{roleLabel}</p>
+          {companyName ? (
+            <p className="hidden text-xs text-muted lg:block">{companyName}</p>
+          ) : null}
+          {userName ? (
+            <p className="hidden text-xs text-foreground lg:block">{userName}</p>
+          ) : null}
+          <WorkspaceSwitcher
+            roles={platformRoles}
+            current={currentRole}
+          />
+          <ActiveDealSwitcher
+            deals={accessibleDeals}
+            currentDealId={currentDealId}
+          />
           {accountAction}
         </div>
         <nav
