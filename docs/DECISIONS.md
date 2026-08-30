@@ -44,3 +44,5 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 - Agent Loop: 20.2의 Identify Context/Retrieve/상태 분리는 7단계 North Star 안의 세부일 뿐, 순서를 대체하지 않는다.
 - 범위: 1.1 MVP는 Management Meeting까지 실행, Architecture는 SPA/Closing/PMI까지 설계. 구현은 33절 Sprint를 건너뛰지 않는다.
 2026-08-30 Sprint 1 TOM Question Policy: Seller `/consult`는 LLM 없이 Discovery Field를 한 질문씩 수집한다. 이미 DB·CurrentContext·Memory에 있는 값은 다시 묻지 않는다. 사용자 답변은 `tom_memory_items`에 USER_CLAIM으로 저장하고, 불확실하면 UNKNOWN이며 FACT로 추정하지 않는다. 질문 엔진은 `lib/tom/question-policy.ts`. Valuation·Buyer Matching·Teaser는 하지 않는다.
+
+2026-08-30 Sprint 1 Buyer Discovery: 공통 Question Engine에 `DiscoveryProfile` BUYER를 추가했다. Buyer `/consult`는 인수조건을 한 질문씩 모아 `tom_memory_items`에 Acquisition Criteria로 저장한다. Buyer 회사 업종과 Target 산업은 분리한다. multi-value는 JSON `values`로 병합하고, 숫자는 명시된 억 단위만 KRW로 정규화한다. Matching·Valuation·LLM은 하지 않는다. 새 테이블·0008/0009는 적용하지 않았다.

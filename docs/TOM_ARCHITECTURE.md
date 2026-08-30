@@ -104,6 +104,8 @@ SubIntent 예 (LOI): PRICE, EXCLUSIVITY, PAYMENT, FINANCING, DD_SCOPE, CONDITION
 
 표시용 Information State(CONFIRMED / ESTIMATED / UNKNOWN)와 병행한다. 매핑은 `MASTER_SPEC` 8.2.
 
+Discovery는 Active Platform Role과 Conversation Intent로 `SELLER` / `BUYER` 프로필을 고른다. Seller 필드(`reason_for_sale` 등)와 Buyer Acquisition Criteria(`acquisition_objective`, `target_industries` 등)는 같은 Memory 테이블을 쓰되 대화·프로필로 격리한다. Buyer 회사 업종과 Target 산업은 다른 필드다.
+
 ---
 
 ## 7. Source Priority

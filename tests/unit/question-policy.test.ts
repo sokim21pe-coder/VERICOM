@@ -125,12 +125,13 @@ test("reverse question is answered before discovery resumes", () => {
   assert.match(turn.reply, /시점/);
 });
 
-test("buyer role does not get seller discovery questions", () => {
+test("buyer role gets buyer questions not seller ones", () => {
   const question = getNextBestQuestion({
     memories: [],
     context: { ...sellerContext, platformRole: PlatformRole.BUYER_USER },
   });
-  assert.equal(question, null);
+  assert.equal(question?.field, "acquisition_objective");
+  assert.notEqual(question?.field, "reason_for_sale");
 });
 
 test("other company cannot read conversation", () => {

@@ -2,6 +2,8 @@ import { InformationState } from "@/types/enums";
 
 export const DISCOVERY_LAST_QUESTION_KEY = "discovery_last_question";
 
+export type DiscoveryProfile = "SELLER" | "BUYER";
+
 export type DiscoveryFieldId =
   | "seller_objective"
   | "reason_for_sale"
@@ -26,7 +28,32 @@ export type DiscoveryFieldId =
   | "buyer_preference"
   | "excluded_buyers"
   | "confidentiality"
-  | "special_conditions";
+  | "special_conditions"
+  | "acquisition_objective"
+  | "target_industries"
+  | "target_businesses"
+  | "target_geographies"
+  | "listing_preference"
+  | "target_revenue_min"
+  | "target_revenue_max"
+  | "target_ebitda_min"
+  | "target_ebitda_max"
+  | "investment_size_min"
+  | "investment_size_max"
+  | "ownership_preference"
+  | "structure_preference"
+  | "acquisition_timeline"
+  | "profitability_requirement"
+  | "debt_tolerance"
+  | "growth_preference"
+  | "technology_requirements"
+  | "customer_requirements"
+  | "excluded_industries"
+  | "excluded_geographies"
+  | "excluded_companies"
+  | "deal_breakers"
+  | "management_retention_preference"
+  | "strategic_requirements";
 
 export type DiscoveryRequirement = "required" | "optional" | "context";
 
@@ -37,6 +64,7 @@ export type DiscoveryFieldDef = {
   priority: number;
   question: string;
   reason: string;
+  profile?: DiscoveryProfile;
 };
 
 /** 숫자가 낮을수록 먼저 묻는다. context 필드는 DB에서 채우면 질문하지 않는다. */
@@ -235,16 +263,280 @@ export const SELLER_DISCOVERY_FIELDS: DiscoveryFieldDef[] = [
   },
 ];
 
-export const ASKABLE_DISCOVERY_FIELDS = SELLER_DISCOVERY_FIELDS.filter(
-  (field) => field.requirement !== "context",
-).sort((a, b) => a.priority - b.priority);
+export const BUYER_DISCOVERY_FIELDS: DiscoveryFieldDef[] = [
+  {
+    id: "acquisition_objective",
+    category: "BUYER_CRITERIA",
+    requirement: "required",
+    priority: 1,
+    profile: "BUYER",
+    question:
+      "이번 인수에서 가장 중요한 목적은 무엇인가요? 예를 들어 사업확장, 기술확보, 신규시장 진입 등이 있습니다.",
+    reason: "인수 목적이 Target 적합도의 출발점입니다.",
+  },
+  {
+    id: "target_industries",
+    category: "BUYER_CRITERIA",
+    requirement: "required",
+    priority: 2,
+    profile: "BUYER",
+    question: "어떤 산업의 회사를 찾고 계신가요?",
+    reason: "관심 산업은 Buyer 회사 업종과 별개입니다.",
+  },
+  {
+    id: "target_businesses",
+    category: "BUYER_CRITERIA",
+    requirement: "required",
+    priority: 3,
+    profile: "BUYER",
+    question: "관심 있는 사업이나 제품·기술은 무엇인가요?",
+    reason: "사업·제품 조건은 산업과 따로 저장합니다.",
+  },
+  {
+    id: "target_geographies",
+    category: "BUYER_CRITERIA",
+    requirement: "required",
+    priority: 4,
+    profile: "BUYER",
+    question: "인수 대상을 어느 지역에서 보고 계신가요?",
+    reason: "지역은 복수 선택이 가능합니다.",
+  },
+  {
+    id: "listing_preference",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 5,
+    profile: "BUYER",
+    question: "상장사와 비상장사 중 선호가 있으신가요?",
+    reason: "상장 여부는 이후 Matching 필터로 쓸 수 있습니다.",
+  },
+  {
+    id: "target_revenue_min",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 6,
+    profile: "BUYER",
+    question: "인수 대상의 매출 규모 범위가 있으신가요?",
+    reason: "말씀하신 숫자만 저장하며 추정하지 않습니다.",
+  },
+  {
+    id: "target_revenue_max",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 7,
+    profile: "BUYER",
+    question: "매출 상한선이 있으신가요?",
+    reason: "범위의 상한을 따로 저장합니다.",
+  },
+  {
+    id: "investment_size_max",
+    category: "BUYER_CRITERIA",
+    requirement: "required",
+    priority: 8,
+    profile: "BUYER",
+    question: "희망 투자금액 범위가 있으신가요?",
+    reason: "투자 한도는 사용자 주장으로만 저장합니다.",
+  },
+  {
+    id: "investment_size_min",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 9,
+    profile: "BUYER",
+    question: "투자 가능한 최소 금액이 있으신가요?",
+    reason: "하한이 있으면 범위로 남깁니다.",
+  },
+  {
+    id: "ownership_preference",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 10,
+    profile: "BUYER",
+    question:
+      "지분은 어느 정도까지 인수하는 방향을 보고 계신가요? 예를 들어 100%, 경영권 지분, Majority, Minority 등이 있습니다.",
+    reason: "지분 범위는 거래 구조를 가릅니다.",
+  },
+  {
+    id: "acquisition_timeline",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 11,
+    profile: "BUYER",
+    question: "인수를 검토하시는 시점이 있으신가요?",
+    reason: "일정은 알려 주신 범위만 저장합니다.",
+  },
+  {
+    id: "target_ebitda_min",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 12,
+    profile: "BUYER",
+    question: "EBITDA(상각 전 영업이익)에서 보고 싶은 수준이 있으신가요?",
+    reason: "수익성 숫자는 추정하지 않습니다.",
+  },
+  {
+    id: "target_ebitda_max",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 13,
+    profile: "BUYER",
+    question: "EBITDA 상한선이 있으신가요?",
+    reason: "상한이 있으면 따로 저장합니다.",
+  },
+  {
+    id: "profitability_requirement",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 14,
+    profile: "BUYER",
+    question: "수익성이나 흑자 여부에서 꼭 보고 싶은 조건이 있으신가요?",
+    reason: "재무조건은 사용자 주장으로만 남깁니다.",
+  },
+  {
+    id: "debt_tolerance",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 15,
+    profile: "BUYER",
+    question: "대상 회사의 부채에 대해 허용 가능한 수준이 있으신가요?",
+    reason: "부채 허용 범위는 추정하지 않습니다.",
+  },
+  {
+    id: "growth_preference",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 16,
+    profile: "BUYER",
+    question: "성장성에서 보고 싶은 조건이 있으신가요?",
+    reason: "성장 선호는 USER_CLAIM입니다.",
+  },
+  {
+    id: "technology_requirements",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 17,
+    profile: "BUYER",
+    question: "꼭 필요한 기술이나 IP가 있으신가요?",
+    reason: "기술 요구는 Target 산업과 별개로 저장합니다.",
+  },
+  {
+    id: "customer_requirements",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 18,
+    profile: "BUYER",
+    question: "고객이나 매출 구조에서 보고 싶은 조건이 있으신가요?",
+    reason: "고객 조건은 사용자 주장으로만 남깁니다.",
+  },
+  {
+    id: "structure_preference",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 19,
+    profile: "BUYER",
+    question:
+      "선호하시는 거래 구조가 있으신가요? 예를 들어 현금 인수, Earn-out, Rollover, 자산/주식 거래 등이 있습니다.",
+    reason: "구조 선호는 이후 협상 출발점입니다.",
+  },
+  {
+    id: "excluded_industries",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 20,
+    profile: "BUYER",
+    question: "보고 싶지 않은 산업이 있으신가요?",
+    reason: "제외 산업은 Negative Memory입니다.",
+  },
+  {
+    id: "excluded_geographies",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 21,
+    profile: "BUYER",
+    question: "제외하고 싶은 지역이 있으신가요?",
+    reason: "제외 지역은 복수 저장합니다.",
+  },
+  {
+    id: "excluded_companies",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 22,
+    profile: "BUYER",
+    question: "인수 검토에서 빼고 싶은 회사가 있으신가요?",
+    reason: "제외 회사는 Deal Breaker와 구분합니다.",
+  },
+  {
+    id: "deal_breakers",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 23,
+    profile: "BUYER",
+    question: "이 조건이면 진행하지 않겠다 싶은 Deal Breaker가 있으신가요?",
+    reason: "Deal Breaker는 이후 Hard Filter 후보입니다.",
+  },
+  {
+    id: "management_retention_preference",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 24,
+    profile: "BUYER",
+    question: "기존 경영진 잔류에 대한 선호가 있으신가요?",
+    reason: "경영진 조건은 거래 구조와 맞춥니다.",
+  },
+  {
+    id: "strategic_requirements",
+    category: "BUYER_CRITERIA",
+    requirement: "optional",
+    priority: 25,
+    profile: "BUYER",
+    question: "그 밖에 꼭 맞추고 싶은 전략 조건이 있으신가요?",
+    reason: "기타 전략 조건을 놓치지 않기 위함입니다.",
+  },
+];
 
-export const REQUIRED_DISCOVERY_FIELDS = ASKABLE_DISCOVERY_FIELDS.filter(
-  (field) => field.requirement === "required",
-);
+const ALL_DISCOVERY_FIELDS: DiscoveryFieldDef[] = [
+  ...SELLER_DISCOVERY_FIELDS.map((field) => ({
+    ...field,
+    profile: (field.profile ?? "SELLER") as DiscoveryProfile,
+  })),
+  ...BUYER_DISCOVERY_FIELDS,
+];
+
+export const MULTI_VALUE_DISCOVERY_FIELDS: DiscoveryFieldId[] = [
+  "target_industries",
+  "target_businesses",
+  "target_geographies",
+  "excluded_industries",
+  "excluded_geographies",
+  "excluded_companies",
+  "deal_breakers",
+];
+
+export function fieldProfile(def: DiscoveryFieldDef): DiscoveryProfile {
+  return def.profile ?? "SELLER";
+}
+
+export function askableFields(profile: DiscoveryProfile): DiscoveryFieldDef[] {
+  return ALL_DISCOVERY_FIELDS.filter(
+    (field) => fieldProfile(field) === profile && field.requirement !== "context",
+  ).sort((a, b) => a.priority - b.priority);
+}
+
+export function requiredFields(profile: DiscoveryProfile): DiscoveryFieldDef[] {
+  return askableFields(profile).filter((field) => field.requirement === "required");
+}
+
+export function isMultiValueField(id: DiscoveryFieldId): boolean {
+  return MULTI_VALUE_DISCOVERY_FIELDS.includes(id);
+}
+
+/** Seller 호환. 새 코드는 askableFields(profile)를 사용한다. */
+export const ASKABLE_DISCOVERY_FIELDS = askableFields("SELLER");
+
+export const REQUIRED_DISCOVERY_FIELDS = requiredFields("SELLER");
 
 export function fieldById(id: string): DiscoveryFieldDef | undefined {
-  return SELLER_DISCOVERY_FIELDS.find((field) => field.id === id);
+  return ALL_DISCOVERY_FIELDS.find((field) => field.id === id);
 }
 
 export type MemoryCharacter = "FACT" | "USER_CLAIM" | "ASSUMPTION" | "INFERENCE";

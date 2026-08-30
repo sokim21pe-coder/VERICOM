@@ -17,14 +17,14 @@ const chromeCandidates = [
 ].filter(Boolean);
 
 async function main() {
-  const password = process.env.VERICOM_TEST_SEED_PASSWORD;
-  if (!password) {
-    console.log("FAIL PASSWORD_MISSING");
-    process.exit(1);
-  }
   const env = loadEnv();
   if (!env.NEXT_PUBLIC_SUPABASE_URL) {
     console.log("FAIL ENV");
+    process.exit(1);
+  }
+  const password = process.env.VERICOM_TEST_SEED_PASSWORD || env.VERICOM_TEST_SEED_PASSWORD;
+  if (!password) {
+    console.log("FAIL PASSWORD_MISSING");
     process.exit(1);
   }
 
@@ -52,7 +52,7 @@ async function main() {
   const mark = (ok, label) => notes.push(`${ok ? "PASS" : "FAIL"} ${label}`);
 
   async function login() {
-    await page.goto("http://localhost:3000/login", { waitUntil: "networkidle0" });
+    await page.goto("http://localhost:3000/login", { waitUntil: "domcontentloaded" });
     if (!page.url().includes("/login")) return;
     await page.waitForSelector('input[name="email"]', { timeout: 20000 });
     await page.click('input[name="email"]', { clickCount: 3 });
@@ -82,7 +82,7 @@ async function main() {
     mark(!page.url().includes("/login"), "seller_login");
 
     await page.goto("http://localhost:3000/consult?intent=sell", {
-      waitUntil: "networkidle0",
+      waitUntil: "domcontentloaded",
     });
     mark(page.url().includes("/consult"), "consult_open");
 
@@ -129,7 +129,7 @@ async function main() {
     const afterSkip = await tomText();
     mark(true, "decline_accepted");
 
-    await page.reload({ waitUntil: "networkidle0" });
+    await page.reload({ waitUntil: "domcontentloaded" });
     body = await tomText();
     mark(body.includes("후계자가 없어"), "refresh_keeps_user_message");
 
@@ -147,7 +147,7 @@ async function main() {
     }
     await login();
     await page.goto("http://localhost:3000/consult?intent=sell", {
-      waitUntil: "networkidle0",
+      waitUntil: "domcontentloaded",
     });
     const lastTom = await page.evaluate(() => {
       const nodes = [...document.querySelectorAll("section p.whitespace-pre-wrap")];

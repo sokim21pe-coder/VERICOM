@@ -13,8 +13,8 @@ import type { TomIntent } from "@/lib/tom/paths";
 import type { TomConversation, TomMemoryItem, TomMessage } from "@/types/tom";
 import { replyForIntent, routeIntent } from "@/lib/tom/intent-router";
 import { intentFromMemories, upsertIntentMemory } from "@/lib/tom/memory";
-import { isSellerDiscoveryRole } from "@/lib/tom/question-policy";
-import { runSellerDiscoveryTurn } from "@/lib/tom/seller-discovery";
+import { discoveryProfileFrom } from "@/lib/tom/question-policy";
+import { runDiscoveryTurn } from "@/lib/tom/seller-discovery";
 import {
   persistDiscoveryCaptures,
   persistLastQuestion,
@@ -139,7 +139,10 @@ function conversationAllowed(
   return canReadTomConversation(conversation, context);
 }
 
-function discoveryContextFrom(context: CurrentContext): DiscoveryContextFacts {
+function discoveryContextFrom(
+  context: CurrentContext,
+  conversationIntent?: "sell" | "buy" | null,
+): DiscoveryContextFacts {
   return {
     companyName: context.company?.name ?? null,
     industry: context.company?.industry ?? null,
@@ -147,6 +150,8 @@ function discoveryContextFrom(context: CurrentContext): DiscoveryContextFacts {
     dealId: context.deal?.id ?? null,
     dealRole: context.dealRole,
     dealStage: null,
+    conversationIntent: conversationIntent ?? null,
+    profile: discoveryProfileFrom(context.platformRole, conversationIntent),
   };
 }
 
@@ -263,7 +268,7 @@ export async function getOrCreateTomConversation(
     return envConversationError("상담을 불러오지 못했습니다.");
   }
 
-  if (isSellerDiscoveryRole(context.platformRole) && intent === "sell") {
+  if (discoveryProfileFrom(context.platformRole, intent)) {
     await seedContextMemories({
       supabase,
       conversationId: conversationId as string,
@@ -417,10 +422,11 @@ export async function sendTomMessage(
     });
   }
 
-  if (
-    isSellerDiscoveryRole(context.platformRole) &&
-    before.conversation.intent === "sell"
-  ) {
+  const profile = discoveryProfileFrom(
+    context.platformRole,
+    before.conversation.intent,
+  );
+  if (profile) {
     await seedContextMemories({
       supabase,
       conversationId,
@@ -435,10 +441,11 @@ export async function sendTomMessage(
       context.user.id,
       before.conversation.intent,
     );
-    const turn = runSellerDiscoveryTurn({
+    const turn = runDiscoveryTurn({
       text,
       memories: seeded.memories,
-      context: discoveryContextFrom(context),
+      context: discoveryContextFrom(context, before.conversation.intent),
+      profile,
     });
     const captured = await persistDiscoveryCaptures({
       supabase,
@@ -447,6 +454,7 @@ export async function sendTomMessage(
       companyId: context.company?.id ?? null,
       dealId,
       captures: turn.captures,
+      existingMemories: seeded.memories,
     });
     if (captured > 0) {
       await recordAudit({

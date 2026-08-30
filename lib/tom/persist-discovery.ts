@@ -3,10 +3,13 @@ import { InformationState } from "@/types/enums";
 import {
   DISCOVERY_LAST_QUESTION_KEY,
   encodeMemorySource,
+  isMultiValueField,
   type DiscoveryFieldId,
   type MemoryCharacter,
 } from "@/lib/tom/discovery-fields";
 import type { DiscoveryCapture } from "@/lib/tom/extract-discovery";
+import type { TomMemoryItem } from "@/types/tom";
+import { mergeStoredMultiValue } from "@/lib/tom/criteria-value";
 
 export async function upsertTomMemoryRow(input: {
   supabase: SupabaseClient;
@@ -83,13 +86,21 @@ export async function persistDiscoveryCaptures(input: {
   companyId: string | null;
   dealId: string | null;
   captures: DiscoveryCapture[];
+  existingMemories?: TomMemoryItem[];
 }): Promise<number> {
   let written = 0;
   for (const item of input.captures) {
+    let value = item.value;
+    if (!item.skipped && isMultiValueField(item.field)) {
+      const previous = input.existingMemories?.find((row) => row.key === item.field);
+      if (previous?.value) {
+        value = mergeStoredMultiValue(previous.value, item.value);
+      }
+    }
     const ok = await upsertTomMemoryRow({
       ...input,
       key: item.field,
-      value: item.value,
+      value,
       informationState: item.informationState,
       origin: "user_message",
       character: "USER_CLAIM",

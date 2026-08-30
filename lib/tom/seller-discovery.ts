@@ -11,10 +11,10 @@ import {
   type DiscoveryContextFacts,
 } from "@/lib/tom/question-policy";
 import type { DiscoveryCapture } from "@/lib/tom/extract-discovery";
-import type { DiscoveryFieldId } from "@/lib/tom/discovery-fields";
+import type { DiscoveryFieldId, DiscoveryProfile } from "@/lib/tom/discovery-fields";
 import type { TomQuestion } from "@/lib/tom/question-policy";
 
-export type SellerDiscoveryTurn = {
+export type DiscoveryTurn = {
   captures: DiscoveryCapture[];
   declinedLast: boolean;
   reverseQuestion: boolean;
@@ -23,15 +23,19 @@ export type SellerDiscoveryTurn = {
   askedField: DiscoveryFieldId | null;
 };
 
-export function runSellerDiscoveryTurn(input: {
+export type SellerDiscoveryTurn = DiscoveryTurn;
+
+export function runDiscoveryTurn(input: {
   text: string;
   memories: TomMemoryItem[];
   context: DiscoveryContextFacts;
-}): SellerDiscoveryTurn {
+  profile: DiscoveryProfile;
+}): DiscoveryTurn {
   const lastQuestion = lastAskedField(input.memories);
   const extracted = extractDiscoveryFromMessage({
     text: input.text,
     lastQuestion,
+    profile: input.profile,
   });
 
   const projected: TomMemoryItem[] = [
@@ -50,6 +54,7 @@ export function runSellerDiscoveryTurn(input: {
   const suppress =
     extracted.declinedLast && lastQuestion ? lastQuestion : null;
   let nextQuestion = getNextBestQuestion({
+    profile: input.profile,
     memories: projected,
     context: input.context,
     suppressField: suppress,
@@ -58,7 +63,7 @@ export function runSellerDiscoveryTurn(input: {
     extracted.reverseQuestion &&
     lastQuestion &&
     !extracted.declinedLast &&
-    shouldAskField(lastQuestion, projected, input.context)
+    shouldAskField(lastQuestion, projected, input.context, input.profile)
   ) {
     nextQuestion = questionForField(lastQuestion) ?? nextQuestion;
   }
@@ -95,4 +100,20 @@ export function runSellerDiscoveryTurn(input: {
     reply: parts.join("\n"),
     askedField: nextQuestion?.field ?? null,
   };
+}
+
+export function runSellerDiscoveryTurn(input: {
+  text: string;
+  memories: TomMemoryItem[];
+  context: DiscoveryContextFacts;
+}): SellerDiscoveryTurn {
+  return runDiscoveryTurn({ ...input, profile: "SELLER" });
+}
+
+export function runBuyerDiscoveryTurn(input: {
+  text: string;
+  memories: TomMemoryItem[];
+  context: DiscoveryContextFacts;
+}): DiscoveryTurn {
+  return runDiscoveryTurn({ ...input, profile: "BUYER" });
 }
