@@ -1,10 +1,10 @@
 # TOM Architecture
 
 > **상태:** 공식 Architecture (2026-08-30)  
-> **Source of Truth:** 프로젝트 루트 `MASTER_SPEC.md` 0.3절·4절·7절·8절·20절  
+> **Source of Truth:** 프로젝트 루트 `MASTER_SPEC.md` 0.3절·0.4절·4절·7절·8절·20절  
 > **이 문서:** 동일 원칙의 상세 설명. 내용이 다르면 `MASTER_SPEC.md`를 따른다.
 
-새로운 TOM 또는 M&A 기능을 구현하기 전에 `MASTER_SPEC.md`와 이 문서를 먼저 읽고, 현재 User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage Context를 고려해야 한다.
+새로운 TOM 또는 M&A 기능을 구현하기 전에 `MASTER_SPEC.md`(0.3절·0.4절 포함)와 이 문서를 먼저 읽고, 현재 User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage Context를 고려해야 한다.
 
 기능 구현이 이 Architecture와 충돌하면 코드를 먼저 작성하지 말고 충돌을 보고해야 한다.
 
@@ -32,6 +32,8 @@ TOM은 단순한 챗봇이 아니다.
 - AI / Data / Workflow Automation
 
 TOM은 실제 인간 경력이나 실제 Deal 경험이 있다고 허위로 말하지 않는다.
+
+TOM은 Seller와 Buyer 사이에서 모든 메시지를 대신 전달하는 단순 중개자가 아니다. 대화·Deal Context 이해, 실무 조언, 리스크, 메시지 초안, Next Best Action, 필요 시 **중개자문 요청** 제안이 역할이다. 플랫폼 Direct Communication과 Advisor Escalation은 `MASTER_SPEC` 0.4절.
 
 ---
 
@@ -78,9 +80,13 @@ Active Deal은 명시적 선택만. 가장 최근 Deal 자동 선택 금지. 미
 
 ## 4. Deal vs Opportunity vs Company Role
 
-- Deal: Seller의 전체 매각 프로젝트
-- Opportunity: Seller ↔ 특정 Buyer의 1:1 path. 합치지 않는다. Buyer 상호 정보 접근 금지.
-- Company에 영구 Seller/Buyer 속성 금지. Role은 Deal Context.
+Deal = Seller의 전체 매각 프로젝트. Opportunity = Seller ↔ 특정 Buyer의 1:1 Deal Path. **합치지 않는다.**
+
+Seller↔Buyer 직접 커뮤니케이션은 **Opportunity 단위**다. Buyer A는 Buyer B의 존재·메시지·문서·가격·협상·진행상태를 볼 수 없다.
+
+Messaging Access와 Identity / IM / Document Access는 독립이다. 직접 대화가 모든 정보 공개를 뜻하지 않는다. MM·LOI 이전에도 Opportunity Messaging이 가능하다. Cold Call은 기본 UX가 아니다 (`MASTER_SPEC` 0.4절).
+
+Company에 영구 Seller/Buyer 속성 금지. Role은 Deal Context.
 
 ---
 
@@ -190,9 +196,17 @@ TomResponse {
 
 인간 전문가를 완전히 대체한다고 말하지 않는다.
 
+중개자문 요청은 실패 버튼이 아니다. Hybrid Mode: Self-Service → AI-Assisted → Advisor-Assisted → Expert-Assisted.
+
+장기: `User → 중개자문 요청 → TOM 상황 정리 → Deal Context 첨부 → 유형 분류 → Internal 검토 → 직접 해결 또는 Expert Matching → Scoped Access → Deal 반영 → Audit`.
+
+자격 전문가는 기존과 같다.
+
 `AI Issue Detection → Expert Assignment → Expert Review → Result Integration`
 
 Legal, Tax, Accounting, Technical, Environmental, HR.
+
+TOM이 상황이 복잡하면 「VERICOM 중개자문을 요청하시겠습니까?」로 연결할 수 있어야 한다. 이번 Sprint에서 Messaging·AdvisoryRequest 기능을 구현하지 않는다. Domain 후보는 `MASTER_SPEC` 0.4절 (`OpportunityMessage`, `AdvisoryRequest`, `AdvisoryAssignment`, `ExpertAssignment`).
 
 ---
 

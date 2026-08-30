@@ -6,7 +6,7 @@
 > **기준 원문:** `VERICOM 플랫폼 개발기획서 최종통합본 v2.0` (2026-08-18)  
 > **문서 성격:** Source of Truth / Product + Engineering Master Spec  
 > **기본 언어:** 한국어 UI, 한국어 사용자 문구, 코드/Enum/API 식별자는 영문 사용  
-> **TOM Architecture 상세:** `docs/TOM_ARCHITECTURE.md` (충돌 시 이 파일 0.3절·20절이 우선)
+> **TOM Architecture 상세:** `docs/TOM_ARCHITECTURE.md` (충돌 시 이 파일 0.3절·0.4절·20절이 우선)
 
 ---
 
@@ -39,7 +39,9 @@ Cursor는 매 작업 시작 전 다음을 확인한다.
 - 기존 Business Rule을 깨뜨리는지
 - 테스트가 필요한지
 
-**새로운 TOM 또는 M&A 기능을 구현하기 전에 `MASTER_SPEC.md`(특히 0.3절·4절·7절·8절·20절)와 `docs/TOM_ARCHITECTURE.md`를 먼저 읽고, 현재 User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage Context를 고려해야 한다.**
+**새로운 TOM 또는 M&A 기능을 구현하기 전에 `MASTER_SPEC.md`(특히 0.3절·0.4절·4절·7절·8절·20절)와 `docs/TOM_ARCHITECTURE.md`를 먼저 읽고, 현재 User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage Context를 고려해야 한다.**
+
+**Buyer Matching, Opportunity, Messaging, NDA, Identity Release, IM, MM, LOI, DD, Negotiation, SPA, Closing, Expert Portal, Internal Workspace, TOM을 구현할 때 0.4 Direct M&A 원칙을 확인한다. 모든 커뮤니케이션이 VERICOM 직원이 대신해야만 작동하는 구조면 코드를 쓰지 말고 Architecture 충돌을 보고한다.**
 
 **기능 구현이 위 Architecture와 충돌하면 코드를 먼저 작성하지 말고 충돌을 보고해야 한다.**
 
@@ -137,11 +139,128 @@ Buyer 자료 전송, Seller Identity 공개, IM 공개, NDA 상태 변경, Deal 
 
 `.env.local`, `service_role`, DB password, private key, secret token은 GitHub에 올리지 않는다.
 
+### 0.4 VERICOM Direct M&A Operating Principles (영구)
+
+이 절은 일회성 UX가 아니라 **VERICOM 전체 Architecture·Deal Workflow·TOM·Messaging·Buyer Matching·Opportunity·MM·LOI·전문가 Marketplace**에 계속 적용하는 최상위 Platform Principle이다. 다른 절과 충돌하면 이 절과 `docs/DECISIONS.md`의 최신 결정을 우선한다.
+
+#### 정체성
+
+VERICOM은 전통적인 오프라인 M&A 중개회사처럼 「중개자가 Buyer에게 일일이 Cold Call하고, 모든 대화를 중개자가 전달해야만 거래가 진행되는 구조」를 **기본 운영방식**으로 쓰지 않는다.
+
+VERICOM은 **Traditional Broker-led M&A Platform**이 아니다.
+
+**AI-native Direct M&A Operating Platform + On-demand Advisory Intervention.**
+
+공식 문구: VERICOM은 전통적인 중개자 중심의 M&A 플랫폼이 아니라, AI와 데이터가 거래 당사자를 연결하고 Seller와 Buyer가 보안이 통제된 Deal Workspace에서 직접 협의하며, 필요한 순간에 VERICOM M&A Advisor 또는 전문 자문가가 개입하는 **AI-native Hybrid M&A Operating Platform**이다.
+
+공식 Principle:
+
+- **AI First**
+- **Direct Communication**
+- **Advisor On Demand**
+- **Expert When Needed**
+- **Permission by Design**
+- **Human-in-the-loop**
+
+운영 공식: `AI First → Direct Party Communication → Human When Needed`
+
+AI ONLY도 아니고 HUMAN BROKER ONLY도 아니다.
+
+#### Hybrid Mode (실패가 아님)
+
+중개자문 요청은 「플랫폼으로 못해서 사람에게 넘기는 실패 버튼」이 아니다. 정상적인 Hybrid M&A Workflow다.
+
+| Mode | 의미 |
+|---|---|
+| Self-Service | 사용자가 플랫폼에서 직접 Deal 진행. 처음부터 Exclusive Mandate 필수 아님 |
+| AI-Assisted | TOM이 분석·초안·Next Best Action 지원 |
+| Advisor-Assisted | VERICOM Internal M&A Advisor 개입 |
+| Expert-Assisted | 법률·세무·회계·기술 등 자격 전문가 Scoped Access |
+
+네 Mode는 자연스럽게 연결된다. 사용자는 처음부터 복잡한 M&A 전문가를 고용해야만 플랫폼을 쓰는 구조가 아니다. 기본은 `사용자 → TOM → 상대와 직접 소통 → Deal 진행`. 필요 시 `중개자문 요청`. 더 전문이면 `전문가 매칭`.
+
+플랫폼 이용과 M&A 중개자문 계약(Engagement / Mandate / 수수료 / 역할)은 Architecture상 **구분**한다.
+
+#### 기본 Deal Flow (Cold Call이 핵심 UX가 아님)
+
+```text
+Seller 등록
+→ Seller Discovery
+→ Valuation / Teaser
+→ Buyer Criteria
+→ AI Buyer Matching
+→ Seller 승인
+→ Buyer Invitation / Opportunity 생성
+→ 플랫폼 내 Interest 확인
+→ NDA / Identity Release 등 Gate
+→ 플랫폼 내 직접 커뮤니케이션
+→ MM
+→ LOI
+→ DD
+→ SPA
+→ Closing
+```
+
+MM·LOI **이전**에도 관심 여부, 기본 질문, 추가 정보 요청, NDA 협의, MM 일정, Process 질문은 플랫폼 Messaging으로 가능하다. 「LOI 전에는 중개자만 커뮤니케이션」 구조를 만들지 않는다.
+
+Macro Process 10단계(01 Teaser + LEVEL 1 … 10 PMI)는 Deal Stage로 **유지**한다. Communication은 Stage 사이에서도 이어질 수 있다.
+
+Cold Call·플랫폼 밖 대량 외부 접촉은 기본 Flow가 아니다. VERICOM Internal Advisor가 외부 Buyer 발굴·직접 접촉을 할 수 있으나 **중개자문이 필요한 경우의 보조 Flow**다.
+
+#### Direct Communication (Opportunity 단위)
+
+허용된 단계와 Permission 안에서 Seller와 Buyer는 플랫폼 내부 Messaging / Deal Communication으로 직접 대화한다. 장기 예: 일반 Deal Message, Q&A, 자료 요청, 일정 조율, MM 협의, 가격·거래구조 의견, LOI 협의, DD Q&A, Negotiation communication.
+
+커뮤니케이션은 **Deal 전체가 아니라 Opportunity 단위**다.
+
+```text
+Seller Deal
+ ├ Buyer A Opportunity → Messages / Documents / Q&A / Meeting / LOI
+ ├ Buyer B Opportunity → …
+ └ Buyer C Opportunity → …
+```
+
+Buyer A는 Buyer B의 존재·메시지·문서·가격·협상·진행상태를 볼 수 없다.
+
+**직접 대화 ≠ 모든 정보 자유 공개.** Messaging Access / Identity Access / IM Access / Document Access / Deal Stage Permission은 **독립** 설계한다. 예: 메시지 가능이지만 Seller Identity 미공개, Identity 공개됐지만 IM 미Release.
+
+Sprint 0 Security를 약화하지 않는다. Teaser→Seller 승인, Identity Release→Seller 별도 승인, IM Release→NDA+Seller 승인, Private Document→Permission, Buyer 간 완전 격리. Client는 Permission Source of Truth가 아니다. Message·중요 상태변경·Internal Access는 Audit.
+
+#### 중개자문 요청 (구현은 후속. Architecture만)
+
+Deal Context가 있는 주요 화면(Deal Workspace, Opportunity, Messaging, LOI, DD, Negotiation)에서 일관되고 찾기 쉬운 **[중개자문 요청]** 을 기본 UX 원칙으로 둔다. 모든 화면에 동일 버튼을 반복 노출할 필요는 없다.
+
+사용 예: 상대와 직접 대화 어려움, 가격·구조 판단, 메시지 작성, MM/LOI/DD/SPA 난관, 교착, 전문 조언 필요.
+
+장기 Flow(게시판이 아님):
+
+`User → 중개자문 요청 → TOM 상황 정리 → Deal Context 자동 첨부 → 요청 유형 분류 → VERICOM Internal 검토 → 직접 해결 또는 전문가 배정 → Advisory 진행 → 결과 Deal 반영 → Activity / Audit`
+
+VERICOM Internal이 직접 개입할 수 있는 예: 당사자 중재, 가격·구조 협의, Buyer/Seller 대응 전략, MM 준비, LOI 협상, Process·일정, 교착 해소, Closing Coordination.
+
+전문 자격이 필요하면: `중개자문 요청 → TOM Issue Classification → Internal Triage → Expert Matching → Expert Assignment → Scoped Access → Review → Deal 반영`. 기존 Expert Permission 유지.
+
+#### TOM의 역할 (메시지 전달 중개가 아님)
+
+TOM은 Seller↔Buyer 모든 메시지를 대신 전달하는 단순 중개자가 아니다. 대화·Deal Context 이해, 질문 의미 분석, 정보 안내, 실무 조언, 리스크 경고, 답변·상대방 메시지 초안, Next Best Action, 필요 시 중개자문 요청 제안.
+
+확장 가능 구조: `Intent → Context → Memory → M&A Knowledge → Answer → Risk → Next Best Question / Action`.
+
+예: 「Buyer가 가격을 낮추자는데 어떻게 답하지?」 → Stage·Valuation/LOI/DD Context → 협상 논리·Seller 리스크 → 답변 초안. 복잡하면 「VERICOM 중개자문을 요청하시겠습니까?」
+
+#### 향후 Domain Model 후보 (이번 Sprint에 Table 생성 금지)
+
+개념만 정의한다. `OpportunityMessage`, `AdvisoryRequest`, `AdvisoryAssignment`, `ExpertAssignment`.
+
+`AdvisoryRequest` 속성 후보: `requester`, `company`, `deal`, `opportunity`(nullable), `request_type`, `description`, `urgency`, `status`, `assigned_internal_user`(nullable), `assigned_expert`(nullable), `created_at`, `resolved_at`.
+
 ---
 
 # 1. 제품 정의
 
-베리컴은 Seller, Buyer, Expert가 각자의 Workspace에서 활동하고, Deal과 Opportunity를 중심으로 연결되며, **TOM**이 거래를 이끌고, **사람이 중요한 결정을 승인**하며, **전문가가 전문판단을 검증**하는 **Confidential AI-native M&A Operating Platform**이다.
+베리컴은 Seller, Buyer, Expert가 각자의 Workspace에서 활동하고, Deal과 Opportunity를 중심으로 연결되며, **TOM**이 거래를 이끌고, **사람이 중요한 결정을 승인**하며, **전문가가 전문판단을 검증**하는 **Confidential AI-native Hybrid M&A Operating Platform**이다.
+
+VERICOM은 전통적인 중개자 중심 플랫폼이 아니다. AI와 데이터가 당사자를 연결하고, Seller와 Buyer는 보안이 통제된 Deal Workspace에서 **직접** 협의하며, 필요한 순간에 VERICOM M&A Advisor 또는 전문 자문가가 개입한다. 상세는 0.4절.
 
 ## 1.1 핵심 구조
 
@@ -178,6 +297,9 @@ AI도 현재 사용자가 볼 수 없는 데이터는 볼 수 없다.
 
 ### AI-led, Expert-verified
 AI는 준비·정리·오케스트레이션을 담당하고 회계·법률·세무·전문판단은 자격 전문가가 검증한다.
+
+### AI First / Direct Communication / Advisor On Demand
+기본은 AI 지원과 당사자 직접 소통이다. Cold Call·중개자 전담 전달은 기본 UX가 아니다. 필요 시 VERICOM Advisor, 그다음 Expert. 상세는 0.4절.
 
 ---
 
@@ -501,7 +623,7 @@ CANDIDATE
 → 12 PMI
 ```
 
-**CIM/IM → Q&A → Management Meeting → LOI** 가 기본 권장 흐름이다.
+**CIM/IM → Q&A → Management Meeting → LOI** 가 기본 권장 흐름이다. 각 Stage 사이에서도 Opportunity 단위 플랫폼 Messaging이 가능하다. 「LOI 전에는 중개자만 커뮤니케이션」은 금지한다 (0.4절).
 
 예외: Buyer가 MM 없이 LOI를 내면 Opportunity는 `MM 생략`과 사유를 기록한 뒤 LOI로 갈 수 있다. 사유 예: Buyer가 MM 없이 LOI 제출, 일정상 LOI 선제출, Seller와 기존 관계, Preliminary LOI 이후 MM 합의.
 
@@ -524,8 +646,8 @@ Macro Stage 상태:
 Hard Gate (서버에서 강제, UI만으로 우회 금지):
 
 1. `TEASER_APPROVED` 전 Buyer Outreach 불가
-2. Mandate / Execution Authority가 유효하지 않으면 실제 Buyer 외부접촉 불가
-3. NDA 완료만으로 회사명·IM 자동공개 금지. `IDENTITY_RELEASE_APPROVAL`, `IM_RELEASE_APPROVAL`은 별도
+2. **플랫폼 밖** 대량 Cold Call / 전통적 외부 접촉은 Exclusive Mandate 또는 Internal Advisory Engagement가 있을 때만 보조 Flow로 허용한다. 플랫폼 안 Matching → Seller 승인 → Invitation → Opportunity 직접 커뮤니케이션은 Self-Service에서도 가능하며, 시작부터 Exclusive Mandate를 요구하지 않는다 (0.4절)
+3. NDA 완료만으로 회사명·IM 자동공개 금지. `IDENTITY_RELEASE_APPROVAL`, `IM_RELEASE_APPROVAL`은 별도. Messaging Access와 Identity/IM Access는 독립
 4. IM 열람: `NDA_COMPLETED + IM_RELEASE_APPROVED`. VIEW와 DOWNLOAD 분리
 5. AI는 서명·승인·Closing·Valuation 최종숫자를 임의 확정하지 않는다
 
@@ -731,7 +853,7 @@ Visitor
 
 - 현재 버전은 익명 상담을 사용하지 않는다. 계정 연결 후 확인한다.
 - Deal Intake는 거래유형·권한·우선조건·외부접촉 의향 중심
-- Execution Mandate 전 외부접촉 권한 없음
+- Execution Mandate 전 **플랫폼 밖** 외부접촉 권한 없음. 플랫폼 내부 Matching / Invitation / Opportunity Messaging은 Mandate와 별개 (0.4절)
 
 ---
 
@@ -1792,7 +1914,7 @@ Risk: Low / Medium / High
 
 ## Step 2. 관련 규칙 검색
 
-이 `MASTER_SPEC.md`(0.3절 포함)와, TOM/M&A 기능이면 `docs/TOM_ARCHITECTURE.md`를 먼저 읽는다. 서버 CurrentContext(User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage)를 확인한다.
+이 `MASTER_SPEC.md`(0.3절·0.4절 포함)와, TOM/M&A 기능이면 `docs/TOM_ARCHITECTURE.md`를 먼저 읽는다. 서버 CurrentContext(User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage)를 확인한다. Matching·Messaging·Opportunity·문서 Gate 기능은 0.4 Direct M&A 원칙을 확인한다.
 
 기능이 Architecture와 충돌하면 **코드를 작성하지 말고 충돌을 보고**한다.
 

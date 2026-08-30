@@ -46,3 +46,14 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 2026-08-30 Sprint 1 TOM Question Policy: Seller `/consult`는 LLM 없이 Discovery Field를 한 질문씩 수집한다. 이미 DB·CurrentContext·Memory에 있는 값은 다시 묻지 않는다. 사용자 답변은 `tom_memory_items`에 USER_CLAIM으로 저장하고, 불확실하면 UNKNOWN이며 FACT로 추정하지 않는다. 질문 엔진은 `lib/tom/question-policy.ts`. Valuation·Buyer Matching·Teaser는 하지 않는다.
 
 2026-08-30 Sprint 1 Buyer Discovery: 공통 Question Engine에 `DiscoveryProfile` BUYER를 추가했다. Buyer `/consult`는 인수조건을 한 질문씩 모아 `tom_memory_items`에 Acquisition Criteria로 저장한다. Buyer 회사 업종과 Target 산업은 분리한다. multi-value는 JSON `values`로 병합하고, 숫자는 명시된 억 단위만 KRW로 정규화한다. Matching·Valuation·LLM은 하지 않는다. 새 테이블·0008/0009는 적용하지 않았다.
+
+2026-08-31 Direct M&A / Hybrid Advisory Architecture: VERICOM은 Traditional Broker-led가 아니라 **AI-native Direct M&A Operating Platform + On-demand Advisory Intervention**이다. 공식 Principle: AI First, Direct Communication, Advisor On Demand, Expert When Needed, Permission by Design, Human-in-the-loop. Cold Call은 기본 UX가 아니고 보조 Flow다. Seller↔Buyer 직접 커뮤니케이션은 Opportunity 단위이며 MM/LOI 이전에도 가능하다. Messaging Access와 Identity/IM/Document Access는 분리. 중개자문 요청은 실패 버튼이 아니라 Hybrid Mode. 플랫폼 이용과 Exclusive Mandate는 구분. Messaging·AdvisoryRequest 기능과 DB Table은 이번 작업에서 만들지 않았다. `MASTER_SPEC` 0.4절.
+
+충돌·정리:
+
+- Hard Gate 「Mandate 없으면 Buyer 외부접촉 불가」: **플랫폼 밖** Cold Call / 전통 외부접촉에만 적용. 플랫폼 안 Matching→승인→Invitation→Opportunity Messaging은 Self-Service 가능.
+- 「Execution Mandate 전 외부접촉 권한 없음」(11절): 플랫폼 밖 접촉으로 한정.
+- Macro Process 10단계·MM 권장 순서는 유지. Stage 사이 Messaging을 금지하지 않음.
+- 「LOI 전 중개자만 커뮤니케이션」 구조는 채택하지 않음.
+- 처음부터 Exclusive Mandate 필수 아님. Mandate는 Advisory Engagement 별도 Process.
+- 0.3 TOM Copilot 정의는 유지. TOM은 메시지 전달 중개자가 아님을 0.4·TOM_ARCHITECTURE에 명시.

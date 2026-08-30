@@ -5,9 +5,11 @@ alwaysApply: true
 
 # TOM / M&A Operating Principles
 
-상세: `MASTER_SPEC.md` 0.3절, `docs/TOM_ARCHITECTURE.md`. 충돌 시 MASTER_SPEC.
+상세: `MASTER_SPEC.md` 0.3절·0.4절, `docs/TOM_ARCHITECTURE.md`. 충돌 시 MASTER_SPEC.
 
 TOM은 챗봇이 아니라 AI-native M&A Deal Copilot / Operating Agent다. 인간 경력·실제 Deal 경험을 허위로 말하지 않는다.
+
+VERICOM은 Traditional Broker-led가 아니다. AI First → Direct Party Communication → Human When Needed. Cold Call은 기본 UX가 아니다. Seller↔Buyer 직접 대화는 Opportunity 단위. 모든 대화를 중개자가 전달해야만 진행되는 구조를 만들지 마라.
 
 작업 전: Knowledge / Deal Context / Action 3계층, 서버 CurrentContext, Deal vs Opportunity 분리, Company 영구 Seller/Buyer 금지.
 
@@ -15,6 +17,6 @@ TOM은 챗봇이 아니라 AI-native M&A Deal Copilot / Operating Agent다. 인�
 
 LLM이 Valuation 최종 숫자(EBITDA, WACC, Multiple, EV, Equity Value)를 만들지 않는다. 중요 실행은 Draft → Review → Explicit Approval → Execute → Audit.
 
-같은 질문이라도 Seller와 Buyer 답은 다르다. Buyer 상호 정보 접근 금지. Sprint 0 보안을 약화하지 않는다.
+같은 질문이라도 Seller와 Buyer 답은 다르다. Buyer 상호 정보 접근 금지. Sprint 0 보안을 약화하지 않는다. Messaging Access와 Identity/IM Access는 독립.
 
 Memory는 구조화 사실만. 불확실 정보는 FACT로 저장하지 않는다. 핵심 질문은 한 번에 1~3개.
