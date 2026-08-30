@@ -194,6 +194,8 @@ function extractBuyerCaptures(input: {
     captures.push(capture("listing_preference", "PRIVATE_ONLY"));
   } else if (/상장만|상장사만|listed\s*only/i.test(text)) {
     captures.push(capture("listing_preference", "PUBLIC_ONLY"));
+  } else if (/상장도\s*괜찮|상장사도/.test(text)) {
+    captures.push(capture("listing_preference", "PUBLIC_OK"));
   } else if (/상장.*상관없|비상장.*상관없|listing.*flex/i.test(text)) {
     captures.push(capture("listing_preference", "FLEXIBLE"));
   } else if (last === "listing_preference" && fallback) {

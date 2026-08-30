@@ -714,6 +714,7 @@ CONFIRMED ≈ FACT 후보, ESTIMATED ≈ ASSUMPTION 또는 INFERENCE, UNKNOWN은
 - 한 번에 핵심 질문 1~3개. 이미 Memory/DB에 있는 정보는 다시 묻지 않는다.
 - Seller Discovery(Sprint 1): 한 번에 질문 하나. 사용자 답변은 USER_CLAIM. 불확실하면 UNKNOWN이며 FACT로 추정하지 않는다.
 - Buyer Discovery(Sprint 1): 공통 Question Engine(`DiscoveryProfile` SELLER|BUYER). 인수조건은 한 질문씩 수집하고, Buyer 회사 업종과 Target 산업을 혼동하지 않는다. Matching·Valuation은 하지 않는다.
+- Buyer Acquisition Criteria Normalization(Sprint 1): `tom_memory_items` USER_CLAIM 위에 LLM 없는 계산형 정규화 스냅샷을 만든다. 원본 Memory는 삭제·대체하지 않는다. Matching·추천은 하지 않는다.
 
 ---
 

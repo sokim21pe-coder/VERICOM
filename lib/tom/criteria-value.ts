@@ -17,6 +17,7 @@ export type MultiCriterion = {
 };
 
 const VAGUE_AMOUNT = /수십\s*억|수백\s*억|수천\s*억|몇\s*십\s*억|몇십억/;
+const UNRESOLVED_AMOUNT_PHRASE = /적당한\s*가격|적당한\s*규모|큰\s*회사|작은\s*회사/;
 const EOK_RE = /(\d+(?:\.\d+)?)\s*억/g;
 const RANGE_RE =
   /(\d+(?:\.\d+)?)\s*억\s*(?:에서|부터|~|-|–|—)\s*(\d+(?:\.\d+)?)\s*억/;
@@ -52,6 +53,139 @@ export function isVagueAmount(text: string): boolean {
   const compact = text.replace(/\s+/g, "");
   if (/\d+(?:\.\d+)?억/.test(compact)) return false;
   return VAGUE_AMOUNT.test(text);
+}
+
+export function isUnresolvedAmountPhrase(text: string): boolean {
+  if (isVagueAmount(text)) return true;
+  const compact = text.replace(/\s+/g, "");
+  if (/\d+(?:\.\d+)?억/.test(compact)) return false;
+  return UNRESOLVED_AMOUNT_PHRASE.test(text);
+}
+
+export type ParsedKrwExpression = {
+  minKrw: number | null;
+  maxKrw: number | null;
+  valueKrw: number | null;
+  currency: "KRW";
+  unresolved: boolean;
+  warning: string | null;
+  raw: string;
+};
+
+export function parseKrwExpression(text: string): ParsedKrwExpression {
+  const raw = text.trim();
+  if (!raw || raw === "UNKNOWN" || raw === "SKIPPED") {
+    return {
+      minKrw: null,
+      maxKrw: null,
+      valueKrw: null,
+      currency: "KRW",
+      unresolved: true,
+      warning: "empty_or_unknown",
+      raw,
+    };
+  }
+  if (isUnresolvedAmountPhrase(raw)) {
+    return {
+      minKrw: null,
+      maxKrw: null,
+      valueKrw: null,
+      currency: "KRW",
+      unresolved: true,
+      warning: "vague_amount",
+      raw,
+    };
+  }
+
+  const stored = parseNumericCriterion(raw);
+  if (stored && stored.krw != null && raw.startsWith("{")) {
+    return {
+      minKrw: null,
+      maxKrw: null,
+      valueKrw: stored.krw,
+      currency: "KRW",
+      unresolved: false,
+      warning: null,
+      raw: stored.raw,
+    };
+  }
+
+  const source = stored?.raw && stored.krw == null && raw.startsWith("{") ? stored.raw : raw;
+  if (isUnresolvedAmountPhrase(source)) {
+    return {
+      minKrw: null,
+      maxKrw: null,
+      valueKrw: null,
+      currency: "KRW",
+      unresolved: true,
+      warning: "vague_amount",
+      raw: source,
+    };
+  }
+
+  const range = parseEokRange(source);
+  if (range) {
+    return {
+      minKrw: range.minKrw,
+      maxKrw: range.maxKrw,
+      valueKrw: null,
+      currency: "KRW",
+      unresolved: false,
+      warning: null,
+      raw: source,
+    };
+  }
+
+  const amounts = parseEokAmounts(source);
+  if (amounts.length >= 2) {
+    const minKrw = Math.min(...amounts);
+    const maxKrw = Math.max(...amounts);
+    return {
+      minKrw,
+      maxKrw,
+      valueKrw: null,
+      currency: "KRW",
+      unresolved: false,
+      warning: null,
+      raw: source,
+    };
+  }
+  if (amounts.length === 1) {
+    const valueKrw = amounts[0];
+    const upper = /이하|까지/.test(source) && !/이상/.test(source);
+    const lower = /이상/.test(source) && !/이하/.test(source);
+    return {
+      minKrw: lower ? valueKrw : null,
+      maxKrw: upper ? valueKrw : null,
+      valueKrw: upper || lower ? null : valueKrw,
+      currency: "KRW",
+      unresolved: false,
+      warning: null,
+      raw: source,
+    };
+  }
+
+  if (stored?.krw != null) {
+    return {
+      minKrw: null,
+      maxKrw: null,
+      valueKrw: stored.krw,
+      currency: "KRW",
+      unresolved: false,
+      warning: null,
+      raw: stored.raw,
+    };
+  }
+
+  return {
+    minKrw: null,
+    maxKrw: null,
+    valueKrw: null,
+    currency: "KRW",
+    unresolved: true,
+    warning: "unresolved_amount",
+    raw: source,
+  };
 }
 
 export function encodeNumericCriterion(input: NumericCriterion): string {

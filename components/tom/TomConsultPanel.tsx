@@ -10,6 +10,10 @@ import { informationStateLabel } from "@/lib/tom/extract-intent";
 import type { TomIntent } from "@/lib/tom/paths";
 import type { TomIntentRouter, TomMemoryItem, TomMessage } from "@/types/tom";
 import { InformationState } from "@/types/enums";
+import {
+  formatNormalizedCriteriaSummary,
+  normalizeAcquisitionCriteria,
+} from "@/lib/tom/normalize-acquisition-criteria";
 
 const sellChoices = [
   "회사를 매각하고 싶습니다.",
@@ -61,6 +65,16 @@ export function TomConsultPanel({
   const started = messages.some((item) => item.authorRole === "user");
   const choices = intent === "buy" ? buyChoices : sellChoices;
   const extracted = intentFromMemories(memories);
+  const criteriaSummary =
+    intent === "buy"
+      ? formatNormalizedCriteriaSummary(
+          normalizeAcquisitionCriteria({
+            memories,
+            conversationId,
+            buyerCompanyId: null,
+          }),
+        )
+      : null;
 
   async function send(text: string) {
     const trimmed = text.trim();
@@ -101,6 +115,13 @@ export function TomConsultPanel({
           <span className="mt-1 block text-xs leading-5 text-muted">
             대화에서 고른 방향입니다. 확정 거래 의사가 아닙니다.
           </span>
+        </p>
+      ) : null}
+      {intent === "buy" &&
+      criteriaSummary &&
+      criteriaSummary !== "아직 정규화된 인수조건이 충분하지 않습니다." ? (
+        <p className="mt-3 rounded-md border border-line bg-white px-3 py-2 text-sm leading-relaxed text-foreground">
+          {criteriaSummary}
         </p>
       ) : null}
 

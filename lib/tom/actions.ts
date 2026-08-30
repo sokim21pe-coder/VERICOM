@@ -20,7 +20,12 @@ import {
   persistLastQuestion,
   seedContextMemories,
 } from "@/lib/tom/persist-discovery";
-import { canReadTomConversation } from "@/lib/tom/access";
+import {
+  canReadNormalizedBuyerCriteria,
+  canReadTomConversation,
+} from "@/lib/tom/access";
+import { normalizeAcquisitionCriteria } from "@/lib/tom/normalize-acquisition-criteria";
+import type { NormalizedAcquisitionCriteria } from "@/lib/tom/normalize-acquisition-criteria";
 import type { DiscoveryContextFacts } from "@/lib/tom/question-policy";
 
 function mapMessage(row: {
@@ -497,5 +502,59 @@ export async function sendTomMessage(
     message: null,
     messages: refreshed.messages,
     memories: refreshed.memories,
+  };
+}
+
+export async function getNormalizedAcquisitionCriteria(conversationId: string): Promise<{
+  ok: boolean;
+  message: string | null;
+  criteria: NormalizedAcquisitionCriteria | null;
+}> {
+  if (!isSupabaseConfigured()) {
+    return {
+      ok: false,
+      message: authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED],
+      criteria: null,
+    };
+  }
+
+  const context = await getCurrentContext();
+  if (!context) {
+    return {
+      ok: false,
+      message: authErrorMessage[ErrorCode.AUTH_REQUIRED],
+      criteria: null,
+    };
+  }
+
+  const membershipError = requireSellerOrBuyerCompany(context);
+  if (membershipError) {
+    return {
+      ok: false,
+      message: membershipError,
+      criteria: null,
+    };
+  }
+
+  const loaded = await loadConversation(conversationId, context.user.id, "buy");
+  if (
+    !loaded.conversation ||
+    !canReadNormalizedBuyerCriteria(loaded.conversation, context)
+  ) {
+    return {
+      ok: false,
+      message: authErrorMessage[ErrorCode.PERMISSION_DENIED],
+      criteria: null,
+    };
+  }
+
+  return {
+    ok: true,
+    message: null,
+    criteria: normalizeAcquisitionCriteria({
+      memories: loaded.memories,
+      conversationId: loaded.conversation.id,
+      buyerCompanyId: context.company?.id ?? null,
+    }),
   };
 }
