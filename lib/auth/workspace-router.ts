@@ -32,6 +32,21 @@ export function resolvePostAuthPath(context: CurrentContext | null): string {
   return workspacePathForRole(context.platformRole);
 }
 
+export type WorkspaceKind = "seller" | "buyer" | "expert" | "internal";
+
+export function userCanAccessWorkspace(
+  workspace: WorkspaceKind,
+  roles: PlatformRole[],
+): boolean {
+  if (workspace === "seller") return roles.includes(PlatformRole.SELLER_USER);
+  if (workspace === "buyer") return roles.includes(PlatformRole.BUYER_USER);
+  if (workspace === "expert") return roles.includes(PlatformRole.EXPERT_USER);
+  return (
+    roles.includes(PlatformRole.INTERNAL_DEAL_MANAGER) ||
+    roles.includes(PlatformRole.ADMIN)
+  );
+}
+
 export function workspaceSwitcherLinks(context: CurrentContext) {
   const links: { href: string; label: string }[] = [];
   if (context.platformRoles.includes(PlatformRole.SELLER_USER)) {
@@ -42,6 +57,12 @@ export function workspaceSwitcherLinks(context: CurrentContext) {
   }
   if (context.platformRoles.includes(PlatformRole.EXPERT_USER)) {
     links.push({ href: "/expert", label: "전문가" });
+  }
+  if (
+    context.platformRoles.includes(PlatformRole.INTERNAL_DEAL_MANAGER) ||
+    context.platformRoles.includes(PlatformRole.ADMIN)
+  ) {
+    links.push({ href: "/internal", label: "Internal" });
   }
   return links;
 }

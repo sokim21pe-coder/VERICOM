@@ -33,6 +33,11 @@ export const expertNav: WorkspaceNavItem[] = [
   { href: "/expert/tom", label: "TOM" },
 ];
 
+/** MASTER_SPEC 6.4. Pipeline UI는 열지 않음. */
+export const internalNav: WorkspaceNavItem[] = [
+  { href: "/internal", label: "홈" },
+];
+
 export const sellerTodoPages: Record<
   string,
   { title: string; screenId: string; note: string }

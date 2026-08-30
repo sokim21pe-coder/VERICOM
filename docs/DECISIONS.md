@@ -25,3 +25,5 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 2026-08-28 원격 Private Storage: 프로젝트 `nzsgxxuyvbirnlwtqmmc`에 `0010_private_storage.sql`을 적용했다. `vericom-private` Public=false, Storage RLS 4개, Seller 업로드·Signed URL 60초·재로그인 유지·Audit는 검증했다. 두 번째 회사 계정으로 교차 접근 E2E는 하지 않았다.
 
 2026-08-29 원격 Private Storage 재확인: `0010`은 재실행하지 않았다. `storage.buckets`에서 `vericom-private` public=false, `can_access_vericom_private_object` 존재, Storage policy 4개(`select/insert/update/delete`), 기존 object 1건 유지. public object URL은 HTTP 400. 교차회사 계정 E2E는 미검증이다.
+
+2026-08-30 Sprint 0 Test Seed + Role/Permission E2E: 운영 데이터와 구분되는 `TEST_DEV_*` Actor·Company·Deal을 `0011_sprint0_test_seed.sql`로 넣었다. Auth 사용자는 `scripts/sprint0-seed-auth.mjs`로 만들고 비밀번호는 git에 넣지 않는다. `0012_restrict_self_platform_roles.sql`로 INTERNAL/ADMIN 자가부여를 막는다. `/internal`은 Workspace 가드를 탄다. 교차회사 Private Storage(Buyer B 목록 0·서명 URL 거부·public URL HTTP 400)와 Workspace Switcher(보유 Role만)·Buyer 격리를 검증했다. ROLE_ADDED와 앱 Action 경로의 UPLOAD_PRIVATE_FILE은 TEST Actor에서 미기록이다.

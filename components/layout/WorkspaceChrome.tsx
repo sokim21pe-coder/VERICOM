@@ -2,26 +2,28 @@ import { WorkspaceHeader, type WorkspaceNavItem } from "@/components/layout/Work
 import { EnvNotice } from "@/components/system/EnvNotice";
 import { requireWorkspace } from "@/lib/auth/require-workspace";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { buyerNav, expertNav, sellerNav } from "@/lib/workspace/nav";
+import { buyerNav, expertNav, internalNav, sellerNav } from "@/lib/workspace/nav";
+import type { WorkspaceKind } from "@/lib/auth/workspace-router";
 
-const navByWorkspace: Record<"seller" | "buyer" | "expert", WorkspaceNavItem[]> =
-  {
-    seller: sellerNav,
-    buyer: buyerNav,
-    expert: expertNav,
-  };
+const navByWorkspace: Record<WorkspaceKind, WorkspaceNavItem[]> = {
+  seller: sellerNav,
+  buyer: buyerNav,
+  expert: expertNav,
+  internal: internalNav,
+};
 
-const roleLabel = {
+const roleLabel: Record<WorkspaceKind, string> = {
   seller: "Seller 워크스페이스",
   buyer: "Buyer 워크스페이스",
   expert: "전문가 워크스페이스",
+  internal: "Internal 워크스페이스",
 };
 
 export async function WorkspaceChrome({
   workspace,
   children,
 }: {
-  workspace: "seller" | "buyer" | "expert";
+  workspace: WorkspaceKind;
   children: React.ReactNode;
 }) {
   const configured = isSupabaseConfigured();

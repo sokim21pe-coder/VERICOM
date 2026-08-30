@@ -1,12 +1,15 @@
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getCurrentContext } from "@/lib/auth/session";
-import { resolvePostAuthPath } from "@/lib/auth/workspace-router";
-import { PlatformRole } from "@/types/enums";
+import {
+  resolvePostAuthPath,
+  userCanAccessWorkspace,
+  type WorkspaceKind,
+} from "@/lib/auth/workspace-router";
 import type { CurrentContext } from "@/types/context";
 
 export async function requireWorkspace(
-  workspace: "seller" | "buyer" | "expert",
+  workspace: WorkspaceKind,
 ): Promise<CurrentContext | null> {
   if (!isSupabaseConfigured()) return null;
 
@@ -20,14 +23,7 @@ export async function requireWorkspace(
     redirect(dest);
   }
 
-  const hasRole =
-    workspace === "seller"
-      ? context.platformRoles.includes(PlatformRole.SELLER_USER)
-      : workspace === "buyer"
-        ? context.platformRoles.includes(PlatformRole.BUYER_USER)
-        : context.platformRoles.includes(PlatformRole.EXPERT_USER);
-
-  if (!hasRole) {
+  if (!userCanAccessWorkspace(workspace, context.platformRoles)) {
     redirect(dest);
   }
 

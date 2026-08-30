@@ -1,7 +1,10 @@
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { ACTIVE_PLATFORM_ROLE_COOKIE } from "@/lib/auth/active-role";
+import {
+  ACTIVE_PLATFORM_ROLE_COOKIE,
+  resolveActivePlatformRole,
+} from "@/lib/auth/active-role";
 import type { CurrentContext } from "@/types/context";
 import {
   DealRole,
@@ -55,10 +58,7 @@ export async function getCurrentContext(): Promise<CurrentContext | null> {
   const cookieRole = asPlatformRole(
     (await cookies()).get(ACTIVE_PLATFORM_ROLE_COOKIE)?.value ?? "",
   );
-  const currentRole =
-    cookieRole && platformRoles.includes(cookieRole)
-      ? cookieRole
-      : (platformRoles[0] ?? null);
+  const currentRole = resolveActivePlatformRole(cookieRole, platformRoles);
 
   const { data: membership } = await supabase
     .from("company_memberships")

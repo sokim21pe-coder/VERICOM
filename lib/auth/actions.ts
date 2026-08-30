@@ -320,6 +320,11 @@ export async function setActivePlatformRole(
     path: "/",
     maxAge: 60 * 60 * 24 * 90,
   });
+  await recordAudit({
+    action: "WORKSPACE_SWITCHED",
+    entityType: "user_platform_roles",
+    entityId: context.user.id,
+  });
   revalidatePath("/", "layout");
   return {
     ok: true,

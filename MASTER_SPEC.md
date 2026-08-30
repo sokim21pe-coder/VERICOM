@@ -1540,16 +1540,16 @@ Navigation:
 - [x] deal_participants / deal_permissions (테이블·RLS. Deal 생성 UI는 후속)
 - [x] Role-aware Workspace Router
 - [x] Guest Session → Signup Data Linking — **현재 제품 정책에서 Sprint 0 구현 대상 제외** (Guest 익명 TOM 미사용. 쿠키·users.guest_session_id 연결은 하지 않음)
-- [ ] Private Storage Bucket (원격 `vericom-private` Public=false·Storage RLS·Seller 업로드·Signed URL 60초·재로그인 유지·Audit는 **검증 완료**. **교차회사 계정 E2E는 미검증** → 체크 보류)
+- [x] Private Storage Bucket (원격 `vericom-private` Public=false·Storage RLS·Seller 업로드·Signed URL 60초·재로그인 유지·public URL HTTP 400·교차회사 계정 목록/서명 URL 차단 E2E 검증)
 - [x] Server-only Privileged Writes
 - [x] Activity / Audit Helper
 - [x] DD-ready Expert / Workstream Tables (스키마만)
 - [x] Current Context Builder
-- [ ] Test Seed: Seller Company (SQL 초안 `0005_test_seed_placeholders.sql`만. Auth 사용자·실DB 적용은 **미검증**)
-- [ ] Test Seed: Buyer Company
-- [ ] Test Seed: Expert
-- [ ] Test Seed: Internal Manager
-- [ ] Test Seed: Seller User / Buyer User / Multi-role User (실 Auth 사용자 시드는 **미적용**)
+- [x] Test Seed: Seller Company (`TEST_DEV_SELLER_CO`, migration `0011_sprint0_test_seed.sql`)
+- [x] Test Seed: Buyer Company (`TEST_DEV_BUYER_CO_A`, `TEST_DEV_BUYER_CO_B`)
+- [x] Test Seed: Expert (`TEST_DEV_EXPERT`, DEAL_A assignment only)
+- [x] Test Seed: Internal Manager (`TEST_DEV_INTERNAL`, DEAL_A assignment only)
+- [x] Test Seed: Seller User / Buyer User / Multi-role User (Auth `*.sprint0@vericom.test`, SQL 시드 `0011`)
 
 ---
 
@@ -1570,12 +1570,12 @@ Navigation:
 
 ## Multi-role Gate
 
-- [ ] 한 User가 Seller / Buyer Role 모두 가질 수 있음
-- [ ] 한 Company가 Deal별 Seller / Buyer가 될 수 있음
-- [ ] Workspace Switching
-- [ ] Seller / Buyer Permission 분리
-- [ ] Expert 별도 Login / Workspace
-- [ ] Internal Manager Assigned Deal Access
+- [x] 한 User가 Seller / Buyer Role 모두 가질 수 있음 (`TEST_DEV_MULTI`, Switcher에 보유 Role만 표시)
+- [ ] 한 Company가 Deal별 Seller / Buyer가 될 수 있음 — 스키마는 유지. 한 Company가 Deal별로 양역할을 오가는 E2E는 이번 시드에 없음
+- [x] Workspace Switching (`setActivePlatformRole` + `WORKSPACE_SWITCHED`)
+- [x] Seller / Buyer Permission 분리 (Buyer A는 DEAL_A만, Buyer B는 DEAL_A·Seller 회사 데이터 불가)
+- [x] Expert 별도 Login / Workspace (`/expert`, DEAL_B 미배정 차단)
+- [x] Internal Manager Assigned Deal Access (`/internal` 가드, DEAL_A만, 일반 User `/internal` 차단)
 
 ## DD-ready Gate
 
