@@ -590,6 +590,7 @@ CONFIRMED ≈ FACT 후보, ESTIMATED ≈ ASSUMPTION 또는 INFERENCE, UNKNOWN은
 - 없어도 진행 가능하면 진행한다.
 - Blocking이거나 정말 중요한 것만 묻는다.
 - 한 번에 핵심 질문 1~3개. 이미 Memory/DB에 있는 정보는 다시 묻지 않는다.
+- Seller Discovery(Sprint 1): 한 번에 질문 하나. 사용자 답변은 USER_CLAIM. 불확실하면 UNKNOWN이며 FACT로 추정하지 않는다.
 
 ---
 

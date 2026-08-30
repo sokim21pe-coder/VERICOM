@@ -28,6 +28,7 @@ function context(
         : {
             id: "c1",
             name: "TEST_DEV_SELLER_CO",
+            industry: null,
             verificationStatus: "unverified",
           },
     platformRole: extras?.platformRole ?? roles[0] ?? null,

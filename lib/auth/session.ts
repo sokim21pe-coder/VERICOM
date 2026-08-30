@@ -78,13 +78,14 @@ export async function getCurrentContext(): Promise<CurrentContext | null> {
   if (membership?.company_id) {
     const { data: companyRow } = await supabase
       .from("companies")
-      .select("id, name, verification_status")
+      .select("id, name, industry, verification_status")
       .eq("id", membership.company_id)
       .maybeSingle();
     if (companyRow) {
       company = {
         id: companyRow.id,
         name: companyRow.name,
+        industry: companyRow.industry ?? null,
         verificationStatus: companyRow.verification_status,
       };
     }

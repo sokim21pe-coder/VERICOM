@@ -13,6 +13,15 @@ import type { TomIntent } from "@/lib/tom/paths";
 import type { TomConversation, TomMemoryItem, TomMessage } from "@/types/tom";
 import { replyForIntent, routeIntent } from "@/lib/tom/intent-router";
 import { intentFromMemories, upsertIntentMemory } from "@/lib/tom/memory";
+import { isSellerDiscoveryRole } from "@/lib/tom/question-policy";
+import { runSellerDiscoveryTurn } from "@/lib/tom/seller-discovery";
+import {
+  persistDiscoveryCaptures,
+  persistLastQuestion,
+  seedContextMemories,
+} from "@/lib/tom/persist-discovery";
+import { canReadTomConversation } from "@/lib/tom/access";
+import type { DiscoveryContextFacts } from "@/lib/tom/question-policy";
 
 function mapMessage(row: {
   id: string;
@@ -127,11 +136,18 @@ function conversationAllowed(
   conversation: TomConversation,
   context: CurrentContext,
 ): boolean {
-  if (!context.company?.id) return false;
-  if (conversation.companyId && conversation.companyId !== context.company.id) {
-    return false;
-  }
-  return true;
+  return canReadTomConversation(conversation, context);
+}
+
+function discoveryContextFrom(context: CurrentContext): DiscoveryContextFacts {
+  return {
+    companyName: context.company?.name ?? null,
+    industry: context.company?.industry ?? null,
+    platformRole: context.platformRole,
+    dealId: context.deal?.id ?? null,
+    dealRole: context.dealRole,
+    dealStage: null,
+  };
 }
 
 function resolvedDealId(context: CurrentContext): string | null {
@@ -247,12 +263,33 @@ export async function getOrCreateTomConversation(
     return envConversationError("상담을 불러오지 못했습니다.");
   }
 
+  if (isSellerDiscoveryRole(context.platformRole) && intent === "sell") {
+    await seedContextMemories({
+      supabase,
+      conversationId: conversationId as string,
+      userId: context.user.id,
+      companyId: context.company?.id ?? null,
+      dealId: resolvedDealId(context),
+      companyName: context.company?.name ?? null,
+      industry: context.company?.industry ?? null,
+    });
+  }
+
+  const refreshed = await loadConversation(
+    conversationId as string,
+    context.user.id,
+    intent,
+  );
+  if (!refreshed.conversation || !conversationAllowed(refreshed.conversation, context)) {
+    return envConversationError("상담을 불러오지 못했습니다.");
+  }
+
   return {
     ok: true,
     message: null,
-    conversation: loaded.conversation,
-    messages: loaded.messages,
-    memories: loaded.memories,
+    conversation: refreshed.conversation,
+    messages: refreshed.messages,
+    memories: refreshed.memories,
   };
 }
 
@@ -380,11 +417,67 @@ export async function sendTomMessage(
     });
   }
 
-  await appendTomMessage(
-    supabase,
-    conversationId,
-    replyForIntent(memoryResult.stored.intent),
-  );
+  if (
+    isSellerDiscoveryRole(context.platformRole) &&
+    before.conversation.intent === "sell"
+  ) {
+    await seedContextMemories({
+      supabase,
+      conversationId,
+      userId: context.user.id,
+      companyId: context.company?.id ?? null,
+      dealId,
+      companyName: context.company?.name ?? null,
+      industry: context.company?.industry ?? null,
+    });
+    const seeded = await loadConversation(
+      conversationId,
+      context.user.id,
+      before.conversation.intent,
+    );
+    const turn = runSellerDiscoveryTurn({
+      text,
+      memories: seeded.memories,
+      context: discoveryContextFrom(context),
+    });
+    const captured = await persistDiscoveryCaptures({
+      supabase,
+      conversationId,
+      userId: context.user.id,
+      companyId: context.company?.id ?? null,
+      dealId,
+      captures: turn.captures,
+    });
+    if (captured > 0) {
+      await recordAudit({
+        action: "TOM_DISCOVERY_FIELD_CAPTURED",
+        entityType: "tom_memory_item",
+        entityId: conversationId,
+      });
+    }
+    await persistLastQuestion({
+      supabase,
+      conversationId,
+      userId: context.user.id,
+      companyId: context.company?.id ?? null,
+      dealId,
+      field: turn.askedField,
+    });
+    if (turn.askedField) {
+      await recordAudit({
+        action: "TOM_QUESTION_ASKED",
+        entityType: "tom_conversation",
+        entityId: conversationId,
+      });
+    }
+    await appendTomMessage(supabase, conversationId, turn.reply);
+  } else {
+    await appendTomMessage(
+      supabase,
+      conversationId,
+      replyForIntent(memoryResult.stored.intent),
+    );
+  }
 
   const refreshed = await loadConversation(
     conversationId,

@@ -90,8 +90,9 @@ export function TomConsultPanel({
         {intent === "buy" ? "기업 인수 상담" : "기업 매각 상담"}
       </h1>
       <p className="mt-2.5 text-sm leading-relaxed text-muted">
-        이 대화는 로그인 계정에 저장됩니다. 입력은 규칙 기반으로 상담 방향만
-        분류합니다. 매각·인수의 확정 의사가 아닙니다.
+        {intent === "buy"
+          ? "이 대화는 로그인 계정에 저장됩니다. 입력은 규칙 기반으로 상담 방향만 분류합니다. 확정 인수 의사가 아닙니다."
+          : "이 대화는 로그인 계정에 저장됩니다. 이미 알려 주신 내용은 다시 묻지 않고, 필요한 항목을 한 번에 하나만 여쭙습니다. 확정 매각 의사가 아닙니다."}
       </p>
       {extracted ? (
         <p className="mt-3 rounded-md border border-line bg-white px-3 py-2 text-sm text-foreground">

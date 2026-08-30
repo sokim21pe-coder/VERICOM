@@ -11,6 +11,7 @@ export type AppUser = {
 export type AppCompany = {
   id: string;
   name: string;
+  industry: string | null;
   verificationStatus: string;
 };
 
