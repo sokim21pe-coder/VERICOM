@@ -219,8 +219,9 @@ test("injected APPROVED benchmark for that seller makes EV calculable", () => {
   });
   assert.equal(production.result.status, "CALCULABLE");
   assert.equal(production.result.enterpriseValue, 150 * EOK);
-  assert.match(production.copy, /검증된 EV\/Sales/);
-  assert.match(production.copy, /15000000000/);
+  assert.match(production.copy, /EV \/ Sales/);
+  assert.match(production.copy, /150억/);
+  assert.match(production.copy, /승인된 비교배수/);
 });
 
 test("TEST_ONLY is never returned by the production resolver or UI copy", () => {

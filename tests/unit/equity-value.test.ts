@@ -134,7 +134,7 @@ test("EQUITY 2: EV calculable + net debt missing → equityValueRange = null", (
     result,
     testBenchmark({ approvalStatus: "APPROVED" }),
   );
-  assert.match(copy, /15000000000원/);
+  assert.match(copy, /150억/);
   assert.ok(copy.includes(MISSING_NET_DEBT_EQUITY_COPY));
   assert.doesNotMatch(copy, /지분가치\(Equity Value\)는 \d+원/);
 });

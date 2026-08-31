@@ -1,10 +1,28 @@
 import Link from "next/link";
 import { FieldRows } from "@/components/workspace/WorkspaceHomeSections";
+import { SellerValuationStatus } from "@/components/workspace/SellerValuationStatus";
 import { getCurrentContext } from "@/lib/auth/session";
 import { loadSellerValuationView } from "@/lib/workspace/load-home";
 import { financialAmountLabel } from "@/lib/workspace/visibility";
 
 export const dynamic = "force-dynamic";
+
+function amountField(
+  id: string,
+  label: string,
+  amount: Parameters<typeof financialAmountLabel>[0],
+) {
+  const shown = financialAmountLabel(amount);
+  return { id, label, presence: shown.presence, value: shown.value };
+}
+
+const emptyAmount = {
+  krw: null,
+  currency: "KRW" as const,
+  raw: "",
+  unresolved: false,
+  provenance: null,
+};
 
 export default async function SellerValuationPage() {
   const context = await getCurrentContext();
@@ -17,38 +35,22 @@ export default async function SellerValuationPage() {
         가치평가
       </h1>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-        LEVEL 0 EV/Sales입니다. 검증되지 않은 기업가치는 표시하지 않습니다.
+        LEVEL 0 초기 참고용 가치평가입니다. 검증된 비교배수가 있을 때만
+        기업가치(Enterprise Value) 범위를 표시합니다.
       </p>
       {view ? (
         <>
-          <p className="mt-8 text-sm text-muted">{view.valuation.statusLabel}</p>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-foreground">
-            {view.valuation.copy}
+          <div className="mt-8">
+            <SellerValuationStatus valuation={view.valuation} />
+          </div>
+          <h2 className="mt-12 text-lg font-semibold text-foreground">재무 입력</h2>
+          <p className="mt-2 text-sm text-muted">
+            희망 매각가격은 가치평가 계산에 넣지 않습니다.
           </p>
           <FieldRows
             fields={[
-              {
-                id: "revenue",
-                label: "정규화 매출",
-                presence: financialAmountLabel(
-                  view.financials?.revenue ?? {
-                    krw: null,
-                    currency: "KRW",
-                    raw: "",
-                    unresolved: false,
-                    provenance: null,
-                  },
-                ).presence,
-                value: financialAmountLabel(
-                  view.financials?.revenue ?? {
-                    krw: null,
-                    currency: "KRW",
-                    raw: "",
-                    unresolved: false,
-                    provenance: null,
-                  },
-                ).value,
-              },
+              amountField("revenue", "정규화 매출", view.financials?.revenue ?? emptyAmount),
+              amountField("ebitda", "EBITDA", view.financials?.ebitda ?? emptyAmount),
               {
                 id: "industry",
                 label: "업종",

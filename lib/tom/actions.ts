@@ -34,7 +34,7 @@ import {
   computeProductionSellerLevel0,
   loadApprovedEvSalesBenchmarksFromDb,
 } from "@/lib/valuation/resolve-approved-benchmark";
-import type { ValuationResult } from "@/types/valuation";
+import type { BenchmarkApprovalStatus, ValuationResult } from "@/types/valuation";
 import type { DiscoveryContextFacts } from "@/lib/tom/question-policy";
 
 function mapMessage(row: {
@@ -695,6 +695,7 @@ export async function getSellerLevel0Valuation(conversationId: string): Promise<
   message: string | null;
   result: ValuationResult | null;
   copy: string | null;
+  benchmarkApproval: BenchmarkApprovalStatus | null;
 }> {
   if (!isSupabaseConfigured()) {
     return {
@@ -702,6 +703,7 @@ export async function getSellerLevel0Valuation(conversationId: string): Promise<
       message: authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED],
       result: null,
       copy: null,
+      benchmarkApproval: null,
     };
   }
 
@@ -712,6 +714,7 @@ export async function getSellerLevel0Valuation(conversationId: string): Promise<
       message: authErrorMessage[ErrorCode.AUTH_REQUIRED],
       result: null,
       copy: null,
+      benchmarkApproval: null,
     };
   }
 
@@ -722,6 +725,7 @@ export async function getSellerLevel0Valuation(conversationId: string): Promise<
       message: membershipError,
       result: null,
       copy: null,
+      benchmarkApproval: null,
     };
   }
 
@@ -735,6 +739,7 @@ export async function getSellerLevel0Valuation(conversationId: string): Promise<
       message: authErrorMessage[ErrorCode.PERMISSION_DENIED],
       result: null,
       copy: null,
+      benchmarkApproval: null,
     };
   }
 
@@ -765,5 +770,6 @@ export async function getSellerLevel0Valuation(conversationId: string): Promise<
     message: null,
     result: computed.result,
     copy: computed.copy,
+    benchmarkApproval: computed.lookup.benchmark?.approvalStatus ?? null,
   };
 }

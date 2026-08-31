@@ -144,12 +144,12 @@ async function main() {
     const valText = await bodyText();
     mark(valText.includes("가치평가"), "seller_valuation_page");
     mark(
-      valText.includes("Benchmark") ||
-        valText.includes("계산 전") ||
+      valText.includes("비교배수") ||
+        valText.includes("재무정보 입력") ||
+        valText.includes("계산 불가") ||
         valText.includes("데이터 없음") ||
-        valText.includes("재무 입력") ||
-        valText.includes("미입력") ||
-        valText.includes("준비 완료"),
+        valText.includes("Indicative EV") ||
+        valText.includes("LEVEL 0"),
       "seller_valuation_honest_status",
     );
 

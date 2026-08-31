@@ -8,6 +8,7 @@ import type {
   WorkspaceContextView,
 } from "@/lib/workspace/load-home";
 import type { NextAction, VisibleField } from "@/lib/workspace/visibility";
+import { SellerValuationStatus } from "@/components/workspace/SellerValuationStatus";
 
 export function ContextStrip({ view }: { view: WorkspaceContextView }) {
   return (
@@ -178,10 +179,9 @@ export function SellerHomeView({ model }: { model: SellerHomeModel }) {
 
       <section className="mt-12 border-t border-line pt-10">
         <h2 className="text-lg font-semibold text-foreground">가치평가</h2>
-        <p className="mt-2 text-sm text-muted">{model.valuation.statusLabel}</p>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-foreground">
-          {model.valuation.copy}
-        </p>
+        <div className="mt-4">
+          <SellerValuationStatus valuation={model.valuation} compact />
+        </div>
         <Link
           href="/seller/valuation"
           className="mt-4 inline-flex text-sm text-navy underline"

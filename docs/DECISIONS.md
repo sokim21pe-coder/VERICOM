@@ -72,6 +72,8 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 
 2026-08-31 Sprint 2 LEVEL 0 Approved Benchmark Persistence: 승인된 EV/Sales 배수는 `approved_valuation_benchmarks`(0016)에 저장한다. default 배수와 PLACEHOLDER source는 없다. Production `getSellerLevel0Valuation`은 DB에서 회사 단위로 로드한 뒤 resolver에 넘긴다. in-memory inject는 단위 테스트 전용이다. WRITE는 Expert/Internal/Admin + `created_by` audit. Seller는 자기 회사 APPROVED 행만 READ. Buyer는 타사 배수를 읽지 못한다. leftover `0008`/`0009`/`0015`는 적용하지 않는다.
 
+2026-08-31 Sprint 2 LEVEL 0 Seller UI Integration: Seller 가치평가 화면·홈·TOM은 `getSellerLevel0Valuation` 결과를 그대로 보여 준다. APPROVED가 있을 때만 Indicative EV Range(억 원)를 표시한다. TEST_ONLY·UNVERIFIED·Placeholder 배수는 금액 영역에 넣지 않는다. EV와 Equity Value를 구분한다. VALUATION_CALCULATED Audit은 화면 조회에 남기지 않는다.
+
 2026-08-31 Architecture Decision: VERICOM은 Cursor 자율 개발(Autonomous Development)을 공식 채택한다. 무제한 자율이 아니다. **Autonomous Development + Mandatory Human Approval for High-risk Changes.**
 
 왜: 새 Cursor 세션·다른 PC에서도 동일한 작업 운영을 유지한다. 사용자가 매 다음 작업을 지정하지 않아도 Cursor는 `MASTER_SPEC.md` Roadmap과 실제 코드를 기준으로 다음 중요 작업을 고른다. 고위험 변경은 자동 실행하지 않는다.
@@ -81,3 +83,4 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 승인 필요: 운영 데이터/테이블/컬럼 삭제, destructive migration, RLS 약화, Security Gate 제거, Identity Release / IM Release 정책 변경, Deal/Opportunity 핵심 구조 변경, `MASTER_SPEC` 핵심 정책 변경, 사업 모델 변경, Mandate/Advisory 정책 변경, 대규모 Architecture 재설계, force push, Git history rewrite, secret/API key 변경, 실제 외부 이메일·당사자 접촉·오프플랫폼 메시지·문서 외부 공개, 실제 Deal Stage 변경, 실제 LOI/SPA 승인, 실제 Closing.
 
 공식 운영 문서: `docs/DEVELOPMENT_AUTOPILOT.md`. `MASTER_SPEC.md` 0절·37절이 이를 참조한다. 제품 정책은 바꾸지 않는다.
+

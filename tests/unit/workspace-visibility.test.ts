@@ -93,9 +93,10 @@ test("valuation never shows unverified EV", () => {
     status: "MISSING_BENCHMARK",
     copy: null,
   });
-  assert.equal(missing.statusLabel, "Benchmark 필요");
+  assert.equal(missing.statusLabel, "비교배수 확인 필요");
   assert.equal(missing.showEnterpriseValue, false);
   assert.doesNotMatch(missing.copy, /\d+원/);
+  assert.match(missing.copy, /비교배수/);
 
   const empty = valuationVisibility({
     hasConversation: false,
@@ -144,6 +145,13 @@ test("seller next action follows real state", () => {
       statusLabel: "데이터 없음",
       copy: "",
       showEnterpriseValue: false,
+      methodLabel: null,
+      methodExplanation: null,
+      evRangeLabel: null,
+      sourceLabel: null,
+      levelLabel: "",
+      disclaimer: "",
+      equityCopy: null,
     },
   });
   assert.equal(start.href, "/consult?intent=sell");
@@ -156,9 +164,16 @@ test("seller next action follows real state", () => {
     requiredKnown: 4,
     requiredTotal: 4,
     valuation: {
-      statusLabel: "Benchmark 필요",
+      statusLabel: "비교배수 확인 필요",
       copy: "",
       showEnterpriseValue: false,
+      methodLabel: null,
+      methodExplanation: null,
+      evRangeLabel: null,
+      sourceLabel: null,
+      levelLabel: "",
+      disclaimer: "",
+      equityCopy: null,
     },
   });
   assert.equal(benchmark.href, "/seller/valuation");

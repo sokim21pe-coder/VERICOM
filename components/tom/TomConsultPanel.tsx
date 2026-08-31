@@ -12,6 +12,7 @@ import {
   type DiscoveryContextFacts,
 } from "@/lib/tom/question-policy";
 import { FieldRows } from "@/components/workspace/WorkspaceHomeSections";
+import { SellerValuationStatus } from "@/components/workspace/SellerValuationStatus";
 import {
   BUYER_HOME_FIELDS,
   SELLER_HOME_FIELDS,
@@ -23,7 +24,11 @@ import {
   visibleDiscoveryFields,
 } from "@/lib/workspace/visibility";
 import { normalizeFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
-import type { ValuationCalculationStatus } from "@/types/valuation";
+import type {
+  BenchmarkApprovalStatus,
+  ValuationCalculation,
+  ValuationCalculationStatus,
+} from "@/types/valuation";
 
 const sellChoices = [
   "회사를 매각하고 싶습니다.",
@@ -45,6 +50,8 @@ export function TomConsultPanel({
   initialMemories,
   initialValuationCopy = null,
   initialValuationStatus = null,
+  initialValuationResult = null,
+  initialBenchmarkApproval = null,
   companyName = null,
   industry = null,
   platformRole = null,
@@ -57,6 +64,8 @@ export function TomConsultPanel({
   initialMemories: TomMemoryItem[];
   initialValuationCopy?: string | null;
   initialValuationStatus?: ValuationCalculationStatus | null;
+  initialValuationResult?: ValuationCalculation | null;
+  initialBenchmarkApproval?: BenchmarkApprovalStatus | null;
   companyName?: string | null;
   industry?: string | null;
   platformRole?: PlatformRole | null;
@@ -67,6 +76,10 @@ export function TomConsultPanel({
   const [memories, setMemories] = useState(initialMemories);
   const [valuationCopy, setValuationCopy] = useState(initialValuationCopy);
   const [valuationStatus, setValuationStatus] = useState(initialValuationStatus);
+  const [valuationResult, setValuationResult] = useState(initialValuationResult);
+  const [benchmarkApproval, setBenchmarkApproval] = useState(
+    initialBenchmarkApproval,
+  );
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,8 +122,18 @@ export function TomConsultPanel({
       financials,
       status: valuationStatus,
       copy: valuationCopy,
+      result: valuationResult,
+      benchmarkApproval,
     });
-  }, [conversationId, intent, memories, valuationCopy, valuationStatus]);
+  }, [
+    conversationId,
+    intent,
+    memories,
+    valuationCopy,
+    valuationStatus,
+    valuationResult,
+    benchmarkApproval,
+  ]);
 
   async function send(text: string) {
     const trimmed = text.trim();
@@ -131,6 +154,8 @@ export function TomConsultPanel({
       if (valuation.ok) {
         setValuationCopy(valuation.copy);
         setValuationStatus(valuation.result?.status ?? null);
+        setValuationResult(valuation.result);
+        setBenchmarkApproval(valuation.benchmarkApproval);
       }
     }
   }
@@ -189,9 +214,12 @@ export function TomConsultPanel({
           </div>
         ) : null}
         {sellerValuation ? (
-          <p className="mt-4 text-sm leading-6 text-foreground">
-            가치평가: {sellerValuation.statusLabel}. {sellerValuation.copy}
-          </p>
+          <div className="mt-6">
+            <p className="text-xs text-muted">가치평가 상태</p>
+            <div className="mt-2">
+              <SellerValuationStatus valuation={sellerValuation} compact />
+            </div>
+          </div>
         ) : null}
       </div>
 

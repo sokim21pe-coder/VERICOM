@@ -9,7 +9,8 @@ import {
   getSellerLevel0Valuation,
 } from "@/lib/tom/actions";
 import { consultWorkspace, resolveConsultIntent } from "@/lib/tom/intent";
-import { authQuery } from "@/lib/tom/paths";
+import { setPendingNextPath } from "@/lib/auth/pending-next";
+import { authQuery, parseTomIntent } from "@/lib/tom/paths";
 import { EnvNotice } from "@/components/system/EnvNotice";
 import Link from "next/link";
 import { BrandLogo } from "@/components/layout/BrandLogo";
@@ -51,6 +52,8 @@ export default async function ConsultPage({
 
   const dest = resolvePostAuthPath(context);
   if (dest.startsWith("/onboarding")) {
+    const pendingIntent = parseTomIntent(params.intent) ?? "sell";
+    await setPendingNextPath(`/consult?intent=${pendingIntent}`);
     redirect(dest);
   }
 
@@ -91,6 +94,12 @@ export default async function ConsultPage({
           }
           initialValuationStatus={
             initialValuation?.ok ? initialValuation.result?.status ?? null : null
+          }
+          initialValuationResult={
+            initialValuation?.ok ? initialValuation.result : null
+          }
+          initialBenchmarkApproval={
+            initialValuation?.ok ? initialValuation.benchmarkApproval : null
           }
           companyName={context.company?.name ?? null}
           industry={context.company?.industry ?? null}

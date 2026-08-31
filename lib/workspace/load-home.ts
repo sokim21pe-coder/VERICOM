@@ -15,7 +15,11 @@ import type { CurrentContext } from "@/types/context";
 import type { NormalizedAcquisitionCriteria } from "@/lib/tom/normalize-acquisition-criteria";
 import type { NormalizedFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
 import type { TomConversation, TomMemoryItem, TomMessage } from "@/types/tom";
-import type { ValuationCalculationStatus } from "@/types/valuation";
+import type {
+  BenchmarkApprovalStatus,
+  ValuationCalculation,
+  ValuationCalculationStatus,
+} from "@/types/valuation";
 import {
   BUYER_HOME_FIELDS,
   SELLER_HOME_FIELDS,
@@ -148,6 +152,8 @@ export async function loadSellerHomeModel(
   let financials: NormalizedFinancialInputs | null = null;
   let valuationStatus: ValuationCalculationStatus | null = null;
   let valuationCopy: string | null = null;
+  let valuationResult: ValuationCalculation | null = null;
+  let benchmarkApproval: BenchmarkApprovalStatus | null = null;
   if (conversation) {
     const [normalized, valuation] = await Promise.all([
       getNormalizedFinancialInputs(conversation.id),
@@ -156,6 +162,8 @@ export async function loadSellerHomeModel(
     financials = normalized.ok ? normalized.inputs : null;
     valuationStatus = valuation.ok ? valuation.result?.status ?? null : null;
     valuationCopy = valuation.ok ? valuation.copy : null;
+    valuationResult = valuation.ok ? valuation.result : null;
+    benchmarkApproval = valuation.ok ? valuation.benchmarkApproval : null;
   }
 
   const files = await listCompanyPrivateFiles();
@@ -164,6 +172,8 @@ export async function loadSellerHomeModel(
     financials,
     status: valuationStatus,
     copy: valuationCopy,
+    result: valuationResult,
+    benchmarkApproval,
   });
   const progress = discoveryProgress({
     memories,
@@ -305,6 +315,8 @@ export async function loadSellerValuationView() {
   let financials: NormalizedFinancialInputs | null = null;
   let status: ValuationCalculationStatus | null = null;
   let copy: string | null = null;
+  let result: ValuationCalculation | null = null;
+  let benchmarkApproval: BenchmarkApprovalStatus | null = null;
   if (conversation) {
     const [normalized, valuation] = await Promise.all([
       getNormalizedFinancialInputs(conversation.id),
@@ -313,6 +325,8 @@ export async function loadSellerValuationView() {
     financials = normalized.ok ? normalized.inputs : null;
     status = valuation.ok ? valuation.result?.status ?? null : null;
     copy = valuation.ok ? valuation.copy : null;
+    result = valuation.ok ? valuation.result : null;
+    benchmarkApproval = valuation.ok ? valuation.benchmarkApproval : null;
   }
   return {
     financials,
@@ -321,6 +335,8 @@ export async function loadSellerValuationView() {
       financials,
       status,
       copy,
+      result,
+      benchmarkApproval,
     }),
   };
 }

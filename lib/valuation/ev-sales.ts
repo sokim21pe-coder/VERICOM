@@ -1,4 +1,12 @@
 import type { NormalizedFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
+import { formatKrw, formatKrwRange } from "@/lib/valuation/format-krw";
+import {
+  CALCULATION_ERROR_COPY,
+  EQUITY_NOT_CALCULATED_COPY,
+  EV_SALES_METHOD_LABEL,
+  MISSING_BENCHMARK_SELLER_COPY,
+  MISSING_FINANCIAL_COPY,
+} from "@/lib/valuation/seller-level0-presentation";
 import type {
   FinancialInput,
   ValuationBenchmark,
@@ -9,11 +17,13 @@ import type {
   ValuationValueRange,
 } from "@/types/valuation";
 
-export const MISSING_BENCHMARK_SELLER_COPY =
-  "재무 입력은 정리되었습니다. 검증된 비교배수(EV/Sales)가 없어 기업가치 금액을 계산하거나 표시하지 않습니다.";
+export {
+  MISSING_BENCHMARK_SELLER_COPY,
+  MISSING_FINANCIAL_COPY,
+  CALCULATION_ERROR_COPY,
+} from "@/lib/valuation/seller-level0-presentation";
 
-export const MISSING_NET_DEBT_EQUITY_COPY =
-  "지분가치(Equity Value)는 순차입이 확인되지 않아 아직 계산하지 않습니다.";
+export const MISSING_NET_DEBT_EQUITY_COPY = EQUITY_NOT_CALCULATED_COPY;
 
 const MIN_NET_DEBT_CONFIDENCE = 1;
 
@@ -355,6 +365,15 @@ export function calculateEvSales(input: {
   );
 }
 
+function evRangeCopy(result: ValuationCalculation): string {
+  const low = result.evLow;
+  const high = result.evHigh;
+  const base = result.evBase ?? result.enterpriseValue;
+  if (low != null && high != null) return formatKrwRange(low, high);
+  if (base != null) return formatKrw(base);
+  return formatKrwRange(low, high);
+}
+
 /** Seller UI. APPROVED가 아니면 기업가치 금액을 넣지 않는다. TEST_ONLY 결과는 노출하지 않는다. */
 export function formatSellerLevel0Copy(
   result: ValuationCalculation,
@@ -363,25 +382,30 @@ export function formatSellerLevel0Copy(
   const approved =
     benchmark?.approvalStatus === "APPROVED" && result.status === "CALCULABLE";
   if (approved && result.enterpriseValue != null) {
-    const evCopy = `검증된 EV/Sales 배수로 계산한 기업가치(Enterprise Value)는 ${result.enterpriseValue}원입니다.`;
+    const range = evRangeCopy(result);
+    const evCopy = `평가방식: ${EV_SALES_METHOD_LABEL}. 기업가치(Enterprise Value) 범위: ${range}. 기준: 승인된 비교배수.`;
     const equityShown =
       result.equityValueRange?.base ??
       result.equityValueRange?.low ??
       result.equityValueRange?.high ??
       null;
     if (equityShown != null) {
-      return `${evCopy} 확인된 순차입을 반영한 지분가치(Equity Value)는 ${equityShown}원입니다.`;
+      const equityRange = formatKrwRange(
+        result.equityValueRange?.low ?? equityShown,
+        result.equityValueRange?.high ?? equityShown,
+      );
+      return `${evCopy} 확인된 순차입을 반영한 지분가치(Equity Value)는 ${equityRange}입니다. 매각가격이 아닙니다.`;
     }
     return `${evCopy} ${MISSING_NET_DEBT_EQUITY_COPY}`;
   }
   if (result.status === "MISSING_INPUT") {
-    return "기업가치를 계산하려면 정규화된 매출이 필요합니다.";
+    return MISSING_FINANCIAL_COPY;
   }
   if (
     result.status === "NOT_ELIGIBLE" &&
     result.warnings.includes("revenue_not_positive")
   ) {
-    return "현재 재무 입력으로는 EV/Sales 기업가치를 계산할 수 없습니다.";
+    return CALCULATION_ERROR_COPY;
   }
   return MISSING_BENCHMARK_SELLER_COPY;
 }

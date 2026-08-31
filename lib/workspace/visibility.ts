@@ -31,7 +31,15 @@ import {
   type NormalizedFinancialAmount,
   type NormalizedFinancialInputs,
 } from "@/lib/valuation/normalize-financial-inputs";
-import type { ValuationCalculationStatus } from "@/types/valuation";
+import type {
+  BenchmarkApprovalStatus,
+  ValuationCalculation,
+  ValuationCalculationStatus,
+} from "@/types/valuation";
+import {
+  sellerLevel0Presentation,
+  type SellerLevel0Presentation,
+} from "@/lib/valuation/seller-level0-presentation";
 
 export const SELLER_HOME_FIELDS: { id: DiscoveryFieldId; label: string }[] = [
   { id: "reason_for_sale", label: "매각 이유" },
@@ -113,17 +121,7 @@ export type NextAction = {
   detail: string;
 };
 
-export type ValuationVisibility = {
-  statusLabel:
-    | "데이터 없음"
-    | "미입력"
-    | "재무 입력 정리 중"
-    | "Benchmark 필요"
-    | "기업가치 계산 전"
-    | "준비 완료";
-  copy: string;
-  showEnterpriseValue: boolean;
-};
+export type ValuationVisibility = SellerLevel0Presentation;
 
 export type MatchingVisibility = {
   statusLabel: "인수조건 정리 완료" | "Matching Engine 준비 전" | "미입력";
@@ -289,53 +287,17 @@ export function valuationVisibility(input: {
   financials: NormalizedFinancialInputs | null;
   status: ValuationCalculationStatus | null;
   copy: string | null;
+  result?: ValuationCalculation | null;
+  benchmarkApproval?: BenchmarkApprovalStatus | null;
 }): ValuationVisibility {
-  if (!input.hasConversation) {
-    return {
-      statusLabel: "데이터 없음",
-      copy: "상담에서 재무를 입력하면 가치평가 상태를 확인할 수 있습니다.",
-      showEnterpriseValue: false,
-    };
-  }
-  if (!input.financials || input.financials.completeness.knownInputs === 0) {
-    return {
-      statusLabel: "미입력",
-      copy: "매출 등 재무 입력이 아직 없습니다.",
-      showEnterpriseValue: false,
-    };
-  }
-  if (
-    input.financials.revenue.krw == null ||
-    input.financials.revenue.unresolved ||
-    input.status === "MISSING_INPUT"
-  ) {
-    return {
-      statusLabel: "재무 입력 정리 중",
-      copy: "정규화된 매출이 있어야 기업가치를 계산할 수 있습니다.",
-      showEnterpriseValue: false,
-    };
-  }
-  if (input.status === "MISSING_BENCHMARK" || input.status == null) {
-    return {
-      statusLabel: "Benchmark 필요",
-      copy:
-        input.copy ??
-        "재무 입력은 정리되었습니다. 검증된 비교배수(EV/Sales)가 없어 기업가치 금액을 계산하거나 표시하지 않습니다.",
-      showEnterpriseValue: false,
-    };
-  }
-  if (input.status === "CALCULABLE" && input.copy) {
-    return {
-      statusLabel: "준비 완료",
-      copy: input.copy,
-      showEnterpriseValue: true,
-    };
-  }
-  return {
-    statusLabel: "기업가치 계산 전",
-    copy: "현재 입력으로는 기업가치 금액을 표시하지 않습니다.",
-    showEnterpriseValue: false,
-  };
+  return sellerLevel0Presentation({
+    hasConversation: input.hasConversation,
+    financials: input.financials,
+    status: input.status,
+    result: input.result ?? null,
+    copy: input.copy,
+    benchmarkApproval: input.benchmarkApproval ?? null,
+  });
 }
 
 export function matchingVisibility(
@@ -467,8 +429,8 @@ export function sellerNextAction(input: {
     };
   }
   if (
-    input.valuation.statusLabel === "미입력" ||
-    input.valuation.statusLabel === "재무 입력 정리 중"
+    input.valuation.statusLabel === "재무정보 입력 필요" ||
+    input.valuation.statusLabel === "데이터 없음"
   ) {
     return {
       label: "재무 입력 이어가기",
@@ -476,18 +438,18 @@ export function sellerNextAction(input: {
       detail: "매출·이익 등 알려 주신 숫자만 저장합니다. 추정하지 않습니다.",
     };
   }
-  if (input.valuation.statusLabel === "Benchmark 필요") {
+  if (input.valuation.statusLabel === "비교배수 확인 필요") {
     return {
       label: "가치평가 상태 보기",
       href: "/seller/valuation",
-      detail: "재무는 정리되었습니다. 검증된 Benchmark가 필요합니다.",
+      detail: "재무는 정리되었습니다. 검증된 비교배수가 필요합니다.",
     };
   }
-  if (input.valuation.statusLabel === "준비 완료") {
+  if (input.valuation.statusLabel === "Indicative EV 계산됨") {
     return {
       label: "가치평가 결과 보기",
       href: "/seller/valuation",
-      detail: "승인된 비교배수로 계산된 상태입니다.",
+      detail: "승인된 비교배수로 계산된 기업가치(EV) 범위입니다.",
     };
   }
   return {
