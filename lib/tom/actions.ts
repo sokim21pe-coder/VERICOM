@@ -22,10 +22,13 @@ import {
 } from "@/lib/tom/persist-discovery";
 import {
   canReadNormalizedBuyerCriteria,
+  canReadNormalizedSellerFinancials,
   canReadTomConversation,
 } from "@/lib/tom/access";
 import { normalizeAcquisitionCriteria } from "@/lib/tom/normalize-acquisition-criteria";
 import type { NormalizedAcquisitionCriteria } from "@/lib/tom/normalize-acquisition-criteria";
+import { normalizeFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
+import type { NormalizedFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
 import type { DiscoveryContextFacts } from "@/lib/tom/question-policy";
 
 function mapMessage(row: {
@@ -555,6 +558,60 @@ export async function getNormalizedAcquisitionCriteria(conversationId: string): 
       memories: loaded.memories,
       conversationId: loaded.conversation.id,
       buyerCompanyId: context.company?.id ?? null,
+    }),
+  };
+}
+
+export async function getNormalizedFinancialInputs(conversationId: string): Promise<{
+  ok: boolean;
+  message: string | null;
+  inputs: NormalizedFinancialInputs | null;
+}> {
+  if (!isSupabaseConfigured()) {
+    return {
+      ok: false,
+      message: authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED],
+      inputs: null,
+    };
+  }
+
+  const context = await getCurrentContext();
+  if (!context) {
+    return {
+      ok: false,
+      message: authErrorMessage[ErrorCode.AUTH_REQUIRED],
+      inputs: null,
+    };
+  }
+
+  const membershipError = requireSellerOrBuyerCompany(context);
+  if (membershipError) {
+    return {
+      ok: false,
+      message: membershipError,
+      inputs: null,
+    };
+  }
+
+  const loaded = await loadConversation(conversationId, context.user.id, "sell");
+  if (
+    !loaded.conversation ||
+    !canReadNormalizedSellerFinancials(loaded.conversation, context)
+  ) {
+    return {
+      ok: false,
+      message: authErrorMessage[ErrorCode.PERMISSION_DENIED],
+      inputs: null,
+    };
+  }
+
+  return {
+    ok: true,
+    message: null,
+    inputs: normalizeFinancialInputs({
+      memories: loaded.memories,
+      conversationId: loaded.conversation.id,
+      sellerCompanyId: context.company?.id ?? null,
     }),
   };
 }

@@ -114,6 +114,8 @@ Discovery는 Active Platform Role과 Conversation Intent로 `SELLER` / `BUYER` �
 
 Buyer Acquisition Criteria Normalization은 원본 USER_CLAIM을 대체하지 않는 계산형 계층이다. LLM 없이 동일 입력은 동일 스냅샷을 만들고, Matching Engine은 이 스냅샷을 읽기만 한다. 이번 Sprint에서는 Matching을 실행하지 않는다.
 
+Seller Financial Input Normalization도 같은 방식이다. Seller Discovery Memory(매출·EBITDA·순차입 등) 위에 LLM 없는 계산형 스냅샷을 두고, Buyer Criteria·Seller 희망가와 섞지 않으며 Cash/Debt를 추정하지 않는다. EV/Multiple 계산은 이 입력 계층 이후다.
+
 ---
 
 ## 7. Source Priority

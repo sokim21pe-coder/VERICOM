@@ -14,6 +14,10 @@ import {
   formatNormalizedCriteriaSummary,
   normalizeAcquisitionCriteria,
 } from "@/lib/tom/normalize-acquisition-criteria";
+import {
+  formatNormalizedFinancialSummary,
+  normalizeFinancialInputs,
+} from "@/lib/valuation/normalize-financial-inputs";
 
 const sellChoices = [
   "회사를 매각하고 싶습니다.",
@@ -75,6 +79,16 @@ export function TomConsultPanel({
           }),
         )
       : null;
+  const financialSummary =
+    intent === "sell"
+      ? formatNormalizedFinancialSummary(
+          normalizeFinancialInputs({
+            memories,
+            conversationId,
+            sellerCompanyId: null,
+          }),
+        )
+      : null;
 
   async function send(text: string) {
     const trimmed = text.trim();
@@ -122,6 +136,13 @@ export function TomConsultPanel({
       criteriaSummary !== "아직 정규화된 인수조건이 충분하지 않습니다." ? (
         <p className="mt-3 rounded-md border border-line bg-white px-3 py-2 text-sm leading-relaxed text-foreground">
           {criteriaSummary}
+        </p>
+      ) : null}
+      {intent === "sell" &&
+      financialSummary &&
+      financialSummary !== "아직 정규화된 재무 입력이 충분하지 않습니다." ? (
+        <p className="mt-3 rounded-md border border-line bg-white px-3 py-2 text-sm leading-relaxed text-foreground">
+          {financialSummary}
         </p>
       ) : null}
 

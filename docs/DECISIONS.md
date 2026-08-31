@@ -62,6 +62,8 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 
 2026-08-31 Sprint 1 TOM Conversation 종료: Buyer 로그인 E2E로 Memory → Normalization → deterministic Summary → 재질문 방지 → 재로그인 유지를 검증했다. 투자 금액 단서(`생각하고`/`까지`)는 직전 매출 질문보다 우선한다. Matching·Valuation은 시작하지 않았다.
 
+2026-08-31 Sprint 2 Financial Input Normalization: Seller Discovery Memory 위에 계산형 재무 입력 스냅샷을 둔다. Buyer Criteria·Seller 희망가와 섞지 않는다. Cash/Debt 분할을 추정하지 않는다. EV/Multiple/DCF와 0008/0009는 적용하지 않았다.
+
 2026-08-31 Architecture Decision: VERICOM은 Cursor 자율 개발(Autonomous Development)을 공식 채택한다. 무제한 자율이 아니다. **Autonomous Development + Mandatory Human Approval for High-risk Changes.**
 
 왜: 새 Cursor 세션·다른 PC에서도 동일한 작업 운영을 유지한다. 사용자가 매 다음 작업을 지정하지 않아도 Cursor는 `MASTER_SPEC.md` Roadmap과 실제 코드를 기준으로 다음 중요 작업을 고른다. 고위험 변경은 자동 실행하지 않는다.

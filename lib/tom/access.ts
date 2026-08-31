@@ -26,6 +26,20 @@ export function canReadNormalizedBuyerCriteria(
   return canReadTomConversation(conversation, context);
 }
 
+/** Seller 재무 입력 정규화 조회. Client userId/companyId/platformRole을 믿지 않는다. */
+export function canReadNormalizedSellerFinancials(
+  conversation: TomConversation,
+  context: CurrentContext,
+): boolean {
+  if (context.platformRole !== PlatformRole.SELLER_USER) return false;
+  if (!context.company?.id) return false;
+  if (conversation.intent !== "sell") return false;
+  if (!conversation.companyId || conversation.companyId !== context.company.id) {
+    return false;
+  }
+  return canReadTomConversation(conversation, context);
+}
+
 export function canWriteTomConversation(
   ownerUserId: string,
   context: CurrentContext,
