@@ -4,7 +4,7 @@
 > **Source of Truth:** 프로젝트 루트 `MASTER_SPEC.md` 0.3절·0.4절·4절·7절·8절·20절  
 > **이 문서:** 동일 원칙의 상세 설명. 내용이 다르면 `MASTER_SPEC.md`를 따른다.
 
-새로운 TOM 또는 M&A 기능을 구현하기 전에 `MASTER_SPEC.md`(0.3절·0.4절 포함)와 이 문서를 먼저 읽고, 현재 User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage Context를 고려해야 한다.
+새로운 TOM 또는 M&A 기능을 구현하기 전에 `MASTER_SPEC.md`(0.3절·0.4절 포함)와 이 문서를 먼저 읽고, 현재 User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage Context를 고려해야 한다. 작업 운영은 `docs/DEVELOPMENT_AUTOPILOT.md`를 따른다.
 
 기능 구현이 이 Architecture와 충돌하면 코드를 먼저 작성하지 말고 충돌을 보고해야 한다.
 

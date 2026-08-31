@@ -61,3 +61,13 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 2026-08-31 Buyer Acquisition Criteria Normalization: Buyer Discovery의 `tom_memory_items` USER_CLAIM 위에 LLM 없는 계산형 정규화 스냅샷을 둔다. 원본 Memory는 수정·삭제하지 않고, 별도 `normalized_acquisition_criteria` 테이블도 만들지 않는다. Matching·Score·추천은 하지 않는다. 서버 `getNormalizedAcquisitionCriteria`는 CurrentContext의 authenticated user / active company / BUYER platform role / conversation ownership만 사용한다.
 
 2026-08-31 Sprint 1 TOM Conversation 종료: Buyer 로그인 E2E로 Memory → Normalization → deterministic Summary → 재질문 방지 → 재로그인 유지를 검증했다. 투자 금액 단서(`생각하고`/`까지`)는 직전 매출 질문보다 우선한다. Matching·Valuation은 시작하지 않았다.
+
+2026-08-31 Architecture Decision: VERICOM은 Cursor 자율 개발(Autonomous Development)을 공식 채택한다. 무제한 자율이 아니다. **Autonomous Development + Mandatory Human Approval for High-risk Changes.**
+
+왜: 새 Cursor 세션·다른 PC에서도 동일한 작업 운영을 유지한다. 사용자가 매 다음 작업을 지정하지 않아도 Cursor는 `MASTER_SPEC.md` Roadmap과 실제 코드를 기준으로 다음 중요 작업을 고른다. 고위험 변경은 자동 실행하지 않는다.
+
+자동 허용: 기존 Architecture 안의 기존 기능 보완, 소규모 리팩터, TypeScript 수정, Unit/E2E/Regression, Build 수정, 문서 동기화, 안전한 마이그레이션(컬럼·인덱스·RLS 추가), 해당 Sprint Supabase 적용, commit, push, `origin/main` 확인.
+
+승인 필요: 운영 데이터/테이블/컬럼 삭제, destructive migration, RLS 약화, Security Gate 제거, Identity Release / IM Release 정책 변경, Deal/Opportunity 핵심 구조 변경, `MASTER_SPEC` 핵심 정책 변경, 사업 모델 변경, Mandate/Advisory 정책 변경, 대규모 Architecture 재설계, force push, Git history rewrite, secret/API key 변경, 실제 외부 이메일·당사자 접촉·오프플랫폼 메시지·문서 외부 공개, 실제 Deal Stage 변경, 실제 LOI/SPA 승인, 실제 Closing.
+
+공식 운영 문서: `docs/DEVELOPMENT_AUTOPILOT.md`. `MASTER_SPEC.md` 0절·37절이 이를 참조한다. 제품 정책은 바꾸지 않는다.

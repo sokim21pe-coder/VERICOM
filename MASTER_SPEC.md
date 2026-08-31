@@ -6,13 +6,19 @@
 > **기준 원문:** `VERICOM 플랫폼 개발기획서 최종통합본 v2.0` (2026-08-18)  
 > **문서 성격:** Source of Truth / Product + Engineering Master Spec  
 > **기본 언어:** 한국어 UI, 한국어 사용자 문구, 코드/Enum/API 식별자는 영문 사용  
-> **TOM Architecture 상세:** `docs/TOM_ARCHITECTURE.md` (충돌 시 이 파일 0.3절·0.4절·20절이 우선)
+> **TOM Architecture 상세:** `docs/TOM_ARCHITECTURE.md` (충돌 시 이 파일 0.3절·0.4절·20절이 우선)  
+> **작업 운영 규칙:** `docs/DEVELOPMENT_AUTOPILOT.md`  
+> **Architecture Decision:** `docs/DECISIONS.md`
 
 ---
 
 ## 0. AI 개발도구에 대한 최우선 지시
 
 이 프로젝트에서 **베리컴(VERICOM)** 은 이 문서에 정의된 **AI 기반 M&A Operating Platform**만을 의미한다.
+
+**VERICOM 개발의 자율 실행 및 작업 운영 규칙은 `docs/DEVELOPMENT_AUTOPILOT.md`를 따른다.**
+
+새로운 기능 개발 전 Cursor는 `MASTER_SPEC.md`, `docs/DECISIONS.md`, `docs/TOM_ARCHITECTURE.md`, `docs/DEVELOPMENT_AUTOPILOT.md`를 먼저 확인해야 한다.
 
 ### 0.1 절대 규칙
 
@@ -39,7 +45,7 @@ Cursor는 매 작업 시작 전 다음을 확인한다.
 - 기존 Business Rule을 깨뜨리는지
 - 테스트가 필요한지
 
-**새로운 TOM 또는 M&A 기능을 구현하기 전에 `MASTER_SPEC.md`(특히 0.3절·0.4절·4절·7절·8절·20절)와 `docs/TOM_ARCHITECTURE.md`를 먼저 읽고, 현재 User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage Context를 고려해야 한다.**
+**새로운 TOM 또는 M&A 기능을 구현하기 전에 `MASTER_SPEC.md`(특히 0.3절·0.4절·4절·7절·8절·20절), `docs/DECISIONS.md`, `docs/TOM_ARCHITECTURE.md`, `docs/DEVELOPMENT_AUTOPILOT.md`를 먼저 읽고, 현재 User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage Context를 고려해야 한다.**
 
 **Buyer Matching, Opportunity, Messaging, NDA, Identity Release, IM, MM, LOI, DD, Negotiation, SPA, Closing, Expert Portal, Internal Workspace, TOM을 구현할 때 0.4 Direct M&A 원칙을 확인한다. 모든 커뮤니케이션이 VERICOM 직원이 대신해야만 작동하는 구조면 코드를 쓰지 말고 Architecture 충돌을 보고한다.**
 
@@ -1916,7 +1922,7 @@ Risk: Low / Medium / High
 
 ## Step 2. 관련 규칙 검색
 
-이 `MASTER_SPEC.md`(0.3절·0.4절 포함)와, TOM/M&A 기능이면 `docs/TOM_ARCHITECTURE.md`를 먼저 읽는다. 서버 CurrentContext(User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage)를 확인한다. Matching·Messaging·Opportunity·문서 Gate 기능은 0.4 Direct M&A 원칙을 확인한다.
+이 `MASTER_SPEC.md`(0.3절·0.4절 포함), `docs/DECISIONS.md`, `docs/TOM_ARCHITECTURE.md`, `docs/DEVELOPMENT_AUTOPILOT.md`를 먼저 읽는다. 서버 CurrentContext(User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage)를 확인한다. Matching·Messaging·Opportunity·문서 Gate 기능은 0.4 Direct M&A 원칙을 확인한다. 작업 선택·승인 범위·GitHub/Supabase 운영은 `docs/DEVELOPMENT_AUTOPILOT.md`를 따른다.
 
 기능이 Architecture와 충돌하면 **코드를 작성하지 말고 충돌을 보고**한다.
 
