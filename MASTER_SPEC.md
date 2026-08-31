@@ -790,8 +790,6 @@ Sprint 2 입력 계층: Seller Discovery `tom_memory_items`(매출·EBITDA·순�
 출력:
 - Expert-verified 정밀 예비가치
 
-Sprint 2 입력 계층: Seller Discovery `tom_memory_items`(매출·EBITDA·순차입 등) 위에 LLM 없는 계산형 Financial Input Normalization을 둔다. 원본 Memory는 대체하지 않는다. Cash/Debt를 모르면 추정하지 않는다. EV/Multiple 계산은 이 입력 계층 이후 단계에서만 한다.
-
 ## 9.3 계산 규칙
 
 ```text
