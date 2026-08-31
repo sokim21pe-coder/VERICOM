@@ -23,12 +23,15 @@ import {
 import {
   canReadNormalizedBuyerCriteria,
   canReadNormalizedSellerFinancials,
+  canReadSellerLevel0Valuation,
   canReadTomConversation,
 } from "@/lib/tom/access";
 import { normalizeAcquisitionCriteria } from "@/lib/tom/normalize-acquisition-criteria";
 import type { NormalizedAcquisitionCriteria } from "@/lib/tom/normalize-acquisition-criteria";
 import { normalizeFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
 import type { NormalizedFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
+import { calculateEvSales } from "@/lib/valuation/ev-sales";
+import type { ValuationResult } from "@/types/valuation";
 import type { DiscoveryContextFacts } from "@/lib/tom/question-policy";
 
 function mapMessage(row: {
@@ -612,6 +615,67 @@ export async function getNormalizedFinancialInputs(conversationId: string): Prom
       memories: loaded.memories,
       conversationId: loaded.conversation.id,
       sellerCompanyId: context.company?.id ?? null,
+    }),
+  };
+}
+
+/** Production LEVEL 0. APPROVED benchmark만 허용. 현재 저장소가 없어 benchmark는 null. */
+export async function getSellerLevel0Valuation(conversationId: string): Promise<{
+  ok: boolean;
+  message: string | null;
+  result: ValuationResult | null;
+}> {
+  if (!isSupabaseConfigured()) {
+    return {
+      ok: false,
+      message: authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED],
+      result: null,
+    };
+  }
+
+  const context = await getCurrentContext();
+  if (!context) {
+    return {
+      ok: false,
+      message: authErrorMessage[ErrorCode.AUTH_REQUIRED],
+      result: null,
+    };
+  }
+
+  const membershipError = requireSellerOrBuyerCompany(context);
+  if (membershipError) {
+    return {
+      ok: false,
+      message: membershipError,
+      result: null,
+    };
+  }
+
+  const loaded = await loadConversation(conversationId, context.user.id, "sell");
+  if (
+    !loaded.conversation ||
+    !canReadSellerLevel0Valuation(loaded.conversation, context)
+  ) {
+    return {
+      ok: false,
+      message: authErrorMessage[ErrorCode.PERMISSION_DENIED],
+      result: null,
+    };
+  }
+
+  const financials = normalizeFinancialInputs({
+    memories: loaded.memories,
+    conversationId: loaded.conversation.id,
+    sellerCompanyId: context.company?.id ?? null,
+  });
+
+  return {
+    ok: true,
+    message: null,
+    result: calculateEvSales({
+      financials,
+      benchmark: null,
+      mode: "production",
     }),
   };
 }

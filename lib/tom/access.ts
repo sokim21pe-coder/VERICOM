@@ -40,6 +40,14 @@ export function canReadNormalizedSellerFinancials(
   return canReadTomConversation(conversation, context);
 }
 
+/** Seller LEVEL 0 EV/Sales 조회. Client userId/companyId/platformRole을 믿지 않는다. */
+export function canReadSellerLevel0Valuation(
+  conversation: TomConversation,
+  context: CurrentContext,
+): boolean {
+  return canReadNormalizedSellerFinancials(conversation, context);
+}
+
 export function canWriteTomConversation(
   ownerUserId: string,
   context: CurrentContext,

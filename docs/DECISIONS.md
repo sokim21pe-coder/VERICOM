@@ -64,6 +64,8 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 
 2026-08-31 Sprint 2 Financial Input Normalization: Seller Discovery Memory 위에 계산형 재무 입력 스냅샷을 둔다. Buyer Criteria·Seller 희망가와 섞지 않는다. Cash/Debt 분할을 추정하지 않는다. EV/Multiple/DCF와 0008/0009는 적용하지 않았다.
 
+2026-08-31 Sprint 2 LEVEL 0 EV/Sales Foundation: `Financial Input → Method Eligibility → Benchmark Input → Deterministic Calculation → Valuation Result → TOM interpretation`. EV = 정규화 매출 × 승인된 EV/Sales 배수. 둘 다 있을 때만 계산한다. Production/UI는 APPROVED만. TEST_ONLY는 단위 테스트 전용이며 Seller UI에 노출하지 않는다. UNVERIFIED는 production 계산을 거부한다. PLACEHOLDER 0.5–2.0 배수를 사용자에게 쓰지 않는다. Equity Value·DCF·WACC는 하지 않는다. 새 valuation 테이블과 0008/0009 적용은 하지 않았다.
+
 2026-08-31 Architecture Decision: VERICOM은 Cursor 자율 개발(Autonomous Development)을 공식 채택한다. 무제한 자율이 아니다. **Autonomous Development + Mandatory Human Approval for High-risk Changes.**
 
 왜: 새 Cursor 세션·다른 PC에서도 동일한 작업 운영을 유지한다. 사용자가 매 다음 작업을 지정하지 않아도 Cursor는 `MASTER_SPEC.md` Roadmap과 실제 코드를 기준으로 다음 중요 작업을 고른다. 고위험 변경은 자동 실행하지 않는다.

@@ -18,6 +18,10 @@ import {
   formatNormalizedFinancialSummary,
   normalizeFinancialInputs,
 } from "@/lib/valuation/normalize-financial-inputs";
+import {
+  calculateEvSales,
+  formatSellerLevel0Copy,
+} from "@/lib/valuation/ev-sales";
 
 const sellChoices = [
   "회사를 매각하고 싶습니다.",
@@ -79,14 +83,28 @@ export function TomConsultPanel({
           }),
         )
       : null;
-  const financialSummary =
+  const sellerFinancials =
     intent === "sell"
-      ? formatNormalizedFinancialSummary(
-          normalizeFinancialInputs({
-            memories,
-            conversationId,
-            sellerCompanyId: null,
+      ? normalizeFinancialInputs({
+          memories,
+          conversationId,
+          sellerCompanyId: null,
+        })
+      : null;
+  const financialSummary = sellerFinancials
+    ? formatNormalizedFinancialSummary(sellerFinancials)
+    : null;
+  const sellerValuationCopy =
+    sellerFinancials &&
+    sellerFinancials.revenue.krw != null &&
+    !sellerFinancials.revenue.unresolved
+      ? formatSellerLevel0Copy(
+          calculateEvSales({
+            financials: sellerFinancials,
+            benchmark: null,
+            mode: "production",
           }),
+          null,
         )
       : null;
 
@@ -143,6 +161,11 @@ export function TomConsultPanel({
       financialSummary !== "아직 정규화된 재무 입력이 충분하지 않습니다." ? (
         <p className="mt-3 rounded-md border border-line bg-white px-3 py-2 text-sm leading-relaxed text-foreground">
           {financialSummary}
+        </p>
+      ) : null}
+      {sellerValuationCopy ? (
+        <p className="mt-3 rounded-md border border-line bg-white px-3 py-2 text-sm leading-relaxed text-foreground">
+          {sellerValuationCopy}
         </p>
       ) : null}
 

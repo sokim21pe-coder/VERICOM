@@ -722,6 +722,7 @@ CONFIRMED ≈ FACT 후보, ESTIMATED ≈ ASSUMPTION 또는 INFERENCE, UNKNOWN은
 - Buyer Discovery(Sprint 1): 공통 Question Engine(`DiscoveryProfile` SELLER|BUYER). 인수조건은 한 질문씩 수집하고, Buyer 회사 업종과 Target 산업을 혼동하지 않는다. Matching·Valuation은 하지 않는다.
 - Buyer Acquisition Criteria Normalization(Sprint 1): `tom_memory_items` USER_CLAIM 위에 LLM 없는 계산형 정규화 스냅샷을 만든다. 원본 Memory는 삭제·대체하지 않는다. Matching·추천은 하지 않는다.
 - Sprint 1 종료 검증: Buyer 로그인 E2E로 Memory·Normalization·Summary·재질문 방지·재로그인 유지를 확인한다.
+- Sprint 2 LEVEL 0 EV/Sales: 정규화 매출과 승인된(APPROVED) 비교배수가 둘 다 있을 때만 기업가치를 계산한다. PLACEHOLDER 배수를 사용자에게 쓰지 않는다.
 
 ---
 
@@ -735,7 +736,7 @@ LLM이 Multiple이나 최종 숫자를 발명하지 않는다.
 
 ## 9.2 Levels
 
-Sprint 2 입력 계층: Seller Discovery `tom_memory_items`(매출·EBITDA·순차입 등) 위에 LLM 없는 계산형 Financial Input Normalization을 둔다. 원본 Memory는 대체하지 않는다. Cash/Debt를 모르면 추정하지 않는다. EV/Multiple 계산은 이 입력 계층 이후 단계에서만 한다.
+Sprint 2 입력 계층: Seller Discovery `tom_memory_items`(매출·EBITDA·순차입 등) 위에 LLM 없는 계산형 Financial Input Normalization을 둔다. 원본 Memory는 대체하지 않는다. Cash/Debt를 모르면 추정하지 않는다. EV/Sales는 정규화 매출과 승인된(APPROVED) 비교배수가 둘 다 있을 때만 계산한다. PLACEHOLDER 배수(예: 0.5–2.0)를 사용자에게 실제 배수처럼 쓰지 않는다. 배수가 없으면 `MISSING_BENCHMARK`이며 `enterpriseValue`는 null이다. Equity Value는 Net Debt 엔진 이후.
 
 ### LEVEL 0
 
