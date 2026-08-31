@@ -10,16 +10,16 @@ export type WorkspaceNavItem = {
   href: string;
   label: string;
   todo?: boolean;
+  preparing?: boolean;
 };
 
 const defaultSellerNav: WorkspaceNavItem[] = [
   { href: "/seller", label: "홈" },
-  { href: "/seller", label: "내 회사", todo: true },
-  { href: "/seller", label: "인수후보", todo: true },
-  { href: "/seller", label: "진행 중 거래" },
-  { href: "/seller", label: "자료실", todo: true },
-  { href: "/seller", label: "전문가", todo: true },
-  { href: "/seller", label: "TOM" },
+  { href: "/consult?intent=sell", label: "TOM" },
+  { href: "/seller/deals", label: "거래" },
+  { href: "/seller/docs", label: "자료실" },
+  { href: "/seller/valuation", label: "가치평가" },
+  { href: "/seller/documents", label: "문서", preparing: true },
 ];
 
 type WorkspaceHeaderProps = {
@@ -90,10 +90,23 @@ export function WorkspaceHeader({
               <Link
                 key={`${item.href}-${item.label}`}
                 href={item.href}
-                className="shrink-0 rounded-md px-2 py-1.5 hover:text-foreground"
-                title={item.todo ? "TODO: 화면 미연결" : undefined}
+                className={
+                  item.preparing || item.todo
+                    ? "shrink-0 rounded-md px-2 py-1.5 text-muted"
+                    : "shrink-0 rounded-md px-2 py-1.5 hover:text-foreground"
+                }
+                title={
+                  item.preparing
+                    ? "준비 중"
+                    : item.todo
+                      ? "준비 중"
+                      : undefined
+                }
               >
                 {item.label}
+                {item.preparing ? (
+                  <span className="ml-1 text-[10px] text-muted">준비 중</span>
+                ) : null}
               </Link>
             ))}
           </div>

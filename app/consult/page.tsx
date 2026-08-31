@@ -89,6 +89,14 @@ export default async function ConsultPage({
           initialValuationCopy={
             initialValuation?.ok ? initialValuation.copy : null
           }
+          initialValuationStatus={
+            initialValuation?.ok ? initialValuation.result?.status ?? null : null
+          }
+          companyName={context.company?.name ?? null}
+          industry={context.company?.industry ?? null}
+          platformRole={context.platformRole}
+          dealId={context.deal?.id ?? null}
+          dealRole={context.dealRole}
         />
       </main>
     </WorkspaceChrome>

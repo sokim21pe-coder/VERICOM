@@ -312,6 +312,73 @@ export async function getOrCreateTomConversation(
   };
 }
 
+/** 홈·상태 표시용. 상담을 만들지 않는다. */
+export async function getExistingTomConversation(
+  intent: TomIntent,
+): Promise<{
+  ok: boolean;
+  message: string | null;
+  conversation: TomConversation | null;
+  messages: TomMessage[];
+  memories: TomMemoryItem[];
+}> {
+  if (!isSupabaseConfigured()) {
+    return envConversationError(authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED]);
+  }
+
+  const context = await getCurrentContext();
+  if (!context) {
+    return envConversationError(authErrorMessage[ErrorCode.AUTH_REQUIRED]);
+  }
+
+  const membershipError = requireSellerOrBuyerCompany(context);
+  if (membershipError) {
+    return envConversationError(membershipError);
+  }
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) {
+    return envConversationError(authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED]);
+  }
+
+  const { data: existing } = await supabase
+    .from("tom_conversations")
+    .select("id")
+    .eq("user_id", context.user.id)
+    .eq("intent", intent)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!existing?.id) {
+    return {
+      ok: true,
+      message: null,
+      conversation: null,
+      messages: [],
+      memories: [],
+    };
+  }
+
+  const loaded = await loadConversation(
+    existing.id,
+    context.user.id,
+    intent,
+  );
+  if (!loaded.conversation || !conversationAllowed(loaded.conversation, context)) {
+    return envConversationError("상담을 불러오지 못했습니다.");
+  }
+
+  return {
+    ok: true,
+    message: null,
+    conversation: loaded.conversation,
+    messages: loaded.messages,
+    memories: loaded.memories,
+  };
+}
+
 export async function sendTomMessage(
   conversationId: string,
   body: string,

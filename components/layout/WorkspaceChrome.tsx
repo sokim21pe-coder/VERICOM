@@ -70,7 +70,7 @@ export function WorkspaceTodoMain({
         {title}
       </h1>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-        TODO: {note} 가짜 거래 데이터는 표시하지 않습니다.
+        준비 중. {note} 가짜 거래 데이터는 표시하지 않습니다.
       </p>
     </main>
   );

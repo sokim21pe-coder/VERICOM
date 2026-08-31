@@ -1,0 +1,72 @@
+import Link from "next/link";
+import { FieldRows } from "@/components/workspace/WorkspaceHomeSections";
+import { getCurrentContext } from "@/lib/auth/session";
+import { loadSellerValuationView } from "@/lib/workspace/load-home";
+import { financialAmountLabel } from "@/lib/workspace/visibility";
+
+export const dynamic = "force-dynamic";
+
+export default async function SellerValuationPage() {
+  const context = await getCurrentContext();
+  const view = context ? await loadSellerValuationView() : null;
+
+  return (
+    <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-10">
+      <p className="text-[11px] tracking-[0.18em] text-navy">S02</p>
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+        가치평가
+      </h1>
+      <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+        LEVEL 0 EV/Sales입니다. 검증되지 않은 기업가치는 표시하지 않습니다.
+      </p>
+      {view ? (
+        <>
+          <p className="mt-8 text-sm text-muted">{view.valuation.statusLabel}</p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-foreground">
+            {view.valuation.copy}
+          </p>
+          <FieldRows
+            fields={[
+              {
+                id: "revenue",
+                label: "정규화 매출",
+                presence: financialAmountLabel(
+                  view.financials?.revenue ?? {
+                    krw: null,
+                    currency: "KRW",
+                    raw: "",
+                    unresolved: false,
+                    provenance: null,
+                  },
+                ).presence,
+                value: financialAmountLabel(
+                  view.financials?.revenue ?? {
+                    krw: null,
+                    currency: "KRW",
+                    raw: "",
+                    unresolved: false,
+                    provenance: null,
+                  },
+                ).value,
+              },
+              {
+                id: "industry",
+                label: "업종",
+                presence: view.financials?.industry ? "입력" : "미입력",
+                value: view.financials?.industry ?? null,
+              },
+            ]}
+          />
+        </>
+      ) : (
+        <p className="mt-8 text-sm text-muted">데이터 없음</p>
+      )}
+      <Link
+        href="/consult?intent=sell"
+        className="mt-8 inline-flex text-sm text-navy underline"
+      >
+        TOM 상담으로 재무 입력
+      </Link>
+    </main>
+  );
+}
