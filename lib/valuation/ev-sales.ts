@@ -4,19 +4,118 @@ import type {
   ValuationBenchmark,
   ValuationCalculation,
   ValuationCalculationMode,
+  ValuationCalculationStatus,
   ValuationMultipleUsed,
+  ValuationValueRange,
 } from "@/types/valuation";
 
 export const MISSING_BENCHMARK_SELLER_COPY =
   "재무 입력은 정리되었습니다. 검증된 비교배수(EV/Sales)가 없어 기업가치 금액을 계산하거나 표시하지 않습니다.";
 
+export const MISSING_NET_DEBT_EQUITY_COPY =
+  "지분가치(Equity Value)는 순차입이 확인되지 않아 아직 계산하지 않습니다.";
+
+const MIN_NET_DEBT_CONFIDENCE = 1;
+
 export function toFinancialInput(
   financials: NormalizedFinancialInputs,
 ): FinancialInput {
+  const netDebtKnown =
+    financials.netDebt.krw != null && !financials.netDebt.unresolved;
   return {
     revenueKrw: financials.revenue.krw,
     revenueUnresolved: financials.revenue.unresolved,
     industry: financials.industry,
+    netDebtKrw: financials.netDebt.krw,
+    netDebtUnresolved: financials.netDebt.unresolved,
+    netDebtConfidence: netDebtKnown
+      ? (financials.netDebt.provenance?.confidence ?? 1)
+      : (financials.netDebt.provenance?.confidence ?? 0),
+  };
+}
+
+export function isTrustworthyNetDebt(
+  financial: FinancialInput,
+): financial is FinancialInput & { netDebtKrw: number } {
+  if (financial.netDebtUnresolved === true) return false;
+  if (financial.netDebtKrw == null || !Number.isFinite(financial.netDebtKrw)) {
+    return false;
+  }
+  if ((financial.netDebtConfidence ?? 0) < MIN_NET_DEBT_CONFIDENCE) {
+    return false;
+  }
+  return true;
+}
+
+function integerKrw(value: number): number {
+  return Math.round(value);
+}
+
+function equityFromEv(ev: number | null, netDebtKrw: number): number | null {
+  if (ev == null) return null;
+  return integerKrw(ev) - integerKrw(netDebtKrw);
+}
+
+/** EV가 CALCULABLE이고 정규화 순차입이 확인된 경우에만 Equity = EV − Net Debt. */
+export function computeEquityValueRange(input: {
+  evStatus: ValuationCalculationStatus;
+  evLow: number | null;
+  evBase: number | null;
+  evHigh: number | null;
+  financial: FinancialInput;
+}): {
+  equityValueRange: ValuationValueRange | null;
+  warnings: string[];
+  assumptions: string[];
+} {
+  if (input.evStatus !== "CALCULABLE") {
+    return {
+      equityValueRange: null,
+      warnings: [],
+      assumptions: ["Equity Value requires CALCULABLE Enterprise Value"],
+    };
+  }
+
+  if (!isTrustworthyNetDebt(input.financial)) {
+    return {
+      equityValueRange: null,
+      warnings: [
+        input.financial.netDebtUnresolved
+          ? "net_debt_unresolved"
+          : "net_debt_missing",
+      ],
+      assumptions: [
+        "Equity = Enterprise Value - Net Debt",
+        "Equity Value is not calculated because net debt is not confirmed",
+      ],
+    };
+  }
+
+  const netDebt = integerKrw(input.financial.netDebtKrw);
+  const low = equityFromEv(input.evLow, netDebt);
+  const base = equityFromEv(input.evBase, netDebt);
+  const high = equityFromEv(input.evHigh, netDebt);
+
+  if (low == null && base == null && high == null) {
+    return {
+      equityValueRange: null,
+      warnings: ["equity_ev_components_missing"],
+      assumptions: ["Equity = Enterprise Value - Net Debt"],
+    };
+  }
+
+  const warnings: string[] = [];
+  if ([low, base, high].some((value) => value != null && value < 0)) {
+    warnings.push("negative_equity");
+  }
+
+  return {
+    equityValueRange: { low, base, high },
+    warnings,
+    assumptions: [
+      "Equity = Enterprise Value - Net Debt",
+      "Negative Equity is returned as computed integer KRW without a fabricated floor",
+    ],
   };
 }
 
@@ -27,6 +126,7 @@ export function evSalesIntegerKrw(revenueKrw: number, multiple: number): number 
 function emptyResult(
   partial: Omit<ValuationCalculation, "method" | "equityValueRange" | "calculatedAt"> & {
     calculatedAt?: string;
+    equityValueRange?: ValuationValueRange | null;
   },
   calculatedAt: string,
 ): ValuationCalculation {
@@ -35,6 +135,22 @@ function emptyResult(
     equityValueRange: null,
     calculatedAt,
     ...partial,
+  };
+}
+
+function resolveFinancialInput(
+  financials: NormalizedFinancialInputs | FinancialInput,
+): FinancialInput {
+  if ("revenue" in financials) {
+    return toFinancialInput(financials);
+  }
+  return {
+    revenueKrw: financials.revenueKrw,
+    revenueUnresolved: financials.revenueUnresolved,
+    industry: financials.industry,
+    netDebtKrw: financials.netDebtKrw ?? null,
+    netDebtUnresolved: financials.netDebtUnresolved ?? false,
+    netDebtConfidence: financials.netDebtConfidence ?? null,
   };
 }
 
@@ -80,10 +196,7 @@ export function calculateEvSales(input: {
   now?: Date;
 }): ValuationCalculation {
   const calculatedAt = (input.now ?? new Date()).toISOString();
-  const financial: FinancialInput =
-    "revenue" in input.financials
-      ? toFinancialInput(input.financials)
-      : input.financials;
+  const financial = resolveFinancialInput(input.financials);
 
   if (financial.revenueUnresolved) {
     return emptyResult(
@@ -212,6 +325,13 @@ export function calculateEvSales(input: {
     ? evSalesIntegerKrw(financial.revenueKrw, multiples.high)
     : null;
   const enterpriseValue = evBase ?? evLow ?? evHigh;
+  const equity = computeEquityValueRange({
+    evStatus: "CALCULABLE",
+    evLow,
+    evBase,
+    evHigh,
+    financial,
+  });
 
   return emptyResult(
     {
@@ -221,13 +341,14 @@ export function calculateEvSales(input: {
       evLow,
       evBase,
       evHigh,
+      equityValueRange: equity.equityValueRange,
       multipleUsed: multiples,
       assumptions: [
         "EV = Normalized Revenue × EV/Sales Multiple",
-        "Equity Value is not calculated without a Net Debt engine",
+        ...equity.assumptions,
         `Benchmark approvalStatus=${input.benchmark.approvalStatus}`,
       ],
-      warnings: [],
+      warnings: equity.warnings,
       sources: [input.benchmark.source],
     },
     calculatedAt,
@@ -242,7 +363,16 @@ export function formatSellerLevel0Copy(
   const approved =
     benchmark?.approvalStatus === "APPROVED" && result.status === "CALCULABLE";
   if (approved && result.enterpriseValue != null) {
-    return `검증된 EV/Sales 배수로 계산한 기업가치(Enterprise Value)는 ${result.enterpriseValue}원입니다. 지분가치(Equity Value)는 순차입 엔진이 없어 계산하지 않습니다.`;
+    const evCopy = `검증된 EV/Sales 배수로 계산한 기업가치(Enterprise Value)는 ${result.enterpriseValue}원입니다.`;
+    const equityShown =
+      result.equityValueRange?.base ??
+      result.equityValueRange?.low ??
+      result.equityValueRange?.high ??
+      null;
+    if (equityShown != null) {
+      return `${evCopy} 확인된 순차입을 반영한 지분가치(Equity Value)는 ${equityShown}원입니다.`;
+    }
+    return `${evCopy} ${MISSING_NET_DEBT_EQUITY_COPY}`;
   }
   if (result.status === "MISSING_INPUT") {
     return "기업가치를 계산하려면 정규화된 매출이 필요합니다.";

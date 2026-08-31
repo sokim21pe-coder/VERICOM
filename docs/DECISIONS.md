@@ -66,6 +66,8 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 
 2026-08-31 Sprint 2 LEVEL 0 EV/Sales Foundation: `Financial Input → Method Eligibility → Benchmark Input → Deterministic Calculation → Valuation Result → TOM interpretation`. EV = 정규화 매출 × 승인된 EV/Sales 배수. 둘 다 있을 때만 계산한다. Production/UI는 APPROVED만. TEST_ONLY는 단위 테스트 전용이며 Seller UI에 노출하지 않는다. UNVERIFIED는 production 계산을 거부한다. PLACEHOLDER 0.5–2.0 배수를 사용자에게 쓰지 않는다. Equity Value·DCF·WACC는 하지 않는다. 새 valuation 테이블과 0008/0009 적용은 하지 않았다.
 
+2026-08-31 Sprint 2 LEVEL 0 Equity Value Foundation: Equity = Enterprise Value − Net Debt. EV status가 CALCULABLE이고 벤치마크가 APPROVED(단위 테스트는 TEST_ONLY)이며, Seller Financial Normalization의 `net_debt`가 명시 숫자·충분한 confidence일 때만 `equityValueRange`를 계산한다. Cash/Debt를 추정하거나 분할하지 않는다. 순차입이 없거나 unresolved이면 `equityValueRange`는 null이다. EV가 CALCULABLE이 아니면 순차입이 있어도 Equity는 null이다. Seller 희망가·Buyer 투자규모는 사용하지 않는다. 음수 Equity는 0으로 올리지 않고 계산된 정수 원과 `negative_equity` warning을 반환한다. Production/UI는 APPROVED EV + 확인된 순차입 없이 지분가치 숫자를 보여주지 않는다. TEST_ONLY는 Seller UI에 노출하지 않는다. 전체 Net Debt 엔진·DCF·WACC·새 valuation 테이블·0008/0009 적용은 하지 않았다.
+
 2026-08-31 Architecture Decision: VERICOM은 Cursor 자율 개발(Autonomous Development)을 공식 채택한다. 무제한 자율이 아니다. **Autonomous Development + Mandatory Human Approval for High-risk Changes.**
 
 왜: 새 Cursor 세션·다른 PC에서도 동일한 작업 운영을 유지한다. 사용자가 매 다음 작업을 지정하지 않아도 Cursor는 `MASTER_SPEC.md` Roadmap과 실제 코드를 기준으로 다음 중요 작업을 고른다. 고위험 변경은 자동 실행하지 않는다.
