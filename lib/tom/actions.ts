@@ -30,7 +30,7 @@ import { normalizeAcquisitionCriteria } from "@/lib/tom/normalize-acquisition-cr
 import type { NormalizedAcquisitionCriteria } from "@/lib/tom/normalize-acquisition-criteria";
 import { normalizeFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
 import type { NormalizedFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
-import { calculateEvSales } from "@/lib/valuation/ev-sales";
+import { computeProductionSellerLevel0 } from "@/lib/valuation/resolve-approved-benchmark";
 import type { ValuationResult } from "@/types/valuation";
 import type { DiscoveryContextFacts } from "@/lib/tom/question-policy";
 
@@ -619,17 +619,19 @@ export async function getNormalizedFinancialInputs(conversationId: string): Prom
   };
 }
 
-/** Production LEVEL 0. APPROVED benchmark만 허용. 현재 저장소가 없어 benchmark는 null. */
+/** Production LEVEL 0. APPROVED lookup만 사용. 없으면 MISSING_BENCHMARK. */
 export async function getSellerLevel0Valuation(conversationId: string): Promise<{
   ok: boolean;
   message: string | null;
   result: ValuationResult | null;
+  copy: string | null;
 }> {
   if (!isSupabaseConfigured()) {
     return {
       ok: false,
       message: authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED],
       result: null,
+      copy: null,
     };
   }
 
@@ -639,6 +641,7 @@ export async function getSellerLevel0Valuation(conversationId: string): Promise<
       ok: false,
       message: authErrorMessage[ErrorCode.AUTH_REQUIRED],
       result: null,
+      copy: null,
     };
   }
 
@@ -648,6 +651,7 @@ export async function getSellerLevel0Valuation(conversationId: string): Promise<
       ok: false,
       message: membershipError,
       result: null,
+      copy: null,
     };
   }
 
@@ -660,6 +664,7 @@ export async function getSellerLevel0Valuation(conversationId: string): Promise<
       ok: false,
       message: authErrorMessage[ErrorCode.PERMISSION_DENIED],
       result: null,
+      copy: null,
     };
   }
 
@@ -669,13 +674,17 @@ export async function getSellerLevel0Valuation(conversationId: string): Promise<
     sellerCompanyId: context.company?.id ?? null,
   });
 
+  const computed = computeProductionSellerLevel0({
+    financials,
+    sellerCompanyId: context.company?.id ?? null,
+    conversationId: loaded.conversation.id,
+    industry: financials.industry,
+  });
+
   return {
     ok: true,
     message: null,
-    result: calculateEvSales({
-      financials,
-      benchmark: null,
-      mode: "production",
-    }),
+    result: computed.result,
+    copy: computed.copy,
   };
 }

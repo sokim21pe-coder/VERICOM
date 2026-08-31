@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { sendTomMessage } from "@/lib/tom/actions";
+import { getSellerLevel0Valuation, sendTomMessage } from "@/lib/tom/actions";
 import {
   INTENT_MEMORY_KEY,
   intentRouterLabel,
@@ -18,10 +18,7 @@ import {
   formatNormalizedFinancialSummary,
   normalizeFinancialInputs,
 } from "@/lib/valuation/normalize-financial-inputs";
-import {
-  calculateEvSales,
-  formatSellerLevel0Copy,
-} from "@/lib/valuation/ev-sales";
+import { MISSING_BENCHMARK_SELLER_COPY } from "@/lib/valuation/ev-sales";
 
 const sellChoices = [
   "회사를 매각하고 싶습니다.",
@@ -58,14 +55,17 @@ export function TomConsultPanel({
   conversationId,
   initialMessages,
   initialMemories,
+  initialValuationCopy = null,
 }: {
   intent: TomIntent;
   conversationId: string;
   initialMessages: TomMessage[];
   initialMemories: TomMemoryItem[];
+  initialValuationCopy?: string | null;
 }) {
   const [messages, setMessages] = useState(initialMessages);
   const [memories, setMemories] = useState(initialMemories);
+  const [valuationCopy, setValuationCopy] = useState(initialValuationCopy);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,14 +98,7 @@ export function TomConsultPanel({
     sellerFinancials &&
     sellerFinancials.revenue.krw != null &&
     !sellerFinancials.revenue.unresolved
-      ? formatSellerLevel0Copy(
-          calculateEvSales({
-            financials: sellerFinancials,
-            benchmark: null,
-            mode: "production",
-          }),
-          null,
-        )
+      ? (valuationCopy ?? MISSING_BENCHMARK_SELLER_COPY)
       : null;
 
   async function send(text: string) {
@@ -122,6 +115,12 @@ export function TomConsultPanel({
     setMessages(result.messages);
     setMemories(result.memories);
     setInput("");
+    if (intent === "sell") {
+      const valuation = await getSellerLevel0Valuation(conversationId);
+      if (valuation.ok) {
+        setValuationCopy(valuation.copy);
+      }
+    }
   }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {

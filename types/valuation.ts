@@ -38,6 +38,14 @@ export type ValuationValueRange = {
   high: number | null;
 };
 
+export type ValuationBenchmarkProvenance = {
+  source: string;
+  sourceType: BenchmarkSourceType;
+  asOfDate: string | null;
+  recordedAt: string | null;
+  notes: string | null;
+};
+
 export type ValuationBenchmark = {
   method: ValuationMethod;
   multiple: number | null;
@@ -50,6 +58,42 @@ export type ValuationBenchmark = {
   industry: string | null;
   confidence: ValuationConfidence;
   approvalStatus: BenchmarkApprovalStatus;
+  provenance?: ValuationBenchmarkProvenance | null;
+};
+
+/** Seller 컨텍스트의 EV/Sales APPROVED 벤치마크 조회. 없으면 null. */
+export type ApprovedBenchmarkLookupQuery = {
+  sellerCompanyId: string | null;
+  conversationId: string | null;
+  industry: string | null;
+  /**
+   * Client/TOM/LLM이 보낸 배수. Production lookup은 이 값을 쓰지 않는다.
+   * 필드가 있어도 무시한다.
+   */
+  untrustedClientBenchmark?: ValuationBenchmark | null;
+};
+
+export type ApprovedBenchmarkRecord = {
+  sellerCompanyId: string;
+  conversationId: string | null;
+  benchmark: ValuationBenchmark;
+};
+
+export type ApprovedBenchmarkLookupStatus = "FOUND" | "MISSING_BENCHMARK";
+
+export type ApprovedBenchmarkLookupResult = {
+  status: ApprovedBenchmarkLookupStatus;
+  reason:
+    | "ok"
+    | "no_company"
+    | "no_record"
+    | "unverified_rejected"
+    | "test_only_rejected"
+    | "not_approved"
+    | "method_mismatch"
+    | "missing_provenance"
+    | "multiple_missing";
+  benchmark: ValuationBenchmark | null;
 };
 
 export type ValuationMultipleUsed = {

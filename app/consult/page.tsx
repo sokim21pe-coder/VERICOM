@@ -4,7 +4,10 @@ import { TomConsultPanel } from "@/components/tom/TomConsultPanel";
 import { getCurrentContext } from "@/lib/auth/session";
 import { resolvePostAuthPath } from "@/lib/auth/workspace-router";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { getOrCreateTomConversation } from "@/lib/tom/actions";
+import {
+  getOrCreateTomConversation,
+  getSellerLevel0Valuation,
+} from "@/lib/tom/actions";
 import { consultWorkspace, resolveConsultIntent } from "@/lib/tom/intent";
 import { authQuery } from "@/lib/tom/paths";
 import { EnvNotice } from "@/components/system/EnvNotice";
@@ -70,6 +73,11 @@ export default async function ConsultPage({
     );
   }
 
+  const initialValuation =
+    intent === "sell"
+      ? await getSellerLevel0Valuation(started.conversation.id)
+      : null;
+
   return (
     <WorkspaceChrome workspace={consultWorkspace(intent)}>
       <main className="mx-auto max-w-3xl px-5 py-8 sm:px-8 sm:py-12">
@@ -78,6 +86,9 @@ export default async function ConsultPage({
           conversationId={started.conversation.id}
           initialMessages={started.messages}
           initialMemories={started.memories}
+          initialValuationCopy={
+            initialValuation?.ok ? initialValuation.copy : null
+          }
         />
       </main>
     </WorkspaceChrome>
