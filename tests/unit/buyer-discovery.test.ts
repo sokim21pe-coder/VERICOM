@@ -165,6 +165,24 @@ test("TEST 8 override 100억 to 150억", () => {
   );
 });
 
+test("investment cue wins over last revenue question", () => {
+  const extracted = extractDiscoveryFromMessage({
+    profile: "BUYER",
+    text: "100억까지 생각하고 있어.",
+    lastQuestion: "target_revenue_min",
+  });
+  assert.equal(
+    krwFromStored(
+      extracted.captures.find((item) => item.field === "investment_size_max")?.value ?? null,
+    ),
+    10_000_000_000,
+  );
+  assert.equal(
+    extracted.captures.some((item) => item.field.startsWith("target_revenue")),
+    false,
+  );
+});
+
 test("vague tens-of-billions is raw USER_CLAIM without invented KRW", () => {
   const extracted = extractDiscoveryFromMessage({
     profile: "BUYER",

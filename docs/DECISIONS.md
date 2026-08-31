@@ -59,3 +59,5 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 - 0.3 TOM Copilot 정의는 유지. TOM은 메시지 전달 중개자가 아님을 0.4·TOM_ARCHITECTURE에 명시.
 
 2026-08-31 Buyer Acquisition Criteria Normalization: Buyer Discovery의 `tom_memory_items` USER_CLAIM 위에 LLM 없는 계산형 정규화 스냅샷을 둔다. 원본 Memory는 수정·삭제하지 않고, 별도 `normalized_acquisition_criteria` 테이블도 만들지 않는다. Matching·Score·추천은 하지 않는다. 서버 `getNormalizedAcquisitionCriteria`는 CurrentContext의 authenticated user / active company / BUYER platform role / conversation ownership만 사용한다.
+
+2026-08-31 Sprint 1 TOM Conversation 종료: Buyer 로그인 E2E로 Memory → Normalization → deterministic Summary → 재질문 방지 → 재로그인 유지를 검증했다. 투자 금액 단서(`생각하고`/`까지`)는 직전 매출 질문보다 우선한다. Matching·Valuation은 시작하지 않았다.

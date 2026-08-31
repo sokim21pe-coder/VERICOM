@@ -289,7 +289,16 @@ function extractBuyerCaptures(input: {
   const amounts = parseEokAmounts(text);
   if (!input.reverseQuestion && (range || amounts.length > 0)) {
     const raw = text.slice(0, 200);
-    if (hasEbitdaCue(text) || last === "target_ebitda_min" || last === "target_ebitda_max") {
+    const lastEbitda =
+      last === "target_ebitda_min" || last === "target_ebitda_max";
+    const lastRevenue =
+      last === "target_revenue_min" || last === "target_revenue_max";
+    const lastInvest =
+      last === "investment_size_min" || last === "investment_size_max";
+    if (
+      hasEbitdaCue(text) ||
+      (lastEbitda && !hasInvestmentCue(text) && !hasRevenueCue(text))
+    ) {
       if (range) {
         captures.push(capture("target_ebitda_min", numericValue(range.minKrw, raw)));
         captures.push(capture("target_ebitda_max", numericValue(range.maxKrw, raw)));
@@ -300,11 +309,7 @@ function extractBuyerCaptures(input: {
             : "target_ebitda_min";
         captures.push(capture(field, numericValue(amounts[0], raw)));
       }
-    } else if (
-      hasRevenueCue(text) ||
-      last === "target_revenue_min" ||
-      last === "target_revenue_max"
-    ) {
+    } else if (hasRevenueCue(text) || (lastRevenue && !hasInvestmentCue(text))) {
       if (range) {
         captures.push(capture("target_revenue_min", numericValue(range.minKrw, raw)));
         captures.push(capture("target_revenue_max", numericValue(range.maxKrw, raw)));
@@ -315,11 +320,7 @@ function extractBuyerCaptures(input: {
             : "target_revenue_min";
         captures.push(capture(field, numericValue(amounts[0], raw)));
       }
-    } else if (
-      hasInvestmentCue(text) ||
-      last === "investment_size_min" ||
-      last === "investment_size_max"
-    ) {
+    } else if (hasInvestmentCue(text) || lastInvest) {
       if (range) {
         captures.push(capture("investment_size_min", numericValue(range.minKrw, raw)));
         captures.push(capture("investment_size_max", numericValue(range.maxKrw, raw)));
