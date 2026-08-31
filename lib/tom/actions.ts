@@ -30,7 +30,10 @@ import { normalizeAcquisitionCriteria } from "@/lib/tom/normalize-acquisition-cr
 import type { NormalizedAcquisitionCriteria } from "@/lib/tom/normalize-acquisition-criteria";
 import { normalizeFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
 import type { NormalizedFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
-import { computeProductionSellerLevel0 } from "@/lib/valuation/resolve-approved-benchmark";
+import {
+  computeProductionSellerLevel0,
+  loadApprovedEvSalesBenchmarksFromDb,
+} from "@/lib/valuation/resolve-approved-benchmark";
 import type { ValuationResult } from "@/types/valuation";
 import type { DiscoveryContextFacts } from "@/lib/tom/question-policy";
 
@@ -674,11 +677,20 @@ export async function getSellerLevel0Valuation(conversationId: string): Promise<
     sellerCompanyId: context.company?.id ?? null,
   });
 
+  const supabase = await createSupabaseServerClient();
+  const records = supabase
+    ? await loadApprovedEvSalesBenchmarksFromDb(
+        supabase,
+        context.company?.id ?? null,
+      )
+    : [];
+
   const computed = computeProductionSellerLevel0({
     financials,
     sellerCompanyId: context.company?.id ?? null,
     conversationId: loaded.conversation.id,
     industry: financials.industry,
+    records,
   });
 
   return {

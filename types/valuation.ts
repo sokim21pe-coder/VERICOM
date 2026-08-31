@@ -76,7 +76,31 @@ export type ApprovedBenchmarkLookupQuery = {
 export type ApprovedBenchmarkRecord = {
   sellerCompanyId: string;
   conversationId: string | null;
+  dealId?: string | null;
   benchmark: ValuationBenchmark;
+};
+
+/** DB row for approved_valuation_benchmarks. numeric은 문자열로 올 수 있다. */
+export type ApprovedBenchmarkRow = {
+  id?: string;
+  company_id: string;
+  conversation_id?: string | null;
+  deal_id?: string | null;
+  method: string;
+  multiple?: string | number | null;
+  multiple_low?: string | number | null;
+  multiple_base?: string | number | null;
+  multiple_high?: string | number | null;
+  source: string;
+  source_type: string;
+  as_of_date: string;
+  industry?: string | null;
+  confidence: string;
+  approval_status: string;
+  provenance?: ValuationBenchmarkProvenance | Record<string, unknown> | null;
+  created_by?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 export type ApprovedBenchmarkLookupStatus = "FOUND" | "MISSING_BENCHMARK";

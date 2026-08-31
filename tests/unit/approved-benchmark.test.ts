@@ -1,8 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { InformationState, PlatformRole } from "@/types/enums";
+import type { CurrentContext } from "@/types/context";
 import type { TomMemoryItem } from "@/types/tom";
-import type { ValuationBenchmark } from "@/types/valuation";
+import type { ApprovedBenchmarkRow, ValuationBenchmark } from "@/types/valuation";
+import {
+  canReadApprovedValuationBenchmark,
+  canWriteApprovedValuationBenchmark,
+} from "@/lib/tom/access";
 import { runSellerDiscoveryTurn } from "@/lib/tom/seller-discovery";
 import type { DiscoveryContextFacts } from "@/lib/tom/question-policy";
 import { normalizeFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
@@ -11,6 +16,12 @@ import {
   formatSellerLevel0Copy,
   MISSING_BENCHMARK_SELLER_COPY,
 } from "@/lib/valuation/ev-sales";
+import {
+  buildApprovedBenchmarkInsert,
+  filterBenchmarkRowsForCompany,
+  mapApprovedBenchmarkRow,
+  persistApprovedEvSalesBenchmark,
+} from "@/lib/valuation/approved-benchmark-persistence";
 import {
   computeProductionSellerLevel0,
   injectApprovedEvSalesBenchmark,
@@ -64,6 +75,59 @@ function approvedBenchmark(
       recordedAt: "2026-08-31T00:00:00.000Z",
       notes: "unit-test-injection",
     },
+    ...overrides,
+  };
+}
+
+function viewer(companyId: string, role: PlatformRole): CurrentContext {
+  return {
+    user: {
+      id: `u-${companyId}`,
+      authUserId: `a-${companyId}`,
+      email: `${companyId}@test`,
+      displayName: companyId,
+    },
+    company: {
+      id: companyId,
+      name: companyId,
+      industry: null,
+      verificationStatus: "unverified",
+    },
+    platformRole: role,
+    platformRoles: [role],
+    companyMembership: null,
+    deal: null,
+    dealRole: null,
+    permissions: [],
+  };
+}
+
+function dbRow(
+  overrides: Partial<ApprovedBenchmarkRow> = {},
+): ApprovedBenchmarkRow {
+  return {
+    company_id: "co-a",
+    conversation_id: null,
+    deal_id: null,
+    method: "EV_SALES",
+    multiple: "1.5",
+    multiple_low: null,
+    multiple_base: "1.5",
+    multiple_high: null,
+    source: "internal-review-fixture",
+    source_type: "INTERNAL_REVIEW",
+    as_of_date: "2026-08-31",
+    industry: "소프트웨어",
+    confidence: "LOW",
+    approval_status: "APPROVED",
+    provenance: {
+      source: "internal-review-fixture",
+      sourceType: "INTERNAL_REVIEW",
+      asOfDate: "2026-08-31",
+      recordedAt: "2026-08-31T00:00:00.000Z",
+      notes: "fixture",
+    },
+    created_by: "u-staff",
     ...overrides,
   };
 }
@@ -263,6 +327,161 @@ test("client-supplied and TOM/LLM multiples are ignored by production lookup", (
         item.field.includes("ev_sales"),
     ),
   );
+});
+
+test("production path with empty DB records stays MISSING_BENCHMARK and has no EV", () => {
+  assert.equal(
+    injectApprovedEvSalesBenchmark({
+      sellerCompanyId: "co-a",
+      conversationId: null,
+      benchmark: approvedBenchmark(),
+    }).ok,
+    true,
+  );
+  const production = computeProductionSellerLevel0({
+    financials: financials([mem("revenue", "10000000000")]),
+    sellerCompanyId: "co-a",
+    conversationId: "c1",
+    industry: "소프트웨어",
+    records: [],
+  });
+  assert.equal(production.lookup.status, "MISSING_BENCHMARK");
+  assert.equal(production.result.status, "MISSING_BENCHMARK");
+  assert.equal(production.result.enterpriseValue, null);
+});
+
+test("APPROVED DB row for company A makes EV calculable for A only", () => {
+  const mappedA = mapApprovedBenchmarkRow(dbRow({ company_id: "co-a" }));
+  assert.ok(mappedA);
+  const forA = computeProductionSellerLevel0({
+    financials: financials([mem("revenue", "10000000000")]),
+    sellerCompanyId: "co-a",
+    conversationId: "c1",
+    industry: "소프트웨어",
+    records: [mappedA],
+  });
+  assert.equal(forA.result.status, "CALCULABLE");
+  assert.equal(forA.result.enterpriseValue, 150 * EOK);
+
+  const forB = computeProductionSellerLevel0({
+    financials: financials([mem("revenue", "10000000000")]),
+    sellerCompanyId: "co-b",
+    conversationId: "c1",
+    industry: "소프트웨어",
+    records: [mappedA],
+  });
+  assert.equal(forB.lookup.reason, "no_record");
+  assert.equal(forB.result.enterpriseValue, null);
+});
+
+test("company B cannot read company A benchmark rows", () => {
+  const rows = [
+    dbRow({ company_id: "co-a", multiple: "2.0", multiple_base: "2.0" }),
+    dbRow({ company_id: "co-b", multiple: "3.0", multiple_base: "3.0" }),
+  ];
+  const onlyB = filterBenchmarkRowsForCompany(rows, "co-b");
+  assert.equal(onlyB.length, 1);
+  assert.equal(onlyB[0]?.sellerCompanyId, "co-b");
+  assert.equal(onlyB[0]?.benchmark.multiple, 3);
+  assert.equal(filterBenchmarkRowsForCompany(rows, "co-a")[0]?.benchmark.multiple, 2);
+  assert.equal(canReadApprovedValuationBenchmark(viewer("co-b", PlatformRole.SELLER_USER), "co-a"), false);
+  assert.equal(canReadApprovedValuationBenchmark(viewer("co-a", PlatformRole.SELLER_USER), "co-a"), true);
+  assert.equal(canReadApprovedValuationBenchmark(viewer("co-b", PlatformRole.BUYER_USER), "co-a"), false);
+});
+
+test("TEST_ONLY and UNVERIFIED DB rows are not used in production resolve", () => {
+  const testOnly = mapApprovedBenchmarkRow(
+    dbRow({ approval_status: "TEST_ONLY", source_type: "TEST_FIXTURE" }),
+  );
+  const unverified = mapApprovedBenchmarkRow(
+    dbRow({ approval_status: "UNVERIFIED" }),
+  );
+  assert.ok(testOnly);
+  assert.ok(unverified);
+
+  const testLookup = resolveApprovedEvSalesBenchmark(
+    { sellerCompanyId: "co-a", conversationId: null, industry: null },
+    [testOnly],
+  );
+  assert.equal(testLookup.status, "MISSING_BENCHMARK");
+  assert.equal(testLookup.reason, "test_only_rejected");
+  assert.equal(testLookup.benchmark, null);
+
+  const unverifiedLookup = resolveApprovedEvSalesBenchmark(
+    { sellerCompanyId: "co-a", conversationId: null, industry: null },
+    [unverified],
+  );
+  assert.equal(unverifiedLookup.status, "MISSING_BENCHMARK");
+  assert.equal(unverifiedLookup.reason, "unverified_rejected");
+
+  const production = computeProductionSellerLevel0({
+    financials: financials([mem("revenue", "10000000000")]),
+    sellerCompanyId: "co-a",
+    conversationId: null,
+    industry: "소프트웨어",
+    records: [testOnly, unverified],
+  });
+  assert.equal(production.result.status, "MISSING_BENCHMARK");
+  assert.equal(production.result.enterpriseValue, null);
+});
+
+test("PLACEHOLDER source rows are not mapped into production records", () => {
+  assert.equal(mapApprovedBenchmarkRow(dbRow({ source: "PLACEHOLDER" })), null);
+});
+
+test("Seller cannot insert or update a benchmark via client-trusted path", async () => {
+  const seller = viewer("co-a", PlatformRole.SELLER_USER);
+  assert.equal(canWriteApprovedValuationBenchmark(seller), false);
+  const built = buildApprovedBenchmarkInsert(seller, {
+    companyId: "co-a",
+    benchmark: approvedBenchmark(),
+  });
+  assert.equal(built.ok, false);
+  if (!built.ok) {
+    assert.equal(built.reason, "staff_write_required");
+  }
+
+  let insertCalled = false;
+  const fakeClient = {
+    from() {
+      return {
+        insert() {
+          insertCalled = true;
+          return {
+            select() {
+              return {
+                single: async () => ({ data: { id: "should-not" }, error: null }),
+              };
+            },
+          };
+        },
+      };
+    },
+  };
+  const persisted = await persistApprovedEvSalesBenchmark(
+    fakeClient as never,
+    seller,
+    { companyId: "co-a", benchmark: approvedBenchmark() },
+  );
+  assert.equal(persisted.ok, false);
+  assert.equal(insertCalled, false);
+});
+
+test("Expert can prepare an APPROVED insert with created_by from CurrentContext", () => {
+  const expert = viewer("staff", PlatformRole.EXPERT_USER);
+  assert.equal(canWriteApprovedValuationBenchmark(expert), true);
+  const built = buildApprovedBenchmarkInsert(expert, {
+    companyId: "co-a",
+    benchmark: approvedBenchmark(),
+  });
+  assert.equal(built.ok, true);
+  if (built.ok) {
+    assert.equal(built.row.created_by, expert.user.id);
+    assert.equal(built.row.company_id, "co-a");
+    assert.equal(built.row.approval_status, "APPROVED");
+    assert.equal(built.row.source, "internal-review-fixture");
+    assert.notEqual(built.row.source, "PLACEHOLDER");
+  }
 });
 
 test("conversation-scoped injection does not leak to another conversation", () => {

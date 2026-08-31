@@ -724,7 +724,7 @@ CONFIRMED ≈ FACT 후보, ESTIMATED ≈ ASSUMPTION 또는 INFERENCE, UNKNOWN은
 - Sprint 1 종료 검증: Buyer 로그인 E2E로 Memory·Normalization·Summary·재질문 방지·재로그인 유지를 확인한다.
 - Sprint 2 LEVEL 0 EV/Sales: 정규화 매출과 승인된(APPROVED) 비교배수가 둘 다 있을 때만 기업가치를 계산한다. PLACEHOLDER 배수를 사용자에게 쓰지 않는다.
 - Sprint 2 LEVEL 0 Equity Value: EV가 CALCULABLE(APPROVED, 단위 테스트는 TEST_ONLY 허용)이고 정규화된 순차입(명시 숫자)이 있을 때만 Equity = EV − Net Debt. Cash/Debt를 추정하지 않는다. 순차입이 없거나 미확인이면 equityValueRange는 null이다.
-- Sprint 2 LEVEL 0 Approved Benchmark: Seller 컨텍스트의 EV/Sales 배수는 코드 레이어 lookup만 사용한다. 기본값은 없음(`MISSING_BENCHMARK`). APPROVED + provenance만 허용한다. TEST_ONLY는 단위 테스트 전용. UNVERIFIED·Client·TOM/LLM 배수는 쓰지 않는다. 업종 기본 배수를 만들지 않는다. 0009 PLACEHOLDER 테이블은 적용하지 않으며 persistence는 후속이다.
+- Sprint 2 LEVEL 0 Approved Benchmark: Seller 컨텍스트의 EV/Sales 배수는 `resolveApprovedEvSalesBenchmark`만 사용한다. Production은 `approved_valuation_benchmarks`의 APPROVED 행만 로드한다. 기본값은 없음(`MISSING_BENCHMARK`). APPROVED + provenance만 허용한다. TEST_ONLY는 단위 테스트 전용(in-memory inject). UNVERIFIED·Client·TOM/LLM 배수는 쓰지 않는다. 업종 기본 배수를 만들지 않는다. WRITE는 Expert/Internal/Admin만. Seller는 자기 회사 행만 READ. 0009 PLACEHOLDER `valuations` 테이블은 적용하지 않는다.
 
 ---
 
@@ -738,7 +738,7 @@ LLM이 Multiple이나 최종 숫자를 발명하지 않는다.
 
 ## 9.2 Levels
 
-Sprint 2 입력 계층: Seller Discovery `tom_memory_items`(매출·EBITDA·순차입 등) 위에 LLM 없는 계산형 Financial Input Normalization을 둔다. 원본 Memory는 대체하지 않는다. Cash/Debt를 모르면 추정하지 않는다. EV/Sales는 정규화 매출과 승인된(APPROVED) 비교배수가 둘 다 있을 때만 계산한다. PLACEHOLDER 배수(예: 0.5–2.0)를 사용자에게 실제 배수처럼 쓰지 않는다. 배수가 없으면 `MISSING_BENCHMARK`이며 `enterpriseValue`는 null이다. LEVEL 0 Equity Value는 이미 정규화된 순차입(명시 숫자)이 있을 때만 `Equity = EV − Net Debt`로 계산한다. Cash/Debt를 모르면 추정하지 않으며, 순차입이 없거나 미확인이면 `equityValueRange`는 null이다. Cash/Debt 분할 Net Debt 엔진은 후속이다. LEVEL 0 Approved Benchmark는 Seller 회사 단위 코드 레이어 lookup이다. 승인된 레코드가 없으면 `MISSING_BENCHMARK`이며 업종 PLACEHOLDER 배수를 고르지 않는다. TOM/LLM과 Client는 배수를 공급하지 못한다. 벤치마크 persistence 테이블은 0009 PLACEHOLDER 기본값과 충돌하므로 이 Sprint에서는 만들지 않는다.
+Sprint 2 입력 계층: Seller Discovery `tom_memory_items`(매출·EBITDA·순차입 등) 위에 LLM 없는 계산형 Financial Input Normalization을 둔다. 원본 Memory는 대체하지 않는다. Cash/Debt를 모르면 추정하지 않는다. EV/Sales는 정규화 매출과 승인된(APPROVED) 비교배수가 둘 다 있을 때만 계산한다. PLACEHOLDER 배수(예: 0.5–2.0)를 사용자에게 실제 배수처럼 쓰지 않는다. 배수가 없으면 `MISSING_BENCHMARK`이며 `enterpriseValue`는 null이다. LEVEL 0 Equity Value는 이미 정규화된 순차입(명시 숫자)이 있을 때만 `Equity = EV − Net Debt`로 계산한다. Cash/Debt를 모르면 추정하지 않으며, 순차입이 없거나 미확인이면 `equityValueRange`는 null이다. Cash/Debt 분할 Net Debt 엔진은 후속이다. LEVEL 0 Approved Benchmark는 Seller 회사 단위 lookup이다. Production은 `approved_valuation_benchmarks`(0016)에서 APPROVED 행만 읽는다. 승인된 레코드가 없으면 `MISSING_BENCHMARK`이며 업종 PLACEHOLDER 배수를 고르지 않는다. TOM/LLM과 Client는 배수를 공급하지 못한다. WRITE는 Expert/Internal/Admin만이며 Seller UI insert를 신뢰하지 않는다. 0009 `valuations`(`multiple_source default PLACEHOLDER`)는 적용하지 않는다.
 
 ### LEVEL 0
 

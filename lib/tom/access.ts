@@ -54,3 +54,29 @@ export function canWriteTomConversation(
 ): boolean {
   return ownerUserId === context.user.id;
 }
+
+const STAFF_BENCHMARK_ROLES: ReadonlySet<PlatformRole> = new Set([
+  PlatformRole.EXPERT_USER,
+  PlatformRole.INTERNAL_DEAL_MANAGER,
+  PlatformRole.ADMIN,
+]);
+
+/** Expert/Internal/Admin만 승인 배수를 쓸 수 있다. Client role을 믿지 않는다. */
+export function canWriteApprovedValuationBenchmark(
+  context: CurrentContext,
+): boolean {
+  if (!context.user.id) return false;
+  if (!context.platformRole) return false;
+  return STAFF_BENCHMARK_ROLES.has(context.platformRole);
+}
+
+/** Seller는 자기 회사·매각 컨텍스트만 읽는다. Buyer는 타사 배수를 읽지 못한다. */
+export function canReadApprovedValuationBenchmark(
+  context: CurrentContext,
+  sellerCompanyId: string | null,
+): boolean {
+  if (!sellerCompanyId) return false;
+  if (canWriteApprovedValuationBenchmark(context)) return true;
+  if (context.platformRole !== PlatformRole.SELLER_USER) return false;
+  return context.company?.id === sellerCompanyId;
+}

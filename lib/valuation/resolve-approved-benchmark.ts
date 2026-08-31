@@ -1,18 +1,21 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { calculateEvSales, formatSellerLevel0Copy } from "@/lib/valuation/ev-sales";
+import { filterBenchmarkRowsForCompany } from "@/lib/valuation/approved-benchmark-persistence";
 import type { NormalizedFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
 import type {
   ApprovedBenchmarkLookupQuery,
   ApprovedBenchmarkLookupResult,
   ApprovedBenchmarkRecord,
+  ApprovedBenchmarkRow,
   FinancialInput,
   ValuationBenchmark,
   ValuationCalculation,
 } from "@/types/valuation";
 
 /**
- * Process-local APPROVED EV/Sales records. Empty by default.
- * Keyed by seller company. Never a global industry default.
- * Persistence is deferred — 0009 PLACEHOLDER schema is not used.
+ * Process-local store for unit tests only.
+ * Production loads APPROVED rows from approved_valuation_benchmarks.
+ * Never a global industry default. 0009 PLACEHOLDER schema is not used.
  */
 const approvedRecordsByCompany = new Map<string, ApprovedBenchmarkRecord>();
 
@@ -99,6 +102,29 @@ export function resolveApprovedEvSalesBenchmark(
 }
 
 /**
+ * Production DB load. RLS + company filter. TEST_ONLY/UNVERIFIED는 evaluate에서 거절.
+ * 테이블이 없거나 조회 실패면 빈 목록 — 배수를 발명하지 않는다.
+ */
+export async function loadApprovedEvSalesBenchmarksFromDb(
+  supabase: SupabaseClient,
+  sellerCompanyId: string | null,
+): Promise<ApprovedBenchmarkRecord[]> {
+  if (!sellerCompanyId) return [];
+  const { data, error } = await supabase
+    .from("approved_valuation_benchmarks")
+    .select(
+      "id, company_id, conversation_id, deal_id, method, multiple, multiple_low, multiple_base, multiple_high, source, source_type, as_of_date, industry, confidence, approval_status, provenance, created_by, created_at, updated_at",
+    )
+    .eq("company_id", sellerCompanyId)
+    .eq("method", "EV_SALES");
+  if (error || !data) return [];
+  return filterBenchmarkRowsForCompany(
+    data as ApprovedBenchmarkRow[],
+    sellerCompanyId,
+  );
+}
+
+/**
  * Tests and later experts only. Requires APPROVED + provenance.
  * Scoped to one seller company — never a default for all sellers.
  * TOM/LLM must not call this.
@@ -132,7 +158,10 @@ export function resetApprovedBenchmarkStoreForTests(): void {
   approvedRecordsByCompany.clear();
 }
 
-/** Production LEVEL 0. Resolver → EV/Sales. TEST_ONLY is never used. */
+/**
+ * Production LEVEL 0. Resolver → EV/Sales. TEST_ONLY is never used.
+ * records를 넘기면 그 목록만 쓴다(DB 로드). 생략 시에만 테스트용 in-memory store.
+ */
 export function computeProductionSellerLevel0(input: {
   financials: NormalizedFinancialInputs | FinancialInput;
   sellerCompanyId: string | null;
@@ -140,17 +169,22 @@ export function computeProductionSellerLevel0(input: {
   industry: string | null;
   now?: Date;
   untrustedClientBenchmark?: ValuationBenchmark | null;
+  records?: readonly ApprovedBenchmarkRecord[];
 }): {
   lookup: ApprovedBenchmarkLookupResult;
   result: ValuationCalculation;
   copy: string;
 } {
-  const lookup = resolveApprovedEvSalesBenchmark({
-    sellerCompanyId: input.sellerCompanyId,
-    conversationId: input.conversationId,
-    industry: input.industry,
-    untrustedClientBenchmark: input.untrustedClientBenchmark ?? null,
-  });
+  const records = input.records ?? listApprovedEvSalesBenchmarks();
+  const lookup = resolveApprovedEvSalesBenchmark(
+    {
+      sellerCompanyId: input.sellerCompanyId,
+      conversationId: input.conversationId,
+      industry: input.industry,
+      untrustedClientBenchmark: input.untrustedClientBenchmark ?? null,
+    },
+    records,
+  );
   const result = calculateEvSales({
     financials: input.financials,
     benchmark: lookup.benchmark,
