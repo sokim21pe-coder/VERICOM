@@ -13,14 +13,14 @@ import {
   asDealId,
   isCompanyAllowedOnDeal,
 } from "@/lib/auth/active-deal";
-import { resolvePostAuthPath, workspacePathForRole } from "@/lib/auth/workspace-router";
+import { workspacePathForRole } from "@/lib/auth/workspace-router";
+import {
+  applyPlatformRole,
+  computePostAuthRedirect,
+  destinationAfterAuth,
+} from "@/lib/auth/post-auth-redirect";
 import { recordAudit } from "@/lib/audit";
 import { authErrorMessage } from "@/lib/auth/errors";
-import {
-  parseIntentFromNext,
-  parseTomIntent,
-  safeNextPath,
-} from "@/lib/tom/paths";
 import {
   DealRole,
   ErrorCode,
@@ -40,13 +40,6 @@ function envError(): ActionResult {
     ok: false,
     message: authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED],
   };
-}
-
-function verificationLevel(role: PlatformRole): string {
-  if (role === PlatformRole.SELLER_USER) return "S1";
-  if (role === PlatformRole.BUYER_USER) return "B1";
-  if (role === PlatformRole.EXPERT_USER) return "E0";
-  return "S1";
 }
 
 export async function ensureAppProfile(): Promise<ActionResult> {
@@ -111,88 +104,19 @@ export async function getPostAuthRedirect(options?: {
   next?: string | null;
   intent?: string | null;
 }): Promise<ActionResult> {
-  const ensured = await ensureAppProfile();
-  if (!ensured.ok) return ensured;
-
-  const next = safeNextPath(options?.next ?? null);
-  const intent =
-    parseTomIntent(options?.intent) ?? parseIntentFromNext(next);
-
-  if (intent === "sell") {
-    const roleResult = await selectPlatformRole(PlatformRole.SELLER_USER);
-    if (!roleResult.ok) return roleResult;
-  }
-  if (intent === "buy") {
-    const roleResult = await selectPlatformRole(PlatformRole.BUYER_USER);
-    if (!roleResult.ok) return roleResult;
-  }
-
-  const context = await getCurrentContext();
-  const onboarded = resolvePostAuthPath(context);
-  if (next?.startsWith("/consult") && !onboarded.startsWith("/onboarding")) {
-    return { ok: true, message: null, redirectTo: next };
-  }
-  return {
-    ok: true,
-    message: null,
-    redirectTo: onboarded,
-  };
+  return computePostAuthRedirect(options);
 }
 
 export async function selectPlatformRole(
   role: PlatformRole,
 ): Promise<ActionResult> {
-  if (!isSupabaseConfigured()) return envError();
-  if (
-    role !== PlatformRole.SELLER_USER &&
-    role !== PlatformRole.BUYER_USER &&
-    role !== PlatformRole.EXPERT_USER
-  ) {
-    return { ok: false, message: authErrorMessage[ErrorCode.PERMISSION_DENIED] };
-  }
-
-  const ensured = await ensureAppProfile();
-  if (!ensured.ok) return ensured;
-
-  const context = await getCurrentContext();
-  if (!context) {
-    return { ok: false, message: authErrorMessage[ErrorCode.AUTH_REQUIRED] };
-  }
-
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return envError();
-
-  const { error } = await supabase.from("user_platform_roles").upsert(
-    {
-      user_id: context.user.id,
-      platform_role: role,
-      verification_level: verificationLevel(role),
-    },
-    { onConflict: "user_id,platform_role" },
-  );
-
-  if (error) {
-    return { ok: false, message: "이용목적 저장에 실패했습니다." };
-  }
-
-  (await cookies()).set(ACTIVE_PLATFORM_ROLE_COOKIE, role, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 90,
-  });
-  await recordAudit({
-    action: "SELECT_PLATFORM_ROLE",
-    entityType: "user_platform_roles",
-    entityId: context.user.id,
-  });
-
-  const next = await getCurrentContext();
+  const result = await applyPlatformRole(role);
+  if (!result.ok) return result;
   revalidatePath("/", "layout");
   return {
     ok: true,
     message: null,
-    redirectTo: resolvePostAuthPath(next),
+    redirectTo: await destinationAfterAuth(),
   };
 }
 
@@ -274,12 +198,11 @@ export async function registerNewCompany(form: {
     entityId: companyId as string,
   });
 
-  const next = await getCurrentContext();
   revalidatePath("/", "layout");
   return {
     ok: true,
     message: null,
-    redirectTo: resolvePostAuthPath(next),
+    redirectTo: await destinationAfterAuth(),
   };
 }
 
@@ -318,12 +241,11 @@ export async function requestCompanyLink(
     entityId: companyId,
   });
 
-  const next = await getCurrentContext();
   revalidatePath("/", "layout");
   return {
     ok: true,
     message: "연결 요청을 저장했습니다. 회사 확인은 후속 Verification입니다.",
-    redirectTo: resolvePostAuthPath(next),
+    redirectTo: await destinationAfterAuth(),
   };
 }
 

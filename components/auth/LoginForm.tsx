@@ -1,9 +1,9 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getPostAuthRedirect } from "@/lib/auth/actions";
+import { assignAfterAuth } from "@/lib/auth/client-continue";
 import { authErrorMessage, mapAuthError } from "@/lib/auth/errors";
 import { ErrorCode } from "@/types/enums";
 
@@ -17,7 +17,6 @@ export function LoginForm({
   next: string | null;
   intent: string | null;
 }) {
-  const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -40,20 +39,15 @@ export function LoginForm({
       email,
       password,
     });
-    setPending(false);
 
     if (error) {
+      setPending(false);
       setMessage(mapAuthError(error.message));
       return;
     }
 
     const result = await getPostAuthRedirect({ next, intent });
-    if (!result.ok || !result.redirectTo) {
-      setMessage(result.message ?? "로그인 후 이동하지 못했습니다.");
-      return;
-    }
-    router.push(result.redirectTo);
-    router.refresh();
+    assignAfterAuth(result.redirectTo, next, intent);
   }
 
   return (

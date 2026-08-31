@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { EnvNotice } from "@/components/system/EnvNotice";
+import { computePostAuthRedirect } from "@/lib/auth/post-auth-redirect";
 import { getCurrentContext } from "@/lib/auth/session";
 import { resolvePostAuthPath } from "@/lib/auth/workspace-router";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -28,7 +29,8 @@ export default async function LoginPage({
   if (isSupabaseConfigured()) {
     const context = await getCurrentContext();
     if (context) {
-      redirect(next ?? resolvePostAuthPath(context));
+      const result = await computePostAuthRedirect({ next, intent });
+      redirect(result.redirectTo ?? next ?? resolvePostAuthPath(context));
     }
   }
 

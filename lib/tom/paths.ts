@@ -19,18 +19,27 @@ export function parseIntentFromNext(next: string | null): TomIntent | null {
   }
 }
 
+function isAllowedNextPath(path: string): boolean {
+  return (
+    path === "/consult" ||
+    path === "/seller" ||
+    path.startsWith("/seller/") ||
+    path === "/buyer" ||
+    path.startsWith("/buyer/") ||
+    path === "/expert" ||
+    path.startsWith("/expert/") ||
+    path === "/internal" ||
+    path.startsWith("/internal/") ||
+    path.startsWith("/onboarding/")
+  );
+}
+
 /** 열린 리다이렉트 방지. 내부 경로만 허용. */
 export function safeNextPath(raw: string | null | undefined): string | null {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
-  if (raw.includes("://")) return null;
+  if (raw.includes("://") || raw.includes("\\")) return null;
   const path = raw.split("?")[0];
-  const allowed =
-    path === "/consult" ||
-    path === "/seller" ||
-    path === "/buyer" ||
-    path === "/expert" ||
-    path.startsWith("/onboarding/");
-  return allowed ? raw : null;
+  return isAllowedNextPath(path) ? raw : null;
 }
 
 export function authQuery(next: string | null, intent: TomIntent | null): string {
@@ -41,14 +50,26 @@ export function authQuery(next: string | null, intent: TomIntent | null): string
   return query ? `?${query}` : "";
 }
 
+export function startFlowHref(intent: TomIntent): string {
+  return `/start?intent=${intent}`;
+}
+
+/** 로그인 여부는 서버 `/start`가 CurrentContext로 판정한다. */
 export function startOnboardingHref(
   intent: TomIntent,
-  signedIn: boolean,
+  signedIn = false,
 ): string {
-  if (signedIn) {
-    return intent === "sell" ? "/seller" : "/buyer";
-  }
-  return `/signup${authQuery(null, intent)}`;
+  void signedIn;
+  return startFlowHref(intent);
+}
+
+export function loginHrefForWorkspace(
+  workspace: "seller" | "buyer" | "expert" | "internal",
+): string {
+  if (workspace === "seller") return `/login${authQuery("/seller", "sell")}`;
+  if (workspace === "buyer") return `/login${authQuery("/buyer", "buy")}`;
+  if (workspace === "expert") return `/login${authQuery("/expert", null)}`;
+  return `/login${authQuery("/internal", null)}`;
 }
 
 export function startConsultHref(intent: TomIntent): string {

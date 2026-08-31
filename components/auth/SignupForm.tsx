@@ -1,9 +1,9 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getPostAuthRedirect } from "@/lib/auth/actions";
+import { assignAfterAuth } from "@/lib/auth/client-continue";
 import { authErrorMessage, mapAuthError } from "@/lib/auth/errors";
 import { ErrorCode } from "@/types/enums";
 
@@ -17,7 +17,6 @@ export function SignupForm({
   next: string | null;
   intent: string | null;
 }) {
-  const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -60,14 +59,15 @@ export function SignupForm({
       password,
       options: { data: { display_name: displayName } },
     });
-    setPending(false);
 
     if (error) {
+      setPending(false);
       setMessage(mapAuthError(error.message));
       return;
     }
 
     if (!data.session) {
+      setPending(false);
       setMessage(
         "가입이 접수되었습니다. 이메일 확인이 켜져 있으면 메일함에서 인증 후 로그인해 주세요.",
       );
@@ -75,12 +75,7 @@ export function SignupForm({
     }
 
     const result = await getPostAuthRedirect({ next, intent });
-    if (!result.ok || !result.redirectTo) {
-      setMessage(result.message ?? "로그인 후 이동하지 못했습니다.");
-      return;
-    }
-    router.push(result.redirectTo);
-    router.refresh();
+    assignAfterAuth(result.redirectTo, next, intent);
   }
 
   return (

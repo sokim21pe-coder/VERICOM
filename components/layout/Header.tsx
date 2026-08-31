@@ -3,16 +3,23 @@
 import Link from "next/link";
 import { useState } from "react";
 import { BrandLogo } from "./BrandLogo";
+import { startFlowHref } from "@/lib/tom/paths";
 
 const nav = [
   { href: "/#service", label: "서비스 소개" },
-  { href: "/#sell", label: "기업 매각" },
-  { href: "/#buy", label: "기업 인수" },
+  { href: startFlowHref("sell"), label: "기업 매각" },
+  { href: startFlowHref("buy"), label: "기업 인수" },
   { href: "/#expert", label: "전문가" },
   { href: "/#guide", label: "이용안내" },
 ];
 
-export function Header({ signedIn = false }: { signedIn?: boolean }) {
+export function Header({
+  signedIn = false,
+  workspaceHref = "/seller",
+}: {
+  signedIn?: boolean;
+  workspaceHref?: string;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -40,7 +47,7 @@ export function Header({ signedIn = false }: { signedIn?: boolean }) {
           ))}
           {signedIn ? (
             <Link
-              href="/seller"
+              href={workspaceHref}
               className="transition-colors hover:text-foreground"
             >
               워크스페이스
@@ -99,7 +106,7 @@ export function Header({ signedIn = false }: { signedIn?: boolean }) {
           ))}
           {signedIn ? (
             <Link
-              href="/seller"
+              href={workspaceHref}
               className="py-3 text-[15px] text-foreground"
               onClick={() => setOpen(false)}
             >

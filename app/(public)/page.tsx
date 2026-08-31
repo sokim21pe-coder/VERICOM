@@ -4,6 +4,7 @@ import { StartConsultButtons } from "@/components/landing/StartConsultButtons";
 import { TomIntro } from "@/components/tom/TomIntro";
 import { MACRO_MA_PROCESS } from "@/lib/deal/macro-process";
 import { getCurrentContext } from "@/lib/auth/session";
+import { resolvePostAuthPath } from "@/lib/auth/workspace-router";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,10 @@ export default async function Home() {
       >
         본문으로 건너뛰기
       </a>
-      <Header signedIn={signedIn} />
+      <Header
+        signedIn={signedIn}
+        workspaceHref={context ? resolvePostAuthPath(context) : "/seller"}
+      />
 
       <main id="top">
         <section className="bg-[#FFFFFF]">
@@ -138,6 +142,7 @@ export default async function Home() {
               계정 연결 후 TOM과 매각 상담을 시작합니다. 실제 Buyer 접촉 전에는
               회사·권한 확인이 필요합니다.
             </p>
+            <StartConsultButtons signedIn={signedIn} />
           </div>
         </section>
 
@@ -154,6 +159,7 @@ export default async function Home() {
               공개를 의미하지 않으며, NDA(비밀유지계약) 완료만으로 회사명이나
               IM(투자설명서)이 공개되지 않습니다.
             </p>
+            <StartConsultButtons signedIn={signedIn} />
           </div>
         </section>
 

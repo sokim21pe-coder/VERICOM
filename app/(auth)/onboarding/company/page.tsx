@@ -3,7 +3,10 @@ import { CompanyOnboardingForm } from "@/components/auth/CompanyOnboardingForm";
 import { EnvNotice } from "@/components/system/EnvNotice";
 import { getCurrentContext } from "@/lib/auth/session";
 import { needsCompany, resolvePostAuthPath } from "@/lib/auth/workspace-router";
+import { consumePendingNextPath } from "@/lib/auth/pending-next";
+import { resolveOnboardedContinuePath } from "@/lib/auth/continue-path";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { authQuery } from "@/lib/tom/paths";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +30,7 @@ export default async function CompanyOnboardingPage() {
 
   const context = await getCurrentContext();
   if (!context) {
-    redirect("/login");
+    redirect(`/login${authQuery("/onboarding/company", null)}`);
   }
   if (context.platformRoles.length === 0) {
     redirect("/onboarding/purpose");
@@ -36,7 +39,10 @@ export default async function CompanyOnboardingPage() {
     redirect(resolvePostAuthPath(context));
   }
   if (context.company) {
-    redirect(resolvePostAuthPath(context));
+    const pending = await consumePendingNextPath();
+    redirect(
+      resolveOnboardedContinuePath(resolvePostAuthPath(context), pending),
+    );
   }
 
   return (

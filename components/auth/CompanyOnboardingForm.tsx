@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   registerNewCompany,
   requestCompanyLink,
@@ -12,7 +11,6 @@ const inputClass =
   "rounded-md border border-line bg-white px-3 py-2 text-foreground outline-none focus:border-navy";
 
 export function CompanyOnboardingForm() {
-  const router = useRouter();
   const [mode, setMode] = useState<"search" | "create">("create");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<{ id: string; name: string }[]>([]);
@@ -38,8 +36,7 @@ export function CompanyOnboardingForm() {
       setMessage(result.message);
       return;
     }
-    router.push(result.redirectTo ?? "/login");
-    router.refresh();
+    window.location.assign(result.redirectTo ?? "/login");
   }
 
   async function onCreate(event: FormEvent<HTMLFormElement>) {
@@ -61,8 +58,7 @@ export function CompanyOnboardingForm() {
       setMessage(result.message);
       return;
     }
-    router.push(result.redirectTo ?? "/login");
-    router.refresh();
+    window.location.assign(result.redirectTo ?? "/login");
   }
 
   return (

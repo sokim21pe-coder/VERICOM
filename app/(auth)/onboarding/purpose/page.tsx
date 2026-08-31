@@ -3,6 +3,7 @@ import { PurposeForm } from "@/components/auth/PurposeForm";
 import { EnvNotice } from "@/components/system/EnvNotice";
 import { getCurrentContext } from "@/lib/auth/session";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { authQuery } from "@/lib/tom/paths";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ export default async function PurposePage() {
 
   const context = await getCurrentContext();
   if (!context) {
-    redirect("/login");
+    redirect(`/login${authQuery("/onboarding/purpose", null)}`);
   }
 
   return (

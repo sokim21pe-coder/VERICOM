@@ -84,3 +84,6 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 
 공식 운영 문서: `docs/DEVELOPMENT_AUTOPILOT.md`. `MASTER_SPEC.md` 0절·37절이 이를 참조한다. 제품 정책은 바꾸지 않는다.
 
+2026-08-31 Public 매각/인수 이어가기: 랜딩 「기업 매각」「기업 인수」와 CTA는 `/start?intent=`로 보낸다. 미로그인은 로그인(열린 리다이렉트 방지된 `next`) 후 Seller/Buyer 상담(`/consult?intent=sell|buy`)으로 이어가고, 온보딩이 남으면 httpOnly `vericom_post_auth_next`에 목적지를 잠시 둔다. 이미 로그인이면 로그인으로 튕기지 않는다. CurrentContext가 SoT이며 새 Memory 시스템은 만들지 않는다.
+
+
