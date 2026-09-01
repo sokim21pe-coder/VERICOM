@@ -88,6 +88,25 @@ function hasRevenueCue(text: string): boolean {
   return /매출|수익|턴오버/i.test(text);
 }
 
+function hasCashCue(text: string): boolean {
+  return /보유\s*현금|현금성\s*자산|현금\s*잔액|현금\s*규모/i.test(text);
+}
+
+function hasDebtCue(text: string): boolean {
+  return /이자부\s*차입|차입금|총차입|총\s*차입/i.test(text);
+}
+
+function hasNetDebtCue(text: string): boolean {
+  return /순차입|net\s*debt/i.test(text);
+}
+
+const SELLER_AMOUNT_LAST_FIELDS: DiscoveryFieldId[] = [
+  "operating_profit",
+  "cash",
+  "debt",
+  "net_debt",
+];
+
 function hasInvestmentCue(text: string): boolean {
   return /투자|티켓|한도|가능\s*금|까지|생각하고|여력|예산/.test(text);
 }
@@ -397,7 +416,18 @@ function extractSellerCaptures(input: {
 
   const amounts = parseEokAmounts(text);
   if (amounts.length > 0) {
-    if (hasRevenueCue(text) && hasEbitdaCue(text) && amounts.length >= 2) {
+    if (
+      input.lastQuestion &&
+      SELLER_AMOUNT_LAST_FIELDS.includes(input.lastQuestion)
+    ) {
+      captures.push(capture(input.lastQuestion, String(amounts[0])));
+    } else if (hasNetDebtCue(text) && !hasRevenueCue(text) && !hasEbitdaCue(text)) {
+      captures.push(capture("net_debt", String(amounts[0])));
+    } else if (hasCashCue(text) && !hasRevenueCue(text)) {
+      captures.push(capture("cash", String(amounts[0])));
+    } else if (hasDebtCue(text) && !hasRevenueCue(text) && !hasNetDebtCue(text)) {
+      captures.push(capture("debt", String(amounts[0])));
+    } else if (hasRevenueCue(text) && hasEbitdaCue(text) && amounts.length >= 2) {
       captures.push(capture("revenue", String(amounts[0])));
       captures.push(capture("ebitda", String(amounts[1])));
     } else if (hasEbitdaCue(text)) {

@@ -51,6 +51,9 @@ export default async function SellerValuationPage() {
             fields={[
               amountField("revenue", "정규화 매출", view.financials?.revenue ?? emptyAmount),
               amountField("ebitda", "EBITDA", view.financials?.ebitda ?? emptyAmount),
+              amountField("cash", "현금", view.financials?.cash ?? emptyAmount),
+              amountField("debt", "차입", view.financials?.debt ?? emptyAmount),
+              amountField("net_debt", "순차입", view.financials?.netDebt ?? emptyAmount),
               {
                 id: "industry",
                 label: "업종",

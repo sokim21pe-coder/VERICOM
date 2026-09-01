@@ -168,6 +168,18 @@ export function SellerHomeView({ model }: { model: SellerHomeModel }) {
               value: model.financial.operatingProfit.value,
             },
             {
+              id: "cash",
+              label: "현금",
+              presence: model.financial.cash.presence,
+              value: model.financial.cash.value,
+            },
+            {
+              id: "debt",
+              label: "차입",
+              presence: model.financial.debt.presence,
+              value: model.financial.debt.value,
+            },
+            {
               id: "net_debt",
               label: "순차입",
               presence: model.financial.netDebt.presence,

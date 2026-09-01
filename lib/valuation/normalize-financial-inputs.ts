@@ -5,6 +5,7 @@ import {
   SELLER_EXPECTATION_KEY,
   SELLER_FINANCIAL_KEYS,
 } from "@/lib/valuation/financial-memory-keys";
+import { resolveNetDebtFromCashDebt } from "@/lib/valuation/net-debt";
 
 export type FinancialProvenance = {
   sourceMemoryKey: string;
@@ -132,7 +133,16 @@ export function normalizeFinancialInputs(
   const revenue = amountFromMemory(byKey.get("revenue"), warnings);
   const ebitda = amountFromMemory(byKey.get("ebitda"), warnings);
   const operatingProfit = amountFromMemory(byKey.get("operating_profit"), warnings);
-  const netDebt = amountFromMemory(byKey.get("net_debt"), warnings);
+  const cash = amountFromMemory(byKey.get("cash"), warnings);
+  const debt = amountFromMemory(byKey.get("debt"), warnings);
+  const statedNetDebt = amountFromMemory(byKey.get("net_debt"), warnings);
+  const netDebtResolved = resolveNetDebtFromCashDebt({
+    cash,
+    debt,
+    statedNetDebt,
+  });
+  warnings.push(...netDebtResolved.warnings);
+  const netDebt = netDebtResolved.netDebt;
 
   const industryItem = byKey.get("industry");
   const nameItem = byKey.get("company_name");
@@ -150,6 +160,8 @@ export function normalizeFinancialInputs(
     revenue.krw != null,
     ebitda.krw != null,
     operatingProfit.krw != null,
+    cash.krw != null,
+    debt.krw != null,
     netDebt.krw != null,
     knownValue(industryItem),
   ].filter(Boolean).length;
@@ -162,8 +174,8 @@ export function normalizeFinancialInputs(
     revenue,
     ebitda,
     operatingProfit,
-    cash: emptyAmount(),
-    debt: emptyAmount(),
+    cash,
+    debt,
     netDebt,
     sellerExpectationRaw:
       expectation && knownValue(expectation) ? expectation.value : null,
@@ -171,7 +183,7 @@ export function normalizeFinancialInputs(
     normalizationWarnings: warnings,
     completeness: {
       knownInputs,
-      inputTotal: 5,
+      inputTotal: 7,
       missingForLevel0,
     },
   };
@@ -189,6 +201,8 @@ export function formatNormalizedFinancialSummary(
   if (inputs.industry) parts.push(`업종 ${inputs.industry}`);
   if (inputs.revenue.krw != null) parts.push(`매출 ${formatKrwEokLabel(inputs.revenue.krw)}`);
   if (inputs.ebitda.krw != null) parts.push(`EBITDA ${formatKrwEokLabel(inputs.ebitda.krw)}`);
+  if (inputs.cash.krw != null) parts.push(`현금 ${formatKrwEokLabel(inputs.cash.krw)}`);
+  if (inputs.debt.krw != null) parts.push(`차입 ${formatKrwEokLabel(inputs.debt.krw)}`);
   if (inputs.netDebt.krw != null) parts.push(`순차입 ${formatKrwEokLabel(inputs.netDebt.krw)}`);
   if (!parts.length) {
     return "아직 정규화된 재무 입력이 충분하지 않습니다.";

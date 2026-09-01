@@ -76,6 +76,8 @@ export type SellerHomeModel = {
     revenue: ReturnType<typeof financialAmountLabel>;
     ebitda: ReturnType<typeof financialAmountLabel>;
     operatingProfit: ReturnType<typeof financialAmountLabel>;
+    cash: ReturnType<typeof financialAmountLabel>;
+    debt: ReturnType<typeof financialAmountLabel>;
     netDebt: ReturnType<typeof financialAmountLabel>;
     industry: string | null;
   };
@@ -218,6 +220,20 @@ export async function loadSellerHomeModel(
         provenance: null,
       }),
       operatingProfit: financialAmountLabel(financials?.operatingProfit ?? {
+        krw: null,
+        currency: "KRW",
+        raw: "",
+        unresolved: false,
+        provenance: null,
+      }),
+      cash: financialAmountLabel(financials?.cash ?? {
+        krw: null,
+        currency: "KRW",
+        raw: "",
+        unresolved: false,
+        provenance: null,
+      }),
+      debt: financialAmountLabel(financials?.debt ?? {
         krw: null,
         currency: "KRW",
         raw: "",

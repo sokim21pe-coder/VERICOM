@@ -6,6 +6,8 @@ export const SELLER_FINANCIAL_KEYS = [
   "revenue",
   "ebitda",
   "operating_profit",
+  "cash",
+  "debt",
   "net_debt",
 ] as const;
 

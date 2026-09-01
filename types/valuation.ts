@@ -25,7 +25,7 @@ export type FinancialInput = {
   revenueKrw: number | null;
   revenueUnresolved: boolean;
   industry: string | null;
-  /** 정규화된 순차입. Cash/Debt를 추정해 만들지 않는다. */
+  /** 정규화된 순차입. Cash 또는 Debt 한쪽만 있으면 0으로 채우지 않는다. */
   netDebtKrw?: number | null;
   netDebtUnresolved?: boolean;
   /** 1 이상만 계산에 사용. 추정·placeholder·LLM 값은 신뢰하지 않는다. */

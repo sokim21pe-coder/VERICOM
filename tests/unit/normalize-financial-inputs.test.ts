@@ -104,6 +104,27 @@ test("does not invent cash or debt from net_debt", () => {
   assert.equal(snapshot.debt.krw, null);
 });
 
+test("cash and debt compute net debt without inventing a missing side", () => {
+  const computed = normalizeFinancialInputs({
+    conversationId: "c1",
+    sellerCompanyId: "co-s",
+    memories: [mem("cash", "1000000000"), mem("debt", "3000000000")],
+  });
+  assert.equal(computed.cash.krw, 1_000_000_000);
+  assert.equal(computed.debt.krw, 3_000_000_000);
+  assert.equal(computed.netDebt.krw, 2_000_000_000);
+  assert.equal(computed.netDebt.provenance?.normalizationRule, "debt_minus_cash");
+
+  const cashOnly = normalizeFinancialInputs({
+    conversationId: "c1",
+    sellerCompanyId: "co-s",
+    memories: [mem("cash", "1000000000")],
+  });
+  assert.equal(cashOnly.netDebt.krw, null);
+  assert.equal(cashOnly.debt.krw, null);
+  assert.ok(cashOnly.normalizationWarnings.includes("debt_missing_not_invented"));
+});
+
 test("buyer criteria are not mixed into seller financials", () => {
   const snapshot = normalizeFinancialInputs({
     conversationId: "c1",

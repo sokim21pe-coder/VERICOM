@@ -120,6 +120,30 @@ test("EQUITY 1: EV calculable + net debt present → Equity = EV - Net Debt (int
   assert.equal(result.equityValueRange?.base, 150 * EOK - 20 * EOK);
 });
 
+test("EQUITY 1b: cash and debt compute Net Debt for Equity without inventing a split", () => {
+  const result = calculateEvSales({
+    financials: financials([
+      mem("revenue", "10000000000"),
+      mem("cash", "1000000000"),
+      mem("debt", "3000000000"),
+    ]),
+    benchmark: approvedRangeBenchmark(),
+    mode: "unit_test",
+  });
+  assert.equal(result.equityValueRange?.base, 150 * EOK - 20 * EOK);
+
+  const cashOnly = calculateEvSales({
+    financials: financials([
+      mem("revenue", "10000000000"),
+      mem("cash", "1000000000"),
+    ]),
+    benchmark: approvedRangeBenchmark(),
+    mode: "unit_test",
+  });
+  assert.equal(cashOnly.equityValueRange, null);
+  assert.ok(cashOnly.warnings.includes("net_debt_missing"));
+});
+
 test("EQUITY 2: EV calculable + net debt missing → equityValueRange = null", () => {
   const result = calculateEvSales({
     financials: financials([mem("revenue", "10000000000")]),

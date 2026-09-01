@@ -149,6 +149,15 @@ export function classifyDiscoveryFields(input: {
     known.add("seller_objective");
   }
 
+  if (
+    profile === "SELLER" &&
+    known.has("cash") &&
+    known.has("debt") &&
+    !skipped.has("net_debt")
+  ) {
+    known.add("net_debt");
+  }
+
   return { known, skipped };
 }
 

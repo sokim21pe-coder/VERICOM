@@ -167,3 +167,23 @@ test("other company cannot read conversation", () => {
     true,
   );
 });
+
+test("cash last-question amount is stored as cash not revenue", () => {
+  const extracted = extractDiscoveryFromMessage({
+    text: "20억",
+    lastQuestion: "cash",
+  });
+  assert.equal(extracted.captures[0]?.field, "cash");
+  assert.equal(extracted.captures[0]?.value, String(20 * 100_000_000));
+  assert.ok(!extracted.captures.some((item) => item.field === "revenue"));
+});
+
+test("known cash and debt skip the net_debt question", () => {
+  const memories = [
+    mem("cash", String(10 * 100_000_000)),
+    mem("debt", String(30 * 100_000_000)),
+  ];
+  assert.equal(shouldAskField("net_debt", memories, sellerContext), false);
+  const next = getNextBestQuestion({ memories, context: sellerContext });
+  assert.notEqual(next?.field, "net_debt");
+});

@@ -22,6 +22,8 @@ export type DiscoveryFieldId =
   | "revenue"
   | "ebitda"
   | "operating_profit"
+  | "cash"
+  | "debt"
   | "net_debt"
   | "preferred_structure"
   | "management_retention"
@@ -238,18 +240,34 @@ export const SELLER_DISCOVERY_FIELDS: DiscoveryFieldDef[] = [
     reason: "알려 주신 숫자만 저장합니다.",
   },
   {
-    id: "net_debt",
+    id: "cash",
     category: "COMPANY_FACT",
     requirement: "optional",
     priority: 23,
+    question: "보유 현금(현금성 자산 포함) 규모를 알고 계신가요?",
+    reason: "모르면 0으로 추정하지 않습니다.",
+  },
+  {
+    id: "debt",
+    category: "COMPANY_FACT",
+    requirement: "optional",
+    priority: 24,
+    question: "이자부 차입금 규모를 알고 계신가요?",
+    reason: "모르면 0으로 추정하지 않습니다.",
+  },
+  {
+    id: "net_debt",
+    category: "COMPANY_FACT",
+    requirement: "optional",
+    priority: 25,
     question: "순차입금(차입에서 현금을 뺀 값)을 대략이라도 알고 계신가요?",
-    reason: "미확인이면 추정하지 않습니다.",
+    reason: "현금과 차입이 모두 있으면 계산합니다. 한쪽만 있으면 추정하지 않습니다.",
   },
   {
     id: "excluded_buyers",
     category: "BUYER_CRITERIA",
     requirement: "optional",
-    priority: 24,
+    priority: 26,
     question: "접촉을 원하지 않는 인수자가 있으신가요?",
     reason: "제외 대상은 Negative Memory로 남깁니다.",
   },
@@ -257,7 +275,7 @@ export const SELLER_DISCOVERY_FIELDS: DiscoveryFieldDef[] = [
     id: "special_conditions",
     category: "DEAL_RISK",
     requirement: "optional",
-    priority: 25,
+    priority: 27,
     question: "그 밖에 꼭 알려 두셔야 할 거래 조건이 있으신가요?",
     reason: "기타 제약을 놓치지 않기 위함입니다.",
   },
