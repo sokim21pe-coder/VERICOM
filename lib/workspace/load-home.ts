@@ -4,6 +4,7 @@ import {
   getNormalizedAcquisitionCriteria,
   getNormalizedFinancialInputs,
   getSellerLevel0Valuation,
+  getSellerLevel1Valuation,
 } from "@/lib/tom/actions";
 import { INTENT_MEMORY_KEY } from "@/lib/tom/intent-router";
 import {
@@ -37,6 +38,7 @@ import {
   recentSavedMemories,
   sellerNextAction,
   valuationVisibility,
+  valuationLevel1Visibility,
   visibleDiscoveryFields,
   type MatchingVisibility,
   type NextAction,
@@ -333,16 +335,25 @@ export async function loadSellerValuationView() {
   let copy: string | null = null;
   let result: ValuationCalculation | null = null;
   let benchmarkApproval: BenchmarkApprovalStatus | null = null;
+  let level1Status: ValuationCalculationStatus | null = null;
+  let level1Copy: string | null = null;
+  let level1Result: ValuationCalculation | null = null;
+  let level1BenchmarkApproval: BenchmarkApprovalStatus | null = null;
   if (conversation) {
-    const [normalized, valuation] = await Promise.all([
+    const [normalized, valuation, level1] = await Promise.all([
       getNormalizedFinancialInputs(conversation.id),
       getSellerLevel0Valuation(conversation.id),
+      getSellerLevel1Valuation(conversation.id),
     ]);
     financials = normalized.ok ? normalized.inputs : null;
     status = valuation.ok ? valuation.result?.status ?? null : null;
     copy = valuation.ok ? valuation.copy : null;
     result = valuation.ok ? valuation.result : null;
     benchmarkApproval = valuation.ok ? valuation.benchmarkApproval : null;
+    level1Status = level1.ok ? level1.result?.status ?? null : null;
+    level1Copy = level1.ok ? level1.copy : null;
+    level1Result = level1.ok ? level1.result : null;
+    level1BenchmarkApproval = level1.ok ? level1.benchmarkApproval : null;
   }
   return {
     financials,
@@ -353,6 +364,14 @@ export async function loadSellerValuationView() {
       copy,
       result,
       benchmarkApproval,
+    }),
+    level1: valuationLevel1Visibility({
+      hasConversation: Boolean(conversation),
+      financials,
+      status: level1Status,
+      copy: level1Copy,
+      result: level1Result,
+      benchmarkApproval: level1BenchmarkApproval,
     }),
   };
 }

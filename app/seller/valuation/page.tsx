@@ -35,13 +35,19 @@ export default async function SellerValuationPage() {
         가치평가
       </h1>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-        LEVEL 0 초기 참고용 가치평가입니다. 검증된 비교배수가 있을 때만
-        기업가치(Enterprise Value) 범위를 표시합니다.
+        LEVEL 0은 매출 기준 EV/Sales, LEVEL 1은 EBITDA 기준 EV/EBITDA입니다.
+        검증된 비교배수가 있을 때만 기업가치(Enterprise Value) 범위를 표시합니다.
+        EV/Sales 배수를 EV/EBITDA에 쓰지 않으며 DCF는 사용하지 않습니다.
       </p>
       {view ? (
         <>
-          <div className="mt-8">
+          <h2 className="mt-8 text-lg font-semibold text-foreground">LEVEL 0</h2>
+          <div className="mt-4">
             <SellerValuationStatus valuation={view.valuation} />
+          </div>
+          <h2 className="mt-12 text-lg font-semibold text-foreground">LEVEL 1</h2>
+          <div className="mt-4">
+            <SellerValuationStatus valuation={view.level1} />
           </div>
           <h2 className="mt-12 text-lg font-semibold text-foreground">재무 입력</h2>
           <p className="mt-2 text-sm text-muted">

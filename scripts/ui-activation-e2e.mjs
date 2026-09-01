@@ -152,6 +152,12 @@ async function main() {
         valText.includes("LEVEL 0"),
       "seller_valuation_honest_status",
     );
+    mark(
+      valText.includes("LEVEL 1") &&
+        valText.includes("EV/EBITDA") &&
+        valText.includes("DCF는 사용하지 않습니다"),
+      "seller_valuation_level1_honest",
+    );
 
     await page.goto(`${BASE}/consult?intent=sell`, { waitUntil: "domcontentloaded" });
     const consultSeller = await bodyText();

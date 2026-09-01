@@ -1,6 +1,6 @@
-/** LEVEL 0 EV/Sales. LLM이 Multiple·EV를 만들지 않는다. */
+/** LEVEL 0 EV/Sales, LEVEL 1 EV/EBITDA. LLM이 Multiple·EV를 만들지 않는다. */
 
-export type ValuationMethod = "EV_SALES";
+export type ValuationMethod = "EV_SALES" | "EV_EBITDA";
 
 export type BenchmarkApprovalStatus = "TEST_ONLY" | "UNVERIFIED" | "APPROVED";
 
@@ -25,6 +25,8 @@ export type FinancialInput = {
   revenueKrw: number | null;
   revenueUnresolved: boolean;
   industry: string | null;
+  ebitdaKrw?: number | null;
+  ebitdaUnresolved?: boolean;
   /** 정규화된 순차입. Cash 또는 Debt 한쪽만 있으면 0으로 채우지 않는다. */
   netDebtKrw?: number | null;
   netDebtUnresolved?: boolean;
@@ -130,6 +132,7 @@ export type ValuationCalculation = {
   method: ValuationMethod;
   status: ValuationCalculationStatus;
   revenueKrw: number | null;
+  ebitdaKrw?: number | null;
   enterpriseValue: number | null;
   evLow: number | null;
   evBase: number | null;

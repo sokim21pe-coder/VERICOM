@@ -32,6 +32,8 @@ import { normalizeFinancialInputs } from "@/lib/valuation/normalize-financial-in
 import type { NormalizedFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
 import {
   computeProductionSellerLevel0,
+  computeProductionSellerLevel1,
+  loadApprovedEvEbitdaBenchmarksFromDb,
   loadApprovedEvSalesBenchmarksFromDb,
 } from "@/lib/valuation/resolve-approved-benchmark";
 import type { BenchmarkApprovalStatus, ValuationResult } from "@/types/valuation";
@@ -758,6 +760,91 @@ export async function getSellerLevel0Valuation(conversationId: string): Promise<
     : [];
 
   const computed = computeProductionSellerLevel0({
+    financials,
+    sellerCompanyId: context.company?.id ?? null,
+    conversationId: loaded.conversation.id,
+    industry: financials.industry,
+    records,
+  });
+
+  return {
+    ok: true,
+    message: null,
+    result: computed.result,
+    copy: computed.copy,
+    benchmarkApproval: computed.lookup.benchmark?.approvalStatus ?? null,
+  };
+}
+
+/** Production LEVEL 1. EV/EBITDA APPROVED lookup만 사용. EV/Sales 배수를 쓰지 않는다. */
+export async function getSellerLevel1Valuation(conversationId: string): Promise<{
+  ok: boolean;
+  message: string | null;
+  result: ValuationResult | null;
+  copy: string | null;
+  benchmarkApproval: BenchmarkApprovalStatus | null;
+}> {
+  if (!isSupabaseConfigured()) {
+    return {
+      ok: false,
+      message: authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED],
+      result: null,
+      copy: null,
+      benchmarkApproval: null,
+    };
+  }
+
+  const context = await getCurrentContext();
+  if (!context) {
+    return {
+      ok: false,
+      message: authErrorMessage[ErrorCode.AUTH_REQUIRED],
+      result: null,
+      copy: null,
+      benchmarkApproval: null,
+    };
+  }
+
+  const membershipError = requireSellerOrBuyerCompany(context);
+  if (membershipError) {
+    return {
+      ok: false,
+      message: membershipError,
+      result: null,
+      copy: null,
+      benchmarkApproval: null,
+    };
+  }
+
+  const loaded = await loadConversation(conversationId, context.user.id, "sell");
+  if (
+    !loaded.conversation ||
+    !canReadSellerLevel0Valuation(loaded.conversation, context)
+  ) {
+    return {
+      ok: false,
+      message: authErrorMessage[ErrorCode.PERMISSION_DENIED],
+      result: null,
+      copy: null,
+      benchmarkApproval: null,
+    };
+  }
+
+  const financials = normalizeFinancialInputs({
+    memories: loaded.memories,
+    conversationId: loaded.conversation.id,
+    sellerCompanyId: context.company?.id ?? null,
+  });
+
+  const supabase = await createSupabaseServerClient();
+  const records = supabase
+    ? await loadApprovedEvEbitdaBenchmarksFromDb(
+        supabase,
+        context.company?.id ?? null,
+      )
+    : [];
+
+  const computed = computeProductionSellerLevel1({
     financials,
     sellerCompanyId: context.company?.id ?? null,
     conversationId: loaded.conversation.id,

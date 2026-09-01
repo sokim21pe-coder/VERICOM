@@ -40,6 +40,7 @@ import {
   sellerLevel0Presentation,
   type SellerLevel0Presentation,
 } from "@/lib/valuation/seller-level0-presentation";
+import { sellerLevel1Presentation } from "@/lib/valuation/seller-level1-presentation";
 
 export const SELLER_HOME_FIELDS: { id: DiscoveryFieldId; label: string }[] = [
   { id: "reason_for_sale", label: "매각 이유" },
@@ -291,6 +292,24 @@ export function valuationVisibility(input: {
   benchmarkApproval?: BenchmarkApprovalStatus | null;
 }): ValuationVisibility {
   return sellerLevel0Presentation({
+    hasConversation: input.hasConversation,
+    financials: input.financials,
+    status: input.status,
+    result: input.result ?? null,
+    copy: input.copy,
+    benchmarkApproval: input.benchmarkApproval ?? null,
+  });
+}
+
+export function valuationLevel1Visibility(input: {
+  hasConversation: boolean;
+  financials: NormalizedFinancialInputs | null;
+  status: ValuationCalculationStatus | null;
+  copy: string | null;
+  result?: ValuationCalculation | null;
+  benchmarkApproval?: BenchmarkApprovalStatus | null;
+}): ValuationVisibility {
+  return sellerLevel1Presentation({
     hasConversation: input.hasConversation,
     financials: input.financials,
     status: input.status,

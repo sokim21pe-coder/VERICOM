@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { calculateEvSales, formatSellerLevel0Copy } from "@/lib/valuation/ev-sales";
+import { calculateEvEbitda, formatSellerLevel1Copy } from "@/lib/valuation/ev-ebitda";
 import { filterBenchmarkRowsForCompany } from "@/lib/valuation/approved-benchmark-persistence";
 import type { NormalizedFinancialInputs } from "@/lib/valuation/normalize-financial-inputs";
 import type {
@@ -10,6 +11,7 @@ import type {
   FinancialInput,
   ValuationBenchmark,
   ValuationCalculation,
+  ValuationMethod,
 } from "@/types/valuation";
 
 /**
@@ -18,6 +20,7 @@ import type {
  * Never a global industry default. 0009 PLACEHOLDER schema is not used.
  */
 const approvedRecordsByCompany = new Map<string, ApprovedBenchmarkRecord>();
+const approvedEvEbitdaRecordsByCompany = new Map<string, ApprovedBenchmarkRecord>();
 
 function hasPositiveMultiple(benchmark: ValuationBenchmark): boolean {
   const candidates = [
@@ -54,10 +57,11 @@ function reject(
 
 function evaluateRecord(
   record: ApprovedBenchmarkRecord | null | undefined,
+  expectedMethod: ValuationMethod = "EV_SALES",
 ): ApprovedBenchmarkLookupResult {
   if (!record) return reject("no_record");
   const { benchmark } = record;
-  if (benchmark.method !== "EV_SALES") return reject("method_mismatch");
+  if (benchmark.method !== expectedMethod) return reject("method_mismatch");
   if (benchmark.approvalStatus === "UNVERIFIED") {
     return reject("unverified_rejected");
   }
@@ -98,7 +102,18 @@ export function resolveApprovedEvSalesBenchmark(
   void query.untrustedClientBenchmark;
   void query.industry;
   if (!query.sellerCompanyId) return reject("no_company");
-  return evaluateRecord(matchRecord(query, records));
+  return evaluateRecord(matchRecord(query, records), "EV_SALES");
+}
+
+/** EV/EBITDA 배수는 EV/Sales 레코드를 쓰지 않는다. 없으면 MISSING_BENCHMARK. */
+export function resolveApprovedEvEbitdaBenchmark(
+  query: ApprovedBenchmarkLookupQuery,
+  records: readonly ApprovedBenchmarkRecord[] = listApprovedEvEbitdaBenchmarks(),
+): ApprovedBenchmarkLookupResult {
+  void query.untrustedClientBenchmark;
+  void query.industry;
+  if (!query.sellerCompanyId) return reject("no_company");
+  return evaluateRecord(matchRecord(query, records), "EV_EBITDA");
 }
 
 /**
@@ -117,6 +132,25 @@ export async function loadApprovedEvSalesBenchmarksFromDb(
     )
     .eq("company_id", sellerCompanyId)
     .eq("method", "EV_SALES");
+  if (error || !data) return [];
+  return filterBenchmarkRowsForCompany(
+    data as ApprovedBenchmarkRow[],
+    sellerCompanyId,
+  );
+}
+
+export async function loadApprovedEvEbitdaBenchmarksFromDb(
+  supabase: SupabaseClient,
+  sellerCompanyId: string | null,
+): Promise<ApprovedBenchmarkRecord[]> {
+  if (!sellerCompanyId) return [];
+  const { data, error } = await supabase
+    .from("approved_valuation_benchmarks")
+    .select(
+      "id, company_id, conversation_id, deal_id, method, multiple, multiple_low, multiple_base, multiple_high, source, source_type, as_of_date, industry, confidence, approval_status, provenance, created_by, created_at, updated_at",
+    )
+    .eq("company_id", sellerCompanyId)
+    .eq("method", "EV_EBITDA");
   if (error || !data) return [];
   return filterBenchmarkRowsForCompany(
     data as ApprovedBenchmarkRow[],
@@ -150,12 +184,38 @@ export function injectApprovedEvSalesBenchmark(
   return { ok: true };
 }
 
+export function injectApprovedEvEbitdaBenchmark(
+  record: ApprovedBenchmarkRecord,
+): { ok: true } | { ok: false; reason: string } {
+  if (!record.sellerCompanyId.trim()) {
+    return { ok: false, reason: "seller_company_required" };
+  }
+  const checked = evaluateRecord(record, "EV_EBITDA");
+  if (checked.status !== "FOUND" || !checked.benchmark) {
+    return { ok: false, reason: checked.reason };
+  }
+  const key = record.conversationId
+    ? `${record.sellerCompanyId}:${record.conversationId}`
+    : record.sellerCompanyId;
+  approvedEvEbitdaRecordsByCompany.set(key, {
+    sellerCompanyId: record.sellerCompanyId,
+    conversationId: record.conversationId,
+    benchmark: checked.benchmark,
+  });
+  return { ok: true };
+}
+
 export function listApprovedEvSalesBenchmarks(): ApprovedBenchmarkRecord[] {
   return [...approvedRecordsByCompany.values()];
 }
 
+export function listApprovedEvEbitdaBenchmarks(): ApprovedBenchmarkRecord[] {
+  return [...approvedEvEbitdaRecordsByCompany.values()];
+}
+
 export function resetApprovedBenchmarkStoreForTests(): void {
   approvedRecordsByCompany.clear();
+  approvedEvEbitdaRecordsByCompany.clear();
 }
 
 /**
@@ -194,5 +254,41 @@ export function computeProductionSellerLevel0(input: {
     lookup,
     result,
     copy: formatSellerLevel0Copy(result, lookup.benchmark),
+  };
+}
+
+export function computeProductionSellerLevel1(input: {
+  financials: NormalizedFinancialInputs | FinancialInput;
+  sellerCompanyId: string | null;
+  conversationId: string | null;
+  industry: string | null;
+  now?: Date;
+  untrustedClientBenchmark?: ValuationBenchmark | null;
+  records?: readonly ApprovedBenchmarkRecord[];
+}): {
+  lookup: ApprovedBenchmarkLookupResult;
+  result: ValuationCalculation;
+  copy: string;
+} {
+  const records = input.records ?? listApprovedEvEbitdaBenchmarks();
+  const lookup = resolveApprovedEvEbitdaBenchmark(
+    {
+      sellerCompanyId: input.sellerCompanyId,
+      conversationId: input.conversationId,
+      industry: input.industry,
+      untrustedClientBenchmark: input.untrustedClientBenchmark ?? null,
+    },
+    records,
+  );
+  const result = calculateEvEbitda({
+    financials: input.financials,
+    benchmark: lookup.benchmark,
+    mode: "production",
+    now: input.now,
+  });
+  return {
+    lookup,
+    result,
+    copy: formatSellerLevel1Copy(result, lookup.benchmark),
   };
 }

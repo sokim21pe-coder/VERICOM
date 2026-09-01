@@ -80,6 +80,8 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 
 2026-09-01 Sprint 2 LEVEL 0 Net Debt Engine: `Net Debt = Debt − Cash`. 현금과 차입이 모두 명시 숫자일 때만 공식으로 계산한다. 한쪽만 있으면 다른 쪽을 0으로 두지 않는다. 공식을 쓸 수 없으면 사용자가 명시한 `net_debt`만 쓴다. 충돌 시 공식을 쓰고 `net_debt_conflict_used_formula`를 남긴다. Equity는 확인된 순차입이 있을 때만 EV − Net Debt. DCF·WACC·0008/0009는 적용하지 않았다.
 
+2026-09-01 Sprint 2 LEVEL 1 EV/EBITDA Foundation: EV = 정규화 EBITDA × 승인된 EV/EBITDA 배수. 둘 다 있을 때만 계산한다. EV/Sales 레코드·PLACEHOLDER·TEST_ONLY·UNVERIFIED는 production/UI 금액에 쓰지 않는다. DCF·WACC·Precedent 스크랩은 하지 않는다. 0016 method 제약은 아직 EV_SALES라 EV/EBITDA persistence는 후속이다.
+
 2026-08-31 Architecture Decision: VERICOM은 Cursor 자율 개발(Autonomous Development)을 공식 채택한다. 무제한 자율이 아니다. **Autonomous Development + Mandatory Human Approval for High-risk Changes.**
 
 왜: 새 Cursor 세션·다른 PC에서도 동일한 작업 운영을 유지한다. 사용자가 매 다음 작업을 지정하지 않아도 Cursor는 `MASTER_SPEC.md` Roadmap과 실제 코드를 기준으로 다음 중요 작업을 고른다. 고위험 변경은 자동 실행하지 않는다.

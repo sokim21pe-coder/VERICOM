@@ -43,7 +43,7 @@ export function parseBenchmarkRatio(
 }
 
 function asMethod(value: string): ValuationMethod | null {
-  return value === "EV_SALES" ? "EV_SALES" : null;
+  return value === "EV_SALES" || value === "EV_EBITDA" ? value : null;
 }
 
 function asSourceType(value: string): BenchmarkSourceType | null {

@@ -132,6 +132,18 @@ async function main() {
     body = await page.evaluate(() => document.body.innerText);
     mark(honestValuation(body), "refresh_keeps_summary");
 
+    await page.goto("http://localhost:3000/seller/valuation", {
+      waitUntil: "domcontentloaded",
+    });
+    body = await page.evaluate(() => document.body.innerText);
+    mark(
+      body.includes("LEVEL 1") &&
+        body.includes("EV/EBITDA") &&
+        body.includes("DCF는 사용하지 않습니다") &&
+        !body.includes("WACC"),
+      "seller_valuation_level1_honest",
+    );
+
     await login("test.buyera.sprint0@vericom.test");
     await page.goto("http://localhost:3000/consult?intent=buy", {
       waitUntil: "domcontentloaded",
