@@ -127,7 +127,7 @@ export default async function SellerValuationPage() {
         href="/consult?intent=sell"
         className="mt-8 inline-flex text-sm text-navy underline"
       >
-        TOM 상담으로 재무 입력
+        TOM(AI) 상담으로 재무 입력
       </Link>
     </main>
   );

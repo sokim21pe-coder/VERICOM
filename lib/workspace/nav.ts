@@ -1,9 +1,10 @@
 import type { WorkspaceNavItem } from "@/components/layout/WorkspaceHeader";
+import { TOM_PRODUCT_NAME } from "@/lib/brand/tom-display";
 
 /** 구현된 기능 또는 정직한 준비 중만. MASTER_SPEC 6.1 전체 IA는 후속. */
 export const sellerNav: WorkspaceNavItem[] = [
   { href: "/seller", label: "홈" },
-  { href: "/consult?intent=sell", label: "TOM" },
+  { href: "/consult?intent=sell", label: TOM_PRODUCT_NAME },
   { href: "/seller/deals", label: "거래" },
   { href: "/seller/docs", label: "자료실" },
   { href: "/seller/valuation", label: "가치평가" },
@@ -12,7 +13,7 @@ export const sellerNav: WorkspaceNavItem[] = [
 
 export const buyerNav: WorkspaceNavItem[] = [
   { href: "/buyer", label: "홈" },
-  { href: "/consult?intent=buy", label: "TOM" },
+  { href: "/consult?intent=buy", label: TOM_PRODUCT_NAME },
   { href: "/buyer/criteria", label: "인수조건" },
   { href: "/buyer/deals", label: "거래" },
   { href: "/buyer/docs", label: "문서" },
@@ -26,7 +27,7 @@ export const expertNav: WorkspaceNavItem[] = [
   { href: "/expert/requests", label: "자료요청", preparing: true },
   { href: "/expert/findings", label: "Findings", preparing: true },
   { href: "/expert/reports", label: "Reports", preparing: true },
-  { href: "/expert/tom", label: "TOM" },
+  { href: "/expert/tom", label: TOM_PRODUCT_NAME },
 ];
 
 export const internalNav: WorkspaceNavItem[] = [

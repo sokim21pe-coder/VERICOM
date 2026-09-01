@@ -3,14 +3,19 @@
 import Link from "next/link";
 import { useState } from "react";
 import { BrandLogo } from "./BrandLogo";
-import { startFlowHref } from "@/lib/tom/paths";
+import {
+  LANDING_BUY_HREF,
+  LANDING_EXPERT_HREF,
+  LANDING_GUIDE_HREF,
+  LANDING_SELL_HREF,
+} from "@/lib/landing/service-pages";
 
 const nav = [
   { href: "/#service", label: "서비스 소개" },
-  { href: startFlowHref("sell"), label: "기업 매각" },
-  { href: startFlowHref("buy"), label: "기업 인수" },
-  { href: "/#expert", label: "전문가" },
-  { href: "/#guide", label: "이용안내" },
+  { href: LANDING_SELL_HREF, label: "기업 매각" },
+  { href: LANDING_BUY_HREF, label: "기업 인수" },
+  { href: LANDING_EXPERT_HREF, label: "전문가" },
+  { href: LANDING_GUIDE_HREF, label: "이용안내" },
 ];
 
 export function Header({

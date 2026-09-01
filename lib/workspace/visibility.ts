@@ -1,4 +1,5 @@
 import { DealRole, InformationState, PlatformRole } from "@/types/enums";
+import { TOM_PRODUCT_NAME } from "@/lib/brand/tom-display";
 import type { CurrentContext } from "@/types/context";
 import type { TomMemoryItem, TomMessage } from "@/types/tom";
 import {
@@ -435,14 +436,14 @@ export function sellerNextAction(input: {
 }): NextAction {
   if (!input.hasConversation || input.userMessageCount === 0) {
     return {
-      label: "TOM 상담 시작",
+      label: `${TOM_PRODUCT_NAME} 상담 시작`,
       href: "/consult?intent=sell",
       detail: "매각 배경과 회사 상황을 한 질문씩 정리합니다.",
     };
   }
   if (input.nextQuestion && input.requiredKnown < input.requiredTotal) {
     return {
-      label: "TOM 상담 이어가기",
+      label: `${TOM_PRODUCT_NAME} 상담 이어가기`,
       href: "/consult?intent=sell",
       detail: input.nextQuestion,
     };
@@ -488,14 +489,14 @@ export function buyerNextAction(input: {
 }): NextAction {
   if (!input.hasConversation || input.userMessageCount === 0) {
     return {
-      label: "TOM 상담 시작",
+      label: `${TOM_PRODUCT_NAME} 상담 시작`,
       href: "/consult?intent=buy",
       detail: "인수 목적과 조건을 한 질문씩 정리합니다.",
     };
   }
   if (input.nextQuestion && input.requiredKnown < input.requiredTotal) {
     return {
-      label: "TOM 상담 이어가기",
+      label: `${TOM_PRODUCT_NAME} 상담 이어가기`,
       href: "/consult?intent=buy",
       detail: input.nextQuestion,
     };

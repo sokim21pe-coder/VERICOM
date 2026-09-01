@@ -32,7 +32,7 @@ export default async function ConsultPage({
           <Link href="/" className="inline-flex bg-white">
             <BrandLogo className="h-12" />
           </Link>
-          <h1 className="mt-10 text-2xl font-semibold">TOM 상담</h1>
+          <h1 className="mt-10 text-2xl font-semibold">TOM(AI) 상담</h1>
           <p className="mt-3 text-sm text-muted">
             상담을 계정에 저장하려면 연결 정보가 필요합니다.
           </p>
@@ -67,7 +67,7 @@ export default async function ConsultPage({
     return (
       <WorkspaceChrome workspace={consultWorkspace(intent)}>
         <main className="mx-auto max-w-3xl px-5 py-8 sm:px-8 sm:py-12">
-          <h1 className="text-2xl font-semibold">TOM 상담</h1>
+          <h1 className="text-2xl font-semibold">TOM(AI) 상담</h1>
           <p className="mt-4 text-sm text-muted">
             {started.message ?? "상담을 시작하지 못했습니다."}
           </p>

@@ -14,8 +14,8 @@ export default async function ExpertSectionPage({
     return (
       <WorkspaceTodoMain
         screenId="E-TOM"
-        title="TOM"
-        note="전문가 TOM 연결은 후속 단계입니다."
+        title="TOM(AI)"
+        note="전문가 TOM(AI) 연결은 후속 단계입니다."
       />
     );
   }

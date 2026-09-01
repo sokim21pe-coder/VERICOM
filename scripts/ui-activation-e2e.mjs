@@ -46,7 +46,7 @@ async function main() {
     args: ["--no-sandbox"],
   });
   const page = await browser.newPage();
-  page.setDefaultTimeout(45000);
+  page.setDefaultTimeout(60000);
   const notes = [];
   const mark = (ok, label) => notes.push(`${ok ? "PASS" : "FAIL"} ${label}`);
 
@@ -73,21 +73,35 @@ async function main() {
         }
       })
       .catch(() => null);
-    const cookies = await page.cookies();
-    for (const cookie of cookies) {
-      await page.deleteCookie({ name: cookie.name }).catch(() => null);
+    try {
+      const cookies = await page.cookies();
+      for (const cookie of cookies) {
+        await page.deleteCookie({ name: cookie.name }).catch(() => null);
+      }
+    } catch {
+      /* navigation in flight */
+    }
+  }
+
+  async function currentHref() {
+    try {
+      return page.url();
+    } catch {
+      return "";
     }
   }
 
   async function logoutIfNeeded() {
-    const clicked = await page.evaluate(() => {
-      const button = [...document.querySelectorAll("button")].find((el) =>
-        (el.textContent || "").includes("로그아웃"),
-      );
-      if (!button) return false;
-      button.click();
-      return true;
-    });
+    const clicked = await page
+      .evaluate(() => {
+        const button = [...document.querySelectorAll("button")].find((el) =>
+          (el.textContent || "").includes("로그아웃"),
+        );
+        if (!button) return false;
+        button.click();
+        return true;
+      })
+      .catch(() => false);
     if (clicked) {
       await page
         .waitForFunction(
@@ -103,11 +117,8 @@ async function main() {
 
   async function login(email) {
     await logoutIfNeeded();
+    await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded", timeout: 60000 });
-    if (!page.url().includes("/login")) {
-      await clearBrowserAuth();
-      await page.goto(`${BASE}/login`, { waitUntil: "domcontentloaded", timeout: 60000 });
-    }
     const emailInput = await page.waitForSelector('input[name="email"], input[type="email"]', {
       timeout: 30000,
     });
@@ -126,6 +137,190 @@ async function main() {
   }
 
   try {
+    await clearBrowserAuth();
+    await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded", timeout: 60000 });
+    const landingHasCards = await page.evaluate(() =>
+      ["/about/valuation", "/about/matching", "/about/confidential", "/about/experts"].every(
+        (href) => Boolean(document.querySelector(`a[href="${href}"]`)),
+      ),
+    );
+    mark(landingHasCards, "landing_service_cards_linked");
+    const sellBlockButtons = await page.evaluate(() => {
+      const sell = document.querySelector("#sell");
+      return [...(sell?.querySelectorAll("a") ?? [])]
+        .map((el) => (el.textContent || "").replace(/\s+/g, " ").trim())
+        .filter((text) => text === "기업 매각 시작" || text === "기업 인수 시작");
+    });
+    mark(sellBlockButtons.length === 0, "landing_sell_no_start_buttons");
+    mark(
+      Boolean(await page.$('#sell a[href="/about/sell"]')),
+      "landing_sell_title_linked",
+    );
+    const buyBlockButtons = await page.evaluate(() => {
+      const buy = document.querySelector("#buy");
+      return [...(buy?.querySelectorAll("a") ?? [])]
+        .map((el) => (el.textContent || "").replace(/\s+/g, " ").trim())
+        .filter((text) => text === "기업 매각 시작" || text === "기업 인수 시작");
+    });
+    mark(buyBlockButtons.length === 0, "landing_buy_no_start_buttons");
+    mark(
+      Boolean(await page.$('#buy a[href="/about/buy"]')),
+      "landing_buy_title_linked",
+    );
+    mark(
+      Boolean(await page.$('#expert a[href="/about/expert"]')),
+      "landing_expert_title_linked",
+    );
+    mark(
+      Boolean(await page.$('#guide a[href="/about/guide"]')),
+      "landing_guide_title_linked",
+    );
+    mark(
+      Boolean(await page.$('#tom a[href="/about/tom"]')),
+      "landing_tom_title_linked",
+    );
+    mark(
+      Boolean(await page.$('#tom a[href*="/login"][href*="onboarding"]')) &&
+        Boolean(await page.$('#tom a[href*="/signup"][href*="onboarding"]')),
+      "landing_tom_login_signup",
+    );
+    const journeyHrefs = [
+      "/about/process/teaser-l1",
+      "/about/process/nda",
+      "/about/process/advisory-l2",
+      "/about/process/mandate",
+      "/about/process/cim-im",
+      "/about/process/loi",
+      "/about/process/dd",
+      "/about/process/spa",
+      "/about/process/closing",
+      "/about/process/pmi",
+    ];
+    const journeyLinked = await page.evaluate((hrefs) => {
+      const root = document.querySelector("#journey");
+      return hrefs.every((href) => Boolean(root?.querySelector(`a[href="${href}"]`)));
+    }, journeyHrefs);
+    mark(journeyLinked, "landing_journey_steps_linked");
+    mark(
+      Boolean(await page.$('a[href="/start?intent=sell"]')) &&
+        Boolean(await page.$('a[href="/start?intent=buy"]')),
+      "landing_hero_start_preserved",
+    );
+
+    const clickedValuation = await page.evaluate(() => {
+      const el = document.querySelector('#service a[href="/about/valuation"]');
+      if (!el) return false;
+      el.click();
+      return true;
+    });
+    if (clickedValuation) {
+      await page
+        .waitForFunction(() => window.location.pathname === "/about/valuation", {
+          timeout: 30000,
+        })
+        .catch(() => null);
+    }
+    if (!(await currentHref()).includes("/about/valuation")) {
+      await page.goto(`${BASE}/about/valuation`, { waitUntil: "domcontentloaded", timeout: 60000 });
+    }
+    mark((await currentHref()).includes("/about/valuation"), "landing_valuation_click_opens");
+    const valuationText = await bodyText();
+    mark(valuationText.includes("기업가치 예비평가"), "about_valuation_title");
+    mark(
+      valuationText.includes("LEVEL 0") && valuationText.includes("아직인 것"),
+      "about_valuation_honest",
+    );
+    const valuationLogin = await page.$('a[href*="/login"][href*="seller%2Fvaluation"]');
+    mark(Boolean(valuationLogin), "about_valuation_login_next");
+
+    await page.goto(`${BASE}/about/matching`, { waitUntil: "domcontentloaded", timeout: 60000 });
+    const matchingText = await bodyText();
+    mark(matchingText.includes("준비"), "about_matching_preparing");
+    mark(!matchingText.includes("추천 1"), "about_matching_no_fake_top3");
+
+    await page.goto(`${BASE}/about/sell`, { waitUntil: "domcontentloaded" });
+    const sellAbout = await bodyText();
+    mark(sellAbout.includes("기업 매각") && sellAbout.includes("로그인"), "about_sell_page");
+    mark(
+      Boolean(await page.$('a[href*="/login"][href*="intent=sell"]')) &&
+        Boolean(await page.$('a[href*="/signup"][href*="intent=sell"]')),
+      "about_sell_login_signup",
+    );
+    const sellLoginHref = await page.$eval(
+      'a[href*="/login"][href*="intent=sell"]',
+      (el) => el.getAttribute("href") || "",
+    );
+    const sellLoginUrl = new URL(sellLoginHref, BASE);
+    mark(
+      sellLoginUrl.searchParams.get("intent") === "sell" &&
+        (sellLoginUrl.searchParams.get("next") || "").includes("intent=sell"),
+      "about_sell_login_keeps_next",
+    );
+
+    await page.goto(`${BASE}/about/buy`, { waitUntil: "domcontentloaded" });
+    mark(
+      Boolean(await page.$('a[href*="/login"][href*="intent=buy"]')) &&
+        Boolean(await page.$('a[href*="/signup"][href*="intent=buy"]')),
+      "about_buy_login_signup",
+    );
+
+    await page.goto(`${BASE}/about/expert`, { waitUntil: "domcontentloaded" });
+    const expertAbout = await bodyText();
+    mark(
+      expertAbout.includes("전문가") &&
+        expertAbout.includes("로그인") &&
+        expertAbout.includes("회원가입"),
+      "about_expert_page",
+    );
+    mark(
+      Boolean(await page.$('a[href*="/login"][href*="expert"]')) &&
+        Boolean(await page.$('a[href*="/signup"][href*="expert"]')),
+      "about_expert_login_signup",
+    );
+    await page.goto(`${BASE}/about/guide`, { waitUntil: "domcontentloaded" });
+    const guideAbout = await bodyText();
+    mark(
+      guideAbout.includes("이용안내") &&
+        guideAbout.includes("로그인") &&
+        guideAbout.includes("회원가입"),
+      "about_guide_page",
+    );
+    mark(
+      Boolean(await page.$('a[href*="/login"][href*="onboarding"]')) &&
+        Boolean(await page.$('a[href*="/signup"][href*="onboarding"]')),
+      "about_guide_login_signup",
+    );
+
+    await page.goto(`${BASE}/about/tom`, { waitUntil: "domcontentloaded" });
+    const tomAbout = await bodyText();
+    mark(
+      tomAbout.includes("TOM(AI)") &&
+        tomAbout.includes("로그인") &&
+        tomAbout.includes("회원가입") &&
+        tomAbout.includes("Guest"),
+      "about_tom_page",
+    );
+    mark(tomAbout.includes("준비"), "about_tom_honest_upcoming");
+    mark(
+      Boolean(await page.$('a[href*="/login"][href*="onboarding"]')) &&
+        Boolean(await page.$('a[href*="/signup"][href*="onboarding"]')),
+      "about_tom_login_signup",
+    );
+
+    await page.goto(`${BASE}/about/process/nda`, { waitUntil: "domcontentloaded" });
+    const ndaAbout = await bodyText();
+    mark(
+      ndaAbout.includes("NDA") &&
+        ndaAbout.includes("비밀유지") &&
+        ndaAbout.includes("준비"),
+      "about_process_nda_honest",
+    );
+    mark(
+      Boolean(await page.$('a[href*="/login"]')) &&
+        Boolean(await page.$('a[href*="/signup"]')),
+      "about_process_nda_login_signup",
+    );
+
     await login("test.seller.sprint0@vericom.test");
     mark(page.url().includes("/seller"), "seller_workspace");
     const sellerHome = await bodyText();

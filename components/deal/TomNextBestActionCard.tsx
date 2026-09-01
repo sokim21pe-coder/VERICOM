@@ -32,7 +32,7 @@ export function TomNextBestActionCard({
 }: TomNextBestActionCardProps) {
   return (
     <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
-      <p className="text-[11px] font-medium tracking-[0.18em] text-navy">TOM</p>
+      <p className="text-[11px] font-medium tracking-[0.18em] text-navy">TOM(AI)</p>
       <h2 className="mt-2 text-lg font-semibold text-foreground">
         다음 권장 행동
       </h2>
@@ -46,7 +46,7 @@ export function TomNextBestActionCard({
         ))}
       </ol>
       <p className="mt-2 text-xs text-muted">
-        TODO: TOM Tool·오케스트레이션은 Phase 5에서 연결합니다. AI는 승인·서명·종결을
+        TODO: TOM(AI) Tool·오케스트레이션은 Phase 5에서 연결합니다. AI는 승인·서명·종결을
         확정하지 않습니다.
       </p>
 

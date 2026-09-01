@@ -39,7 +39,7 @@ export default async function LoginPage({
       <h1 className="text-2xl font-semibold text-foreground">로그인</h1>
       <p className="mt-3 text-sm text-muted">
         {intent
-          ? "로그인하면 TOM 상담을 이어서 시작합니다."
+          ? "로그인하면 TOM(AI) 상담을 이어서 시작합니다."
           : "이메일과 비밀번호로 로그인합니다."}
       </p>
       {!isSupabaseConfigured() ? (

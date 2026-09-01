@@ -16,7 +16,7 @@ export default async function BuyerCriteriaPage() {
         인수조건
       </h1>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-        TOM 상담에서 받은 조건을 정규화한 결과입니다. Matching은 하지 않습니다.
+        TOM(AI) 상담에서 받은 조건을 정규화한 결과입니다. Matching은 하지 않습니다.
       </p>
       {view ? (
         <>
@@ -33,7 +33,7 @@ export default async function BuyerCriteriaPage() {
         href="/consult?intent=buy"
         className="mt-8 inline-flex text-sm text-navy underline"
       >
-        TOM 상담으로 인수조건 정리
+        TOM(AI) 상담으로 인수조건 정리
       </Link>
     </main>
   );

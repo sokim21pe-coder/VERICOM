@@ -167,7 +167,7 @@ export function TomConsultPanel({
 
   return (
     <section>
-      <p className="text-[11px] font-medium tracking-[0.2em] text-navy">TOM</p>
+      <p className="text-[11px] font-medium tracking-[0.2em] text-navy">TOM(AI)</p>
       <h1 className="mt-3 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
         {intent === "buy" ? "기업 인수 상담" : "기업 매각 상담"}
       </h1>
@@ -260,7 +260,7 @@ export function TomConsultPanel({
         className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:items-stretch"
       >
         <label className="sr-only" htmlFor="tom-input">
-          TOM에게 보낼 메시지
+          TOM(AI)에게 보낼 메시지
         </label>
         <input
           id="tom-input"

@@ -5,7 +5,7 @@ import { buyerNav, expertNav, internalNav, sellerNav } from "@/lib/workspace/nav
 test("seller nav only lists wired or honest preparing items", () => {
   assert.deepEqual(
     sellerNav.map((item) => item.label),
-    ["홈", "TOM", "거래", "자료실", "가치평가", "문서"],
+    ["홈", "TOM(AI)", "거래", "자료실", "가치평가", "문서"],
   );
   assert.ok(!sellerNav.some((item) => item.href.includes("/mm")));
   assert.ok(!sellerNav.some((item) => item.label === "인수후보"));
@@ -17,7 +17,7 @@ test("seller nav only lists wired or honest preparing items", () => {
 test("buyer nav only lists wired or honest preparing items", () => {
   assert.deepEqual(
     buyerNav.map((item) => item.label),
-    ["홈", "TOM", "인수조건", "거래", "문서"],
+    ["홈", "TOM(AI)", "인수조건", "거래", "문서"],
   );
   assert.ok(!buyerNav.some((item) => item.href.includes("/mm")));
   assert.ok(!buyerNav.some((item) => item.label === "추천 Deal"));

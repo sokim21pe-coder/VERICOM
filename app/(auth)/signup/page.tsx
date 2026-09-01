@@ -39,7 +39,7 @@ export default async function SignupPage({
       <h1 className="text-2xl font-semibold text-foreground">회원가입</h1>
       <p className="mt-3 text-sm text-muted">
         {intent
-          ? "이름, 이메일, 비밀번호만 입력하면 TOM 상담을 시작합니다."
+          ? "이름, 이메일, 비밀번호만 입력하면 TOM(AI) 상담을 시작합니다."
           : "이름, 이메일, 비밀번호만 입력하면 됩니다."}
       </p>
       {!isSupabaseConfigured() ? (

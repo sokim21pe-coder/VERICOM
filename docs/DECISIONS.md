@@ -98,4 +98,8 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 
 2026-08-31 Public 매각/인수 이어가기: 랜딩 「기업 매각」「기업 인수」와 CTA는 `/start?intent=`로 보낸다. 미로그인은 로그인(열린 리다이렉트 방지된 `next`) 후 Seller/Buyer 상담(`/consult?intent=sell|buy`)으로 이어가고, 온보딩이 남으면 httpOnly `vericom_post_auth_next`에 목적지를 잠시 둔다. 이미 로그인이면 로그인으로 튕기지 않는다. CurrentContext가 SoT이며 새 Memory 시스템은 만들지 않는다.
 
+2026-09-01 S01 서비스 소개·매각/인수 설명: 랜딩 01~04 카드는 `/about/valuation|matching|confidential|experts`로, 구역 제목 「기업 매각」「기업 인수」는 `/about/sell` `/about/buy`로 연결한다. Matching/Top3/NDA/LOI/DD를 가짜로 작동시키지 않으며 준비 중을 숨기지 않는다. 상세 페이지 CTA는 로그인·회원가입이며 `next`는 `safeNextPath`로 `/seller/valuation`, `/buyer`, `/consult?intent=` 등만 허용한다. 매각/인수 구역의 중복 시작 버튼은 제거하고, Hero와 Header의 `/start?intent=` 이어가기는 유지한다.
+
+2026-09-01 S01 TOM(AI) 안내 패널: 랜딩 TOM 카드 제목·자세히 보기는 `/about/tom`으로 연결한다. 미로그인은 로그인·회원가입이며 `next`는 `/onboarding/purpose`다. Guest 익명 상담은 열지 않는다. Header에 「TOM과 상담 시작」은 넣지 않으며, 매각/인수 시작 CTA는 Hero `/start?intent=`를 유지한다. Teaser·NDA·IM·LOI·DD는 준비 중으로만 안내한다.
+
 

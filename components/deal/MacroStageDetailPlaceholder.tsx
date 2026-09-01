@@ -42,7 +42,7 @@ const STAGE_TODO: Record<string, string[]> = {
   DD: [
     "FDD / LDD / TAX DD / CDD 병렬 Workstream",
     "VDR, Request List, Finding, Expert Review",
-    "TOM은 초안·요약만, 최종 판단은 전문가",
+    "TOM(AI)은 초안·요약만, 최종 판단은 전문가",
   ],
   SPA: [
     "SPA Draft, R&W, Indemnity, Escrow, CP",
@@ -130,7 +130,7 @@ export function MacroStageDetailPlaceholder({
             ? view.openTasks.map((item) => <li key={item}>{item}</li>)
             : <li>없음</li>}
         </ul>
-        <p className="text-xs text-muted">TOM 추천 Next Action</p>
+        <p className="text-xs text-muted">TOM(AI) 추천 Next Action</p>
         <p className="leading-6 text-foreground">{view.tomNextAction}</p>
       </div>
 

@@ -21,7 +21,7 @@ const notoSans = Noto_Sans_KR({
 export const metadata: Metadata = {
   title: "베리컴 VERICOM | M&A, Your Way",
   description:
-    "AI와 M&A 전문가가 함께하는 기밀형 기업 인수합병 플랫폼. 기업가치 예비평가부터 경영진 미팅까지 TOM이 안내합니다.",
+    "AI와 M&A 전문가가 함께하는 기밀형 기업 인수합병 플랫폼. 기업가치 예비평가부터 경영진 미팅까지 TOM(AI)이 안내합니다.",
   icons: {
     icon: "/brand/vericom-logo.jpg",
     apple: "/brand/vericom-logo.jpg",

@@ -85,7 +85,7 @@ export function TomHomeBlock({
 }) {
   return (
     <section className="mt-12 border-t border-line pt-10">
-      <p className="text-[11px] tracking-[0.18em] text-navy">TOM</p>
+      <p className="text-[11px] tracking-[0.18em] text-navy">TOM(AI)</p>
       <h2 className="mt-2 text-lg font-semibold text-foreground">상담</h2>
       <p className="mt-2 text-sm leading-6 text-muted">{tom.purpose}</p>
       <p className="mt-3 text-sm text-foreground">
@@ -129,14 +129,14 @@ export function SellerHomeView({ model }: { model: SellerHomeModel }) {
       <NextActionBlock action={model.nextAction} />
       <TomHomeBlock
         tom={model.tom}
-        startLabel="TOM 상담 시작"
-        continueLabel="TOM 상담 이어가기"
+        startLabel="TOM(AI) 상담 시작"
+        continueLabel="TOM(AI) 상담 이어가기"
       />
 
       <section className="mt-12 border-t border-line pt-10">
         <h2 className="text-lg font-semibold text-foreground">매각 Discovery</h2>
         <p className="mt-2 text-sm text-muted">
-          TOM 상담에서 받은 내용입니다. 없는 항목은 추정하지 않습니다.
+          TOM(AI) 상담에서 받은 내용입니다. 없는 항목은 추정하지 않습니다.
         </p>
         <FieldRows fields={model.discovery} />
       </section>
@@ -228,8 +228,8 @@ export function BuyerHomeView({ model }: { model: BuyerHomeModel }) {
       <NextActionBlock action={model.nextAction} />
       <TomHomeBlock
         tom={model.tom}
-        startLabel="TOM 상담 시작"
-        continueLabel="TOM 상담 이어가기"
+        startLabel="TOM(AI) 상담 시작"
+        continueLabel="TOM(AI) 상담 이어가기"
       />
 
       <section className="mt-12 border-t border-line pt-10">

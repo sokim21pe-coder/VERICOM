@@ -5,6 +5,7 @@ import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
 import { ActiveDealSwitcher } from "@/components/layout/ActiveDealSwitcher";
 import type { PlatformRole } from "@/types/enums";
 import type { AccessibleDeal } from "@/types/context";
+import { TOM_PRODUCT_NAME } from "@/lib/brand/tom-display";
 
 export type WorkspaceNavItem = {
   href: string;
@@ -15,7 +16,7 @@ export type WorkspaceNavItem = {
 
 const defaultSellerNav: WorkspaceNavItem[] = [
   { href: "/seller", label: "홈" },
-  { href: "/consult?intent=sell", label: "TOM" },
+  { href: "/consult?intent=sell", label: TOM_PRODUCT_NAME },
   { href: "/seller/deals", label: "거래" },
   { href: "/seller/docs", label: "자료실" },
   { href: "/seller/valuation", label: "가치평가" },

@@ -63,13 +63,27 @@ export function startOnboardingHref(
   return startFlowHref(intent);
 }
 
+export function loginHref(
+  next: string | null,
+  intent: TomIntent | null,
+): string {
+  return `/login${authQuery(next, intent)}`;
+}
+
+export function signupHref(
+  next: string | null,
+  intent: TomIntent | null,
+): string {
+  return `/signup${authQuery(next, intent)}`;
+}
+
 export function loginHrefForWorkspace(
   workspace: "seller" | "buyer" | "expert" | "internal",
 ): string {
-  if (workspace === "seller") return `/login${authQuery("/seller", "sell")}`;
-  if (workspace === "buyer") return `/login${authQuery("/buyer", "buy")}`;
-  if (workspace === "expert") return `/login${authQuery("/expert", null)}`;
-  return `/login${authQuery("/internal", null)}`;
+  if (workspace === "seller") return loginHref("/seller", "sell");
+  if (workspace === "buyer") return loginHref("/buyer", "buy");
+  if (workspace === "expert") return loginHref("/expert", null);
+  return loginHref("/internal", null);
 }
 
 export function startConsultHref(intent: TomIntent): string {

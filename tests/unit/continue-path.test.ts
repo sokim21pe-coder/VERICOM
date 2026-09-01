@@ -7,8 +7,10 @@ import {
 } from "@/lib/auth/continue-path";
 import {
   authQuery,
+  loginHref,
   loginHrefForWorkspace,
   safeNextPath,
+  signupHref,
   startFlowHref,
   startOnboardingHref,
 } from "@/lib/tom/paths";
@@ -29,12 +31,25 @@ test("login query keeps relative next and intent", () => {
 test("safeNextPath allows consult and workspace, rejects open redirects", () => {
   assert.equal(safeNextPath("/consult?intent=sell"), "/consult?intent=sell");
   assert.equal(safeNextPath("/seller"), "/seller");
+  assert.equal(safeNextPath("/seller/valuation"), "/seller/valuation");
   assert.equal(safeNextPath("/buyer/criteria"), "/buyer/criteria");
   assert.equal(safeNextPath("/internal"), "/internal");
   assert.equal(safeNextPath("//evil.example"), null);
   assert.equal(safeNextPath("https://evil.example"), null);
   assert.equal(safeNextPath("/login"), null);
   assert.equal(safeNextPath("/start?intent=sell"), null);
+  assert.equal(safeNextPath("/about/sell"), null);
+});
+
+test("login and signup hrefs keep next and intent", () => {
+  assert.equal(
+    loginHref("/consult?intent=sell", "sell"),
+    "/login?next=%2Fconsult%3Fintent%3Dsell&intent=sell",
+  );
+  assert.equal(
+    signupHref("/consult?intent=buy", "buy"),
+    "/signup?next=%2Fconsult%3Fintent%3Dbuy&intent=buy",
+  );
 });
 
 test("intent without next continues to consult after onboarding", () => {
