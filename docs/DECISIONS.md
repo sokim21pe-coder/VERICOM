@@ -76,6 +76,8 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 
 2026-09-01 Sprint 2 0016 Remote Apply: 프로젝트 `nzsgxxuyvbirnlwtqmmc`에 `0016_approved_valuation_benchmarks.sql`만 적용했다. 테이블·컬럼·인덱스 3개·RLS·policy 5개가 존재하고 행은 0이다. leftover `0008`/`0009` `valuations`는 적용하지 않았다. `management_meetings`는 이전 MM 작업으로 이미 있었고 이번에 재실행하지 않았다. 가짜 배수를 INSERT하지 않았다. TOM은 LLM 없이 결정론 설명만 한다.
 
+2026-09-01 Sprint 2 LEVEL 0 Staff Approved Benchmark Write UI: Expert/Internal(E-BENCHMARK / I-BENCHMARK)만 배정 Deal의 매각 회사에 APPROVED EV/Sales를 저장한다. 출처·출처 유형(INTERNAL_REVIEW|MARKET_PROVIDER)·기준일·확인 체크가 필요하다. 업종 필드는 참고이며 기본 배수가 아니다. TEST_ONLY·UNVERIFIED·PLACEHOLDER·TEST_FIXTURE는 이 화면에서 거부한다. 0016 INSERT RLS는 Deal 범위가 아니므로 앱이 배정 `seller_company_id`만 허용한다. 가짜 1.5x를 production에 INSERT하지 않았다.
+
 2026-08-31 Architecture Decision: VERICOM은 Cursor 자율 개발(Autonomous Development)을 공식 채택한다. 무제한 자율이 아니다. **Autonomous Development + Mandatory Human Approval for High-risk Changes.**
 
 왜: 새 Cursor 세션·다른 PC에서도 동일한 작업 운영을 유지한다. 사용자가 매 다음 작업을 지정하지 않아도 Cursor는 `MASTER_SPEC.md` Roadmap과 실제 코드를 기준으로 다음 중요 작업을 고른다. 고위험 변경은 자동 실행하지 않는다.

@@ -20,6 +20,7 @@ export const buyerNav: WorkspaceNavItem[] = [
 
 export const expertNav: WorkspaceNavItem[] = [
   { href: "/expert", label: "홈" },
+  { href: "/expert/benchmarks", label: "비교배수" },
   { href: "/expert/assigned", label: "배정 Deal", preparing: true },
   { href: "/expert/workstream", label: "Workstream", preparing: true },
   { href: "/expert/requests", label: "자료요청", preparing: true },
@@ -30,6 +31,7 @@ export const expertNav: WorkspaceNavItem[] = [
 
 export const internalNav: WorkspaceNavItem[] = [
   { href: "/internal", label: "홈" },
+  { href: "/internal/benchmarks", label: "비교배수" },
 ];
 
 export const sellerTodoPages: Record<

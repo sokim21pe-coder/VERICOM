@@ -31,6 +31,7 @@ export type AccessibleDeal = {
   id: string;
   title: string | null;
   dealRole: DealRole;
+  sellerCompanyId?: string | null;
 };
 
 /** MASTER_SPEC 4절. Deal이 없으면 deal / dealRole은 null. */

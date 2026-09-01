@@ -191,7 +191,12 @@ export async function listAccessibleDeals(): Promise<AccessibleDeal[]> {
     ) {
       continue;
     }
-    out.push({ id: dealRow.id, title: dealRow.title, dealRole: role });
+    out.push({
+      id: dealRow.id,
+      title: dealRow.title,
+      dealRole: role,
+      sellerCompanyId: dealRow.seller_company_id,
+    });
   }
   return out;
 }

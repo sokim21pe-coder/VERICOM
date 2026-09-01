@@ -80,3 +80,14 @@ export function canReadApprovedValuationBenchmark(
   if (context.platformRole !== PlatformRole.SELLER_USER) return false;
   return context.company?.id === sellerCompanyId;
 }
+
+/** Staff WRITE는 배정 Deal의 매각 회사만. Client companyId를 믿지 않는다. */
+export function canWriteApprovedBenchmarkForAssignedSeller(
+  context: CurrentContext,
+  sellerCompanyId: string | null,
+  assignedSellerCompanyIds: readonly string[],
+): boolean {
+  if (!canWriteApprovedValuationBenchmark(context)) return false;
+  if (!sellerCompanyId) return false;
+  return assignedSellerCompanyIds.includes(sellerCompanyId);
+}

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getCurrentContext } from "@/lib/auth/session";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
@@ -17,6 +18,12 @@ export default async function ExpertPage() {
           ? `${context.user.displayName}님의 전문가 워크스페이스입니다. 배정 Deal·Workstream은 TODO입니다.`
           : "로그인 후 전문가 워크스페이스를 이용할 수 있습니다."}
       </p>
+      <Link
+        href="/expert/benchmarks"
+        className="mt-8 inline-flex text-sm text-navy underline"
+      >
+        승인 비교배수
+      </Link>
     </main>
   );
 }

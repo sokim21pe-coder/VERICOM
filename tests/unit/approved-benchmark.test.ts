@@ -6,6 +6,7 @@ import type { TomMemoryItem } from "@/types/tom";
 import type { ApprovedBenchmarkRow, ValuationBenchmark } from "@/types/valuation";
 import {
   canReadApprovedValuationBenchmark,
+  canWriteApprovedBenchmarkForAssignedSeller,
   canWriteApprovedValuationBenchmark,
 } from "@/lib/tom/access";
 import { runSellerDiscoveryTurn } from "@/lib/tom/seller-discovery";
@@ -471,6 +472,14 @@ test("Seller cannot insert or update a benchmark via client-trusted path", async
 test("Expert can prepare an APPROVED insert with created_by from CurrentContext", () => {
   const expert = viewer("staff", PlatformRole.EXPERT_USER);
   assert.equal(canWriteApprovedValuationBenchmark(expert), true);
+  assert.equal(
+    canWriteApprovedBenchmarkForAssignedSeller(expert, "co-a", ["co-a"]),
+    true,
+  );
+  assert.equal(
+    canWriteApprovedBenchmarkForAssignedSeller(expert, "co-b", ["co-a"]),
+    false,
+  );
   const built = buildApprovedBenchmarkInsert(expert, {
     companyId: "co-a",
     benchmark: approvedBenchmark(),
@@ -482,6 +491,37 @@ test("Expert can prepare an APPROVED insert with created_by from CurrentContext"
     assert.equal(built.row.approval_status, "APPROVED");
     assert.equal(built.row.source, "internal-review-fixture");
     assert.notEqual(built.row.source, "PLACEHOLDER");
+  }
+});
+
+test("duplicate company-scope insert is reported as unique_conflict", async () => {
+  const expert = viewer("staff", PlatformRole.EXPERT_USER);
+  const fakeClient = {
+    from() {
+      return {
+        insert() {
+          return {
+            select() {
+              return {
+                single: async () => ({
+                  data: null,
+                  error: { code: "23505", message: "duplicate" },
+                }),
+              };
+            },
+          };
+        },
+      };
+    },
+  };
+  const persisted = await persistApprovedEvSalesBenchmark(
+    fakeClient as never,
+    expert,
+    { companyId: "co-a", benchmark: approvedBenchmark() },
+  );
+  assert.equal(persisted.ok, false);
+  if (!persisted.ok) {
+    assert.equal(persisted.reason, "unique_conflict");
   }
 });
 

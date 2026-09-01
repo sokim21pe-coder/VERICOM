@@ -241,7 +241,9 @@ export async function persistApprovedEvSalesBenchmark(
     .single();
 
   if (error || !data?.id) {
-    return { ok: false, reason: error?.code === "42501" ? "rls_denied" : "insert_failed" };
+    if (error?.code === "42501") return { ok: false, reason: "rls_denied" };
+    if (error?.code === "23505") return { ok: false, reason: "unique_conflict" };
+    return { ok: false, reason: "insert_failed" };
   }
   return { ok: true, id: data.id as string };
 }
