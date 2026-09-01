@@ -28,6 +28,21 @@ export const APPROVED_SOURCE_LABEL = "승인된 비교배수";
 export const EQUITY_NOT_CALCULATED_COPY =
   "이번 결과는 기업가치(Enterprise Value)입니다. 매각가격이나 주식가치(Equity Value)가 아닙니다. 순차입이 확인되지 않아 지분가치는 계산하지 않았습니다.";
 
+export const TOM_MISSING_INPUT_COPY =
+  "재무정보가 없어 기업가치 금액을 계산하지 않았습니다.";
+
+export const TOM_MISSING_BENCHMARK_COPY =
+  "현재 매출정보는 확인됐지만, 적용할 비교배수가 아직 확정되지 않아 기업가치 금액은 계산하지 않았습니다.";
+
+export const TOM_CALCULATION_ERROR_COPY =
+  "입력정보를 확인할 수 없어 기업가치 금액을 계산하지 않았습니다.";
+
+export const TOM_CALCULABLE_EV_ONLY_COPY =
+  "평가방식은 EV / Sales입니다. 정규화 매출과 승인된 비교배수로 기업가치(Enterprise Value)를 계산했습니다. 기업가치는 지분가치(Equity Value)와 다르며, 순차입이 확인되지 않아 지분가치는 계산하지 않았습니다.";
+
+export const TOM_CALCULABLE_WITH_EQUITY_COPY =
+  "평가방식은 EV / Sales입니다. 정규화 매출과 승인된 비교배수로 기업가치(Enterprise Value)를 계산했습니다. 확인된 순차입을 반영한 지분가치(Equity Value)는 기업가치와 다른 값이며 매각가격이 아닙니다.";
+
 export type SellerLevel0StatusLabel =
   | "재무정보 입력 필요"
   | "비교배수 확인 필요"
@@ -46,6 +61,7 @@ export type SellerLevel0Presentation = {
   levelLabel: string;
   disclaimer: string;
   equityCopy: string | null;
+  tomExplanation: string;
 };
 
 function evRangeLabelFrom(result: ValuationCalculation): string | null {
@@ -57,6 +73,40 @@ function evRangeLabelFrom(result: ValuationCalculation): string | null {
   if (low != null) return formatKrwRange(low, null);
   if (high != null) return formatKrwRange(null, high);
   return null;
+}
+
+function hasEquityRange(result: ValuationCalculation): boolean {
+  const range = result.equityValueRange;
+  return range?.low != null || range?.base != null || range?.high != null;
+}
+
+/** TOM 결정론 설명. 새 숫자를 만들지 않는다. LLM을 쓰지 않는다. */
+export function explainSellerLevel0Tom(input: {
+  status: ValuationCalculationStatus | null;
+  result: ValuationCalculation | null;
+  benchmarkApproval: BenchmarkApprovalStatus | null;
+}): string {
+  const approvedCalculable =
+    input.benchmarkApproval === "APPROVED" &&
+    input.status === "CALCULABLE" &&
+    input.result?.status === "CALCULABLE" &&
+    input.result.enterpriseValue != null;
+
+  if (approvedCalculable && input.result) {
+    return hasEquityRange(input.result)
+      ? TOM_CALCULABLE_WITH_EQUITY_COPY
+      : TOM_CALCULABLE_EV_ONLY_COPY;
+  }
+  if (input.status === "MISSING_INPUT" || input.status == null) {
+    return TOM_MISSING_INPUT_COPY;
+  }
+  if (
+    input.status === "NOT_ELIGIBLE" &&
+    input.result?.warnings.includes("revenue_not_positive")
+  ) {
+    return TOM_CALCULATION_ERROR_COPY;
+  }
+  return TOM_MISSING_BENCHMARK_COPY;
 }
 
 function equityCopyFrom(result: ValuationCalculation): string {
@@ -89,6 +139,12 @@ export function sellerLevel0Presentation(input: {
     input.result?.status === "CALCULABLE" &&
     input.result.enterpriseValue != null;
 
+  const tomExplanation = explainSellerLevel0Tom({
+    status: input.status,
+    result: input.result,
+    benchmarkApproval: input.benchmarkApproval,
+  });
+
   if (!input.hasConversation) {
     return {
       statusLabel: "데이터 없음",
@@ -101,6 +157,7 @@ export function sellerLevel0Presentation(input: {
       levelLabel,
       disclaimer,
       equityCopy: null,
+      tomExplanation: "상담에서 재무를 입력하면 가치평가 상태를 확인할 수 있습니다.",
     };
   }
 
@@ -123,6 +180,7 @@ export function sellerLevel0Presentation(input: {
       levelLabel,
       disclaimer,
       equityCopy: null,
+      tomExplanation: TOM_MISSING_INPUT_COPY,
     };
   }
 
@@ -140,6 +198,7 @@ export function sellerLevel0Presentation(input: {
         levelLabel,
         disclaimer,
         equityCopy: null,
+        tomExplanation: TOM_CALCULATION_ERROR_COPY,
       };
     }
   }
@@ -159,6 +218,7 @@ export function sellerLevel0Presentation(input: {
       levelLabel,
       disclaimer,
       equityCopy: equityCopyFrom(input.result),
+      tomExplanation,
     };
   }
 
@@ -173,5 +233,6 @@ export function sellerLevel0Presentation(input: {
     levelLabel,
     disclaimer,
     equityCopy: null,
+    tomExplanation,
   };
 }

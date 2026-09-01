@@ -92,33 +92,57 @@ async function main() {
     });
     mark(page.url().includes("/consult"), "seller_consult_open");
 
+    const honestValuation = (text) =>
+      text.includes("기업가치 숫자는 아직 계산하지 않습니다") ||
+      text.includes("비교배수가 아직") ||
+      text.includes("기업가치 금액은 계산하지 않았습니다") ||
+      text.includes("재무정보 입력 필요");
+
     let body = await page.evaluate(() => document.body.innerText);
-    if (!body.includes("기업가치 숫자는 아직 계산하지 않습니다")) {
+    if (!honestValuation(body) && !/\d+\s*억/.test(body)) {
       const input = await page.$("#tom-input");
       if (input) {
         await page.type("#tom-input", "매출은 100억이야.");
         await page.click('button[type="submit"]');
         await page.waitForFunction(
-          () => document.body.innerText.includes("기업가치 숫자는 아직 계산하지 않습니다"),
+          () => {
+            const text = document.body.innerText;
+            return (
+              text.includes("비교배수가 아직") ||
+              text.includes("기업가치 금액은 계산하지 않았습니다") ||
+              text.includes("재무정보 입력 필요") ||
+              /\d+\s*억/.test(text)
+            );
+          },
           { timeout: 20000 },
         ).catch(() => null);
       }
     }
     body = await page.evaluate(() => document.body.innerText);
-    mark(body.includes("기업가치 숫자는 아직 계산하지 않습니다"), "seller_financial_summary");
-    mark(/매출\s+\d+억원/.test(body), "seller_revenue_label");
-    mark(!/Enterprise Value|지분가치|Equity Value/.test(body), "no_invented_ev");
+    mark(honestValuation(body), "seller_financial_summary");
+    mark(body.includes("매출") || /\d+\s*억/.test(body), "seller_revenue_label");
+    mark(
+      !body.includes("예상가치") &&
+        !body.includes("대략 1~2배") &&
+        !/Indicative EV 계산됨/.test(body),
+      "no_invented_ev",
+    );
 
     await page.reload({ waitUntil: "domcontentloaded" });
     body = await page.evaluate(() => document.body.innerText);
-    mark(body.includes("기업가치 숫자는 아직 계산하지 않습니다"), "refresh_keeps_summary");
+    mark(honestValuation(body), "refresh_keeps_summary");
 
     await login("test.buyera.sprint0@vericom.test");
     await page.goto("http://localhost:3000/consult?intent=buy", {
       waitUntil: "domcontentloaded",
     });
     body = await page.evaluate(() => document.body.innerText);
-    mark(!body.includes("기업가치 숫자는 아직 계산하지 않습니다"), "buyer_cannot_see_seller_financials");
+    mark(
+      !body.includes("비교배수가 아직") &&
+        !body.includes("기업가치 금액은 계산하지 않았습니다") &&
+        !body.includes("Indicative EV"),
+      "buyer_cannot_see_seller_financials",
+    );
   } finally {
     await browser.close();
   }

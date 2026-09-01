@@ -11,7 +11,7 @@ export function SellerValuationStatus({
     <div>
       <p className="text-sm text-muted">{valuation.statusLabel}</p>
       <p className="mt-2 max-w-2xl text-sm leading-6 text-foreground">
-        {valuation.copy}
+        {compact ? valuation.tomExplanation : valuation.copy}
       </p>
       {compact ? null : (
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">

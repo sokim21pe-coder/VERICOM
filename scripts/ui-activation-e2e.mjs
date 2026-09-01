@@ -158,6 +158,12 @@ async function main() {
     mark(consultSeller.includes("기업 매각 상담"), "seller_tom_purpose");
     mark(Boolean(await page.$("#tom-input")), "seller_tom_input");
     mark(!consultSeller.includes("{") || !consultSeller.includes("memory_key"), "seller_tom_no_dev_json");
+    mark(
+      consultSeller.includes("가치평가") &&
+        !consultSeller.includes("대략 1") &&
+        !consultSeller.includes("예상가치"),
+      "seller_tom_valuation_no_placeholder",
+    );
 
     await page.goto(`${BASE}/buyer`, { waitUntil: "domcontentloaded" });
     mark(!page.url().includes("/buyer") || (await bodyText()).includes("권한이 없습니다") || page.url().includes("/seller"), "seller_blocked_from_buyer");

@@ -152,6 +152,7 @@ test("seller next action follows real state", () => {
       levelLabel: "",
       disclaimer: "",
       equityCopy: null,
+      tomExplanation: "",
     },
   });
   assert.equal(start.href, "/consult?intent=sell");
@@ -174,6 +175,7 @@ test("seller next action follows real state", () => {
       levelLabel: "",
       disclaimer: "",
       equityCopy: null,
+      tomExplanation: "",
     },
   });
   assert.equal(benchmark.href, "/seller/valuation");
