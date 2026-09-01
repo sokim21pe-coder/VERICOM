@@ -140,6 +140,7 @@ async function main() {
       body.includes("LEVEL 1") &&
         body.includes("EV/EBITDA") &&
         body.includes("DCF는 사용하지 않습니다") &&
+        body.includes("3개년") &&
         !body.includes("WACC"),
       "seller_valuation_level1_honest",
     );

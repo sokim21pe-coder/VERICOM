@@ -204,3 +204,35 @@ test("provenance tracks revenue memory key", () => {
   assert.equal(snapshot.revenue.provenance?.sourceMemoryKey, "revenue");
   assert.equal(snapshot.revenue.provenance?.normalizedValue, "10000000000KRW");
 });
+
+test("three-year revenue and ebitda stay structured without inventing missing years", () => {
+  const snapshot = normalizeFinancialInputs({
+    conversationId: "c1",
+    sellerCompanyId: "co-s",
+    memories: [
+      mem("revenue", "10000000000"),
+      mem("revenue_year_2", "9000000000"),
+      mem("ebitda", "1000000000"),
+    ],
+  });
+  assert.equal(snapshot.revenueYear1.krw, 10_000_000_000);
+  assert.equal(snapshot.revenueYear2.krw, 9_000_000_000);
+  assert.equal(snapshot.revenueYear3.krw, null);
+  assert.equal(snapshot.ebitdaYear1.krw, 1_000_000_000);
+  assert.equal(snapshot.ebitdaYear2.krw, null);
+  assert.equal(snapshot.ebitdaYear3.krw, null);
+  assert.ok(snapshot.completeness.missingYearInputs.includes("매출 3년차"));
+  assert.ok(snapshot.completeness.missingYearInputs.includes("EBITDA 2년차"));
+  assert.equal(snapshot.completeness.missingForLevel1.length, 0);
+});
+
+test("year 2 only does not become normalized latest EBITDA", () => {
+  const snapshot = normalizeFinancialInputs({
+    conversationId: "c1",
+    sellerCompanyId: "co-s",
+    memories: [mem("ebitda_year_2", "800000000")],
+  });
+  assert.equal(snapshot.ebitda.krw, null);
+  assert.equal(snapshot.ebitdaYear2.krw, 800_000_000);
+  assert.ok(snapshot.completeness.missingForLevel1.includes("정규화 EBITDA"));
+});

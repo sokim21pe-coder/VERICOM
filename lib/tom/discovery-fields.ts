@@ -20,7 +20,13 @@ export type DiscoveryFieldId =
   | "key_customers"
   | "competitive_advantage"
   | "revenue"
+  | "revenue_year_1"
+  | "revenue_year_2"
+  | "revenue_year_3"
   | "ebitda"
+  | "ebitda_year_1"
+  | "ebitda_year_2"
+  | "ebitda_year_3"
   | "operating_profit"
   | "cash"
   | "debt"
@@ -144,6 +150,42 @@ export const SELLER_DISCOVERY_FIELDS: DiscoveryFieldDef[] = [
     reason: "알려 주신 숫자만 저장합니다. 가치를 계산하지 않습니다.",
   },
   {
+    id: "revenue_year_2",
+    category: "COMPANY_FACT",
+    requirement: "optional",
+    priority: 16,
+    question:
+      "그 직전 연도 매출도 알고 계신가요? 모르시면 추정하지 말고 넘어가셔도 됩니다.",
+    reason: "3개년 실적은 알려 주신 연도만 저장합니다. 없는 연도를 채우지 않습니다.",
+  },
+  {
+    id: "revenue_year_3",
+    category: "COMPANY_FACT",
+    requirement: "optional",
+    priority: 17,
+    question:
+      "그 이전 연도(3년 차) 매출도 알고 계신가요? 모르시면 비워 둡니다.",
+    reason: "입력하지 않은 과거 매출은 null로 둡니다.",
+  },
+  {
+    id: "ebitda_year_2",
+    category: "COMPANY_FACT",
+    requirement: "optional",
+    priority: 18,
+    question:
+      "그 직전 연도 EBITDA도 알고 계신가요? 모르시면 추정하지 않습니다.",
+    reason: "3개년 EBITDA는 알려 주신 연도만 저장합니다.",
+  },
+  {
+    id: "ebitda_year_3",
+    category: "COMPANY_FACT",
+    requirement: "optional",
+    priority: 19,
+    question:
+      "그 이전 연도(3년 차) EBITDA도 알고 계신가요? 모르시면 비워 둡니다.",
+    reason: "입력하지 않은 과거 EBITDA는 null로 둡니다.",
+  },
+  {
     id: "buyer_preference",
     category: "BUYER_CRITERIA",
     requirement: "optional",
@@ -262,6 +304,22 @@ export const SELLER_DISCOVERY_FIELDS: DiscoveryFieldDef[] = [
     priority: 25,
     question: "순차입금(차입에서 현금을 뺀 값)을 대략이라도 알고 계신가요?",
     reason: "현금과 차입이 모두 있으면 계산합니다. 한쪽만 있으면 추정하지 않습니다.",
+  },
+  {
+    id: "revenue_year_1",
+    category: "COMPANY_FACT",
+    requirement: "context",
+    priority: 95,
+    question: "가장 최근 연도 매출은 얼마인가요?",
+    reason: "최근 매출은 revenue 키와 같이 둡니다. 추정하지 않습니다.",
+  },
+  {
+    id: "ebitda_year_1",
+    category: "COMPANY_FACT",
+    requirement: "context",
+    priority: 96,
+    question: "가장 최근 연도 EBITDA는 얼마인가요?",
+    reason: "최근 EBITDA는 ebitda 키와 같이 둡니다. 추정하지 않습니다.",
   },
   {
     id: "excluded_buyers",

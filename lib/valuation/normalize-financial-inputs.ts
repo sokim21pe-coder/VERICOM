@@ -29,7 +29,13 @@ export type NormalizedFinancialInputs = {
   companyName: string | null;
   industry: string | null;
   revenue: NormalizedFinancialAmount;
+  revenueYear1: NormalizedFinancialAmount;
+  revenueYear2: NormalizedFinancialAmount;
+  revenueYear3: NormalizedFinancialAmount;
   ebitda: NormalizedFinancialAmount;
+  ebitdaYear1: NormalizedFinancialAmount;
+  ebitdaYear2: NormalizedFinancialAmount;
+  ebitdaYear3: NormalizedFinancialAmount;
   operatingProfit: NormalizedFinancialAmount;
   cash: NormalizedFinancialAmount;
   debt: NormalizedFinancialAmount;
@@ -41,6 +47,8 @@ export type NormalizedFinancialInputs = {
     knownInputs: number;
     inputTotal: number;
     missingForLevel0: string[];
+    missingForLevel1: string[];
+    missingYearInputs: string[];
   };
 };
 
@@ -130,8 +138,30 @@ export function normalizeFinancialInputs(
     }
   }
 
-  const revenue = amountFromMemory(byKey.get("revenue"), warnings);
-  const ebitda = amountFromMemory(byKey.get("ebitda"), warnings);
+  const statedRevenue = amountFromMemory(byKey.get("revenue"), warnings);
+  const revenueYear1Stored = amountFromMemory(byKey.get("revenue_year_1"), warnings);
+  const revenueYear2 = amountFromMemory(byKey.get("revenue_year_2"), warnings);
+  const revenueYear3 = amountFromMemory(byKey.get("revenue_year_3"), warnings);
+  const statedEbitda = amountFromMemory(byKey.get("ebitda"), warnings);
+  const ebitdaYear1Stored = amountFromMemory(byKey.get("ebitda_year_1"), warnings);
+  const ebitdaYear2 = amountFromMemory(byKey.get("ebitda_year_2"), warnings);
+  const ebitdaYear3 = amountFromMemory(byKey.get("ebitda_year_3"), warnings);
+  const revenue =
+    statedRevenue.krw != null || statedRevenue.unresolved
+      ? statedRevenue
+      : revenueYear1Stored;
+  const ebitda =
+    statedEbitda.krw != null || statedEbitda.unresolved
+      ? statedEbitda
+      : ebitdaYear1Stored;
+  const revenueYear1 =
+    revenueYear1Stored.krw != null || revenueYear1Stored.unresolved
+      ? revenueYear1Stored
+      : revenue;
+  const ebitdaYear1 =
+    ebitdaYear1Stored.krw != null || ebitdaYear1Stored.unresolved
+      ? ebitdaYear1Stored
+      : ebitda;
   const operatingProfit = amountFromMemory(byKey.get("operating_profit"), warnings);
   const cash = amountFromMemory(byKey.get("cash"), warnings);
   const debt = amountFromMemory(byKey.get("debt"), warnings);
@@ -156,9 +186,36 @@ export function normalizeFinancialInputs(
   if (!knownValue(industryItem)) missingForLevel0.push("industry");
   if (revenue.krw == null) missingForLevel0.push("revenue");
 
+  const missingForLevel1: string[] = [];
+  if (ebitda.krw == null || ebitda.unresolved) missingForLevel1.push("정규화 EBITDA");
+
+  const missingYearInputs: string[] = [];
+  if (revenueYear1.krw == null && !revenueYear1.unresolved) {
+    missingYearInputs.push("매출 1년차(최근)");
+  }
+  if (revenueYear2.krw == null && !revenueYear2.unresolved) {
+    missingYearInputs.push("매출 2년차");
+  }
+  if (revenueYear3.krw == null && !revenueYear3.unresolved) {
+    missingYearInputs.push("매출 3년차");
+  }
+  if (ebitdaYear1.krw == null && !ebitdaYear1.unresolved) {
+    missingYearInputs.push("EBITDA 1년차(최근)");
+  }
+  if (ebitdaYear2.krw == null && !ebitdaYear2.unresolved) {
+    missingYearInputs.push("EBITDA 2년차");
+  }
+  if (ebitdaYear3.krw == null && !ebitdaYear3.unresolved) {
+    missingYearInputs.push("EBITDA 3년차");
+  }
+
   const knownInputs = [
     revenue.krw != null,
+    revenueYear2.krw != null,
+    revenueYear3.krw != null,
     ebitda.krw != null,
+    ebitdaYear2.krw != null,
+    ebitdaYear3.krw != null,
     operatingProfit.krw != null,
     cash.krw != null,
     debt.krw != null,
@@ -172,7 +229,13 @@ export function normalizeFinancialInputs(
     companyName: nameItem && knownValue(nameItem) ? nameItem.value : null,
     industry: industryItem && knownValue(industryItem) ? industryItem.value : null,
     revenue,
+    revenueYear1,
+    revenueYear2,
+    revenueYear3,
     ebitda,
+    ebitdaYear1,
+    ebitdaYear2,
+    ebitdaYear3,
     operatingProfit,
     cash,
     debt,
@@ -183,8 +246,10 @@ export function normalizeFinancialInputs(
     normalizationWarnings: warnings,
     completeness: {
       knownInputs,
-      inputTotal: 7,
+      inputTotal: 11,
       missingForLevel0,
+      missingForLevel1,
+      missingYearInputs,
     },
   };
 }

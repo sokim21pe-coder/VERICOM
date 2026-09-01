@@ -187,3 +187,17 @@ test("known cash and debt skip the net_debt question", () => {
   const next = getNextBestQuestion({ memories, context: sellerContext });
   assert.notEqual(next?.field, "net_debt");
 });
+
+test("three-year revenue cue stores each year and does not invent extras", () => {
+  const extracted = extractDiscoveryFromMessage({
+    text: "최근 3년 매출은 100억, 90억, 80억이야.",
+    lastQuestion: "revenue",
+  });
+  const byField = Object.fromEntries(
+    extracted.captures.map((item) => [item.field, item.value]),
+  );
+  assert.equal(byField.revenue, String(100 * 100_000_000));
+  assert.equal(byField.revenue_year_1, String(100 * 100_000_000));
+  assert.equal(byField.revenue_year_2, String(90 * 100_000_000));
+  assert.equal(byField.revenue_year_3, String(80 * 100_000_000));
+});

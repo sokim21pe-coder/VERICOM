@@ -3,7 +3,10 @@ import { FieldRows } from "@/components/workspace/WorkspaceHomeSections";
 import { SellerValuationStatus } from "@/components/workspace/SellerValuationStatus";
 import { getCurrentContext } from "@/lib/auth/session";
 import { loadSellerValuationView } from "@/lib/workspace/load-home";
-import { financialAmountLabel } from "@/lib/workspace/visibility";
+import {
+  financialAmountLabel,
+  financialNormalizationStatus,
+} from "@/lib/workspace/visibility";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +30,8 @@ const emptyAmount = {
 export default async function SellerValuationPage() {
   const context = await getCurrentContext();
   const view = context ? await loadSellerValuationView() : null;
+  const financials = view?.financials ?? null;
+  const level0Ready = financialNormalizationStatus(financials);
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-10">
@@ -42,6 +47,9 @@ export default async function SellerValuationPage() {
       {view ? (
         <>
           <h2 className="mt-8 text-lg font-semibold text-foreground">LEVEL 0</h2>
+          <p className="mt-2 text-sm text-muted">
+            평가방식 EV / Sales · 준비: {level0Ready}
+          </p>
           <div className="mt-4">
             <SellerValuationStatus valuation={view.valuation} />
           </div>
@@ -49,22 +57,65 @@ export default async function SellerValuationPage() {
           <div className="mt-4">
             <SellerValuationStatus valuation={view.level1} />
           </div>
+          <h2 className="mt-12 text-lg font-semibold text-foreground">3개년 실적</h2>
+          <p className="mt-2 text-sm text-muted">
+            입력하지 않은 연도는 추정하지 않습니다. 1년차는 최근 연도입니다.
+          </p>
+          <FieldRows
+            fields={[
+              amountField(
+                "revenue_y1",
+                "매출 1년차(최근)",
+                financials?.revenueYear1 ?? emptyAmount,
+              ),
+              amountField(
+                "revenue_y2",
+                "매출 2년차",
+                financials?.revenueYear2 ?? emptyAmount,
+              ),
+              amountField(
+                "revenue_y3",
+                "매출 3년차",
+                financials?.revenueYear3 ?? emptyAmount,
+              ),
+              amountField(
+                "ebitda_y1",
+                "EBITDA 1년차(최근)",
+                financials?.ebitdaYear1 ?? emptyAmount,
+              ),
+              amountField(
+                "ebitda_y2",
+                "EBITDA 2년차",
+                financials?.ebitdaYear2 ?? emptyAmount,
+              ),
+              amountField(
+                "ebitda_y3",
+                "EBITDA 3년차",
+                financials?.ebitdaYear3 ?? emptyAmount,
+              ),
+            ]}
+          />
           <h2 className="mt-12 text-lg font-semibold text-foreground">재무 입력</h2>
           <p className="mt-2 text-sm text-muted">
             희망 매각가격은 가치평가 계산에 넣지 않습니다.
           </p>
           <FieldRows
             fields={[
-              amountField("revenue", "정규화 매출", view.financials?.revenue ?? emptyAmount),
-              amountField("ebitda", "EBITDA", view.financials?.ebitda ?? emptyAmount),
-              amountField("cash", "현금", view.financials?.cash ?? emptyAmount),
-              amountField("debt", "차입", view.financials?.debt ?? emptyAmount),
-              amountField("net_debt", "순차입", view.financials?.netDebt ?? emptyAmount),
+              amountField("revenue", "정규화 매출", financials?.revenue ?? emptyAmount),
+              amountField("ebitda", "정규화 EBITDA", financials?.ebitda ?? emptyAmount),
+              amountField(
+                "operating_profit",
+                "영업이익",
+                financials?.operatingProfit ?? emptyAmount,
+              ),
+              amountField("cash", "현금", financials?.cash ?? emptyAmount),
+              amountField("debt", "차입", financials?.debt ?? emptyAmount),
+              amountField("net_debt", "순차입", financials?.netDebt ?? emptyAmount),
               {
                 id: "industry",
                 label: "업종",
-                presence: view.financials?.industry ? "입력" : "미입력",
-                value: view.financials?.industry ?? null,
+                presence: financials?.industry ? "입력" : "미입력",
+                value: financials?.industry ?? null,
               },
             ]}
           />

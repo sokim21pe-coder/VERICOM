@@ -158,6 +158,13 @@ async function main() {
         valText.includes("DCF는 사용하지 않습니다"),
       "seller_valuation_level1_honest",
     );
+    mark(
+      valText.includes("3개년") &&
+        valText.includes("매출 1년차") &&
+        valText.includes("EBITDA 1년차") &&
+        (valText.includes("진행상태") || valText.includes("재무 입력")),
+      "seller_valuation_level1_years_progress",
+    );
 
     await page.goto(`${BASE}/consult?intent=sell`, { waitUntil: "domcontentloaded" });
     const consultSeller = await bodyText();

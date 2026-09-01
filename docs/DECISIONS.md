@@ -82,7 +82,9 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 
 2026-09-01 Sprint 2 LEVEL 1 EV/EBITDA Foundation: EV = 정규화 EBITDA × 승인된 EV/EBITDA 배수. 둘 다 있을 때만 계산한다. EV/Sales 레코드·PLACEHOLDER·TEST_ONLY·UNVERIFIED는 production/UI 금액에 쓰지 않는다. DCF·WACC·Precedent 스크랩은 하지 않는다. 0016 method 제약은 아직 EV_SALES라 EV/EBITDA persistence는 후속이다.
 
-2026-09-01 Sprint 2 LEVEL 1 EV/EBITDA Persistence: `0017`로 `approved_valuation_benchmarks.method`에 EV_EBITDA를 허용한다. Staff WRITE UI는 배정 Deal 매각 회사에 APPROVED EV/Sales 또는 EV/EBITDA를 저장한다. 가짜 기본 배수·DCF·0008/0009는 넣지 않는다. leftover 마이그레이션이 있어 전체 `db push`는 하지 않았다. 원격 CHECK 적용은 0017 SQL만 실행해야 한다.
+2026-09-01 Sprint 2 LEVEL 1 EV/EBITDA Persistence: `0017`로 `approved_valuation_benchmarks.method`에 EV_EBITDA를 허용한다. Staff WRITE UI는 배정 Deal 매각 회사에 APPROVED EV/Sales 또는 EV/EBITDA를 저장한다. 가짜 기본 배수·DCF·0008/0009는 넣지 않는다. leftover 마이그레이션이 있어 전체 `db push`는 하지 않았다. CLI `--linked` 적용은 `SUPABASE_ACCESS_TOKEN` 부재로 실패했다. 원격 CHECK는 SQL Editor에서 `0017_approved_ev_ebitda_method.sql`만 실행해야 한다.
+
+2026-09-01 Sprint 2 LEVEL 1 Feature Slice: Seller 3개년 매출·EBITDA Memory를 구조화한다. 없는 연도는 null이며 추정하지 않는다. `/seller/valuation`에 LEVEL 0/1 상태·진행상태·3개년 실적·부족 항목을 표시한다. 승인된 EV/EBITDA가 있을 때만 Indicative EV Range를 연다.
 
 2026-08-31 Architecture Decision: VERICOM은 Cursor 자율 개발(Autonomous Development)을 공식 채택한다. 무제한 자율이 아니다. **Autonomous Development + Mandatory Human Approval for High-risk Changes.**
 

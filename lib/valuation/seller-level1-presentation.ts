@@ -10,6 +10,7 @@ import {
   EQUITY_NOT_CALCULATED_COPY,
   MISSING_FINANCIAL_COPY,
   type SellerLevel0Presentation,
+  type ValuationFlowStep,
 } from "@/lib/valuation/seller-level0-presentation";
 
 export const LEVEL1_TITLE = "LEVEL 1 EV/EBITDA 참고용 가치평가";
@@ -33,6 +34,113 @@ export const TOM_LEVEL1_CALCULABLE_EV_ONLY_COPY =
 
 export const TOM_LEVEL1_CALCULABLE_WITH_EQUITY_COPY =
   "평가방식은 EV / EBITDA입니다. 정규화 EBITDA와 승인된 비교배수로 기업가치(Enterprise Value)를 계산했습니다. 확인된 순차입을 반영한 지분가치(Equity Value)는 기업가치와 다른 값이며 매각가격이 아닙니다.";
+
+function multipleLabel(value: number | null | undefined): string | null {
+  if (value == null || !Number.isFinite(value) || value <= 0) return null;
+  return `${value}x`;
+}
+
+export function level1FlowChrome(input: {
+  hasConversation: boolean;
+  missingEbitda: boolean;
+  approvedCalculable: boolean;
+  notEligible: boolean;
+  financials: NormalizedFinancialInputs | null;
+  result: ValuationCalculation | null;
+}): Pick<
+  SellerLevel0Presentation,
+  | "progressLabel"
+  | "flowSteps"
+  | "missingItems"
+  | "multipleLowLabel"
+  | "multipleBaseLabel"
+  | "multipleHighLabel"
+> {
+  const missingItems = [
+    ...(input.financials?.completeness.missingForLevel1 ?? []),
+    ...(input.financials?.completeness.missingYearInputs ?? []),
+  ];
+  const multiples = input.approvedCalculable ? input.result?.multipleUsed : null;
+  const step = (
+    id: string,
+    label: string,
+    state: ValuationFlowStep["state"],
+  ): ValuationFlowStep => ({ id, label, state });
+
+  if (!input.hasConversation) {
+    return {
+      progressLabel: "데이터 없음",
+      flowSteps: [
+        step("input", "재무 입력", "todo"),
+        step("benchmark", "비교배수 대기", "todo"),
+        step("ready", "계산 가능", "todo"),
+        step("done", "계산 완료", "todo"),
+      ],
+      missingItems,
+      multipleLowLabel: null,
+      multipleBaseLabel: null,
+      multipleHighLabel: null,
+    };
+  }
+  if (input.missingEbitda) {
+    return {
+      progressLabel: "재무 입력 필요",
+      flowSteps: [
+        step("input", "재무 입력", "current"),
+        step("benchmark", "비교배수 대기", "todo"),
+        step("ready", "계산 가능", "todo"),
+        step("done", "계산 완료", "todo"),
+      ],
+      missingItems,
+      multipleLowLabel: null,
+      multipleBaseLabel: null,
+      multipleHighLabel: null,
+    };
+  }
+  if (input.approvedCalculable) {
+    return {
+      progressLabel: "계산 완료",
+      flowSteps: [
+        step("input", "재무 입력", "done"),
+        step("benchmark", "비교배수 대기", "done"),
+        step("ready", "계산 가능", "done"),
+        step("done", "계산 완료", "done"),
+      ],
+      missingItems,
+      multipleLowLabel: multipleLabel(multiples?.low ?? null),
+      multipleBaseLabel: multipleLabel(multiples?.base ?? null),
+      multipleHighLabel: multipleLabel(multiples?.high ?? null),
+    };
+  }
+  if (input.notEligible) {
+    return {
+      progressLabel: "계산 불가",
+      flowSteps: [
+        step("input", "재무 입력", "done"),
+        step("benchmark", "비교배수 대기", "done"),
+        step("ready", "계산 가능", "current"),
+        step("done", "계산 완료", "todo"),
+      ],
+      missingItems,
+      multipleLowLabel: null,
+      multipleBaseLabel: null,
+      multipleHighLabel: null,
+    };
+  }
+  return {
+    progressLabel: "재무 입력 완료 · 비교배수 대기",
+    flowSteps: [
+      step("input", "재무 입력", "done"),
+      step("benchmark", "비교배수 대기", "current"),
+      step("ready", "계산 가능", "todo"),
+      step("done", "계산 완료", "todo"),
+    ],
+    missingItems,
+    multipleLowLabel: null,
+    multipleBaseLabel: null,
+    multipleHighLabel: null,
+  };
+}
 
 function evRangeLabelFrom(result: ValuationCalculation): string | null {
   const low = result.evLow;
@@ -116,6 +224,23 @@ export function sellerLevel1Presentation(input: {
     input.result.method === "EV_EBITDA" &&
     input.result.enterpriseValue != null;
 
+  const missingEbitda =
+    input.status === "MISSING_INPUT" ||
+    !input.financials ||
+    input.financials.ebitda.unresolved ||
+    input.financials.ebitda.krw == null;
+  const notEligible =
+    input.status === "NOT_ELIGIBLE" &&
+    Boolean(input.result?.warnings.includes("ebitda_not_positive"));
+  const chrome = level1FlowChrome({
+    hasConversation: input.hasConversation,
+    missingEbitda,
+    approvedCalculable,
+    notEligible,
+    financials: input.financials,
+    result: input.result,
+  });
+
   if (!input.hasConversation) {
     return {
       statusLabel: "데이터 없음",
@@ -129,21 +254,16 @@ export function sellerLevel1Presentation(input: {
       disclaimer,
       equityCopy: null,
       tomExplanation: "상담에서 EBITDA를 입력하면 LEVEL 1 상태를 확인할 수 있습니다.",
+      ...chrome,
     };
   }
-
-  const missingEbitda =
-    input.status === "MISSING_INPUT" ||
-    !input.financials ||
-    input.financials.ebitda.unresolved ||
-    input.financials.ebitda.krw == null;
 
   if (missingEbitda) {
     return {
       statusLabel: "재무정보 입력 필요",
       copy: MISSING_FINANCIAL_COPY,
       showEnterpriseValue: false,
-      methodLabel: null,
+      methodLabel: EV_EBITDA_METHOD_LABEL,
       methodExplanation,
       evRangeLabel: null,
       sourceLabel: null,
@@ -151,6 +271,7 @@ export function sellerLevel1Presentation(input: {
       disclaimer,
       equityCopy: null,
       tomExplanation: TOM_LEVEL1_MISSING_EBITDA_COPY,
+      ...chrome,
     };
   }
 
@@ -169,6 +290,7 @@ export function sellerLevel1Presentation(input: {
         disclaimer,
         equityCopy: null,
         tomExplanation,
+        ...chrome,
       };
     }
   }
@@ -189,6 +311,7 @@ export function sellerLevel1Presentation(input: {
       disclaimer,
       equityCopy: equityCopyFrom(input.result),
       tomExplanation,
+      ...chrome,
     };
   }
 
@@ -204,5 +327,6 @@ export function sellerLevel1Presentation(input: {
     disclaimer,
     equityCopy: null,
     tomExplanation,
+    ...chrome,
   };
 }

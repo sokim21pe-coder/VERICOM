@@ -105,7 +105,15 @@ const SELLER_AMOUNT_LAST_FIELDS: DiscoveryFieldId[] = [
   "cash",
   "debt",
   "net_debt",
+  "revenue_year_2",
+  "revenue_year_3",
+  "ebitda_year_2",
+  "ebitda_year_3",
 ];
+
+function hasThreeYearCue(text: string): boolean {
+  return /3개년|3년\s*실적|최근\s*3년|연도별|과거\s*3년/.test(text);
+}
 
 function hasInvestmentCue(text: string): boolean {
   return /투자|티켓|한도|가능\s*금|까지|생각하고|여력|예산/.test(text);
@@ -416,7 +424,24 @@ function extractSellerCaptures(input: {
 
   const amounts = parseEokAmounts(text);
   if (amounts.length > 0) {
-    if (
+    const threeYear = hasThreeYearCue(text);
+    if (input.lastQuestion === "ebitda_year_2" && amounts.length >= 2) {
+      captures.push(capture("ebitda_year_2", String(amounts[0])));
+      captures.push(capture("ebitda_year_3", String(amounts[1])));
+    } else if (input.lastQuestion === "revenue_year_2" && amounts.length >= 2) {
+      captures.push(capture("revenue_year_2", String(amounts[0])));
+      captures.push(capture("revenue_year_3", String(amounts[1])));
+    } else if (threeYear && hasEbitdaCue(text) && amounts.length >= 3) {
+      captures.push(capture("ebitda", String(amounts[0])));
+      captures.push(capture("ebitda_year_1", String(amounts[0])));
+      captures.push(capture("ebitda_year_2", String(amounts[1])));
+      captures.push(capture("ebitda_year_3", String(amounts[2])));
+    } else if (threeYear && hasRevenueCue(text) && amounts.length >= 3) {
+      captures.push(capture("revenue", String(amounts[0])));
+      captures.push(capture("revenue_year_1", String(amounts[0])));
+      captures.push(capture("revenue_year_2", String(amounts[1])));
+      captures.push(capture("revenue_year_3", String(amounts[2])));
+    } else if (
       input.lastQuestion &&
       SELLER_AMOUNT_LAST_FIELDS.includes(input.lastQuestion)
     ) {

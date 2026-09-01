@@ -50,6 +50,14 @@ export type SellerLevel0StatusLabel =
   | "계산 불가"
   | "데이터 없음";
 
+export type ValuationFlowStepState = "done" | "current" | "todo";
+
+export type ValuationFlowStep = {
+  id: string;
+  label: string;
+  state: ValuationFlowStepState;
+};
+
 export type SellerLevel0Presentation = {
   statusLabel: SellerLevel0StatusLabel;
   copy: string;
@@ -62,6 +70,12 @@ export type SellerLevel0Presentation = {
   disclaimer: string;
   equityCopy: string | null;
   tomExplanation: string;
+  progressLabel?: string;
+  flowSteps?: ValuationFlowStep[];
+  missingItems?: string[];
+  multipleLowLabel?: string | null;
+  multipleBaseLabel?: string | null;
+  multipleHighLabel?: string | null;
 };
 
 function evRangeLabelFrom(result: ValuationCalculation): string | null {
@@ -150,7 +164,7 @@ export function sellerLevel0Presentation(input: {
       statusLabel: "데이터 없음",
       copy: "상담에서 재무를 입력하면 가치평가 상태를 확인할 수 있습니다.",
       showEnterpriseValue: false,
-      methodLabel: null,
+      methodLabel: EV_SALES_METHOD_LABEL,
       methodExplanation,
       evRangeLabel: null,
       sourceLabel: null,
@@ -173,7 +187,7 @@ export function sellerLevel0Presentation(input: {
       statusLabel: "재무정보 입력 필요",
       copy: MISSING_FINANCIAL_COPY,
       showEnterpriseValue: false,
-      methodLabel: null,
+      methodLabel: EV_SALES_METHOD_LABEL,
       methodExplanation,
       evRangeLabel: null,
       sourceLabel: null,
