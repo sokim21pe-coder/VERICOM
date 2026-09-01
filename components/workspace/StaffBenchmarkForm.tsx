@@ -6,6 +6,7 @@ import {
   type StaffBenchmarkActionState,
 } from "@/lib/valuation/staff-benchmark-actions";
 import {
+  STAFF_WRITE_METHODS,
   STAFF_WRITE_SOURCE_TYPES,
   type StaffBenchmarkTarget,
 } from "@/lib/valuation/staff-benchmark-write";
@@ -36,7 +37,6 @@ export function StaffBenchmarkForm({
 
   return (
     <form action={formAction} className="mt-8 max-w-xl space-y-5">
-      <input type="hidden" name="method" value="EV_SALES" />
       <div>
         <label className="text-xs text-muted" htmlFor="benchmark-company">
           매각 회사 (배정 Deal)
@@ -58,7 +58,27 @@ export function StaffBenchmarkForm({
           ))}
         </select>
       </div>
-      <p className="text-sm text-foreground">평가방식: EV / Sales</p>
+      <div>
+        <label className="text-xs text-muted" htmlFor="benchmark-method">
+          평가방식
+        </label>
+        <select
+          id="benchmark-method"
+          name="method"
+          required
+          defaultValue=""
+          className={fieldClass}
+        >
+          <option value="" disabled>
+            선택하세요
+          </option>
+          {STAFF_WRITE_METHODS.map((item) => (
+            <option key={item} value={item}>
+              {item === "EV_EBITDA" ? "EV / EBITDA" : "EV / Sales"}
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
           <label className="text-xs text-muted" htmlFor="benchmark-low">

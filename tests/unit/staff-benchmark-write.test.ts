@@ -53,6 +53,7 @@ function validForm(
   return {
     companyId: "co-s",
     dealId: "deal-co-s",
+    method: "EV_SALES",
     multipleLow: "",
     multipleBase: "1.4",
     multipleHigh: "",
@@ -188,4 +189,38 @@ test("Expert assigned seller company parses APPROVED EV/Sales with provenance", 
   assert.notEqual(parsed.benchmark.approvalStatus, "TEST_ONLY");
   assert.notEqual(parsed.benchmark.approvalStatus, "UNVERIFIED");
   assert.equal(parsed.benchmark.provenance?.sourceType, "INTERNAL_REVIEW");
+});
+
+test("Expert assigned seller company parses APPROVED EV/EBITDA without using EV/Sales", () => {
+  const expert = viewer(PlatformRole.EXPERT_USER, null);
+  const parsed = parseStaffApprovedBenchmarkForm(
+    expert,
+    validForm({ method: "EV_EBITDA", multipleBase: "8" }),
+    ["co-s"],
+  );
+  assert.equal(parsed.ok, true);
+  if (!parsed.ok) return;
+  assert.equal(parsed.benchmark.method, "EV_EBITDA");
+  assert.equal(parsed.benchmark.approvalStatus, "APPROVED");
+  assert.equal(parsed.benchmark.multiple, 8);
+  assert.notEqual(parsed.benchmark.method, "EV_SALES");
+});
+
+test("DCF and empty method are rejected on the staff write form", () => {
+  const expert = viewer(PlatformRole.EXPERT_USER, null);
+  const dcf = parseStaffApprovedBenchmarkForm(
+    expert,
+    validForm({ method: "DCF" }),
+    ["co-s"],
+  );
+  assert.equal(dcf.ok, false);
+  if (!dcf.ok) assert.equal(dcf.reason, "method_not_allowed");
+
+  const missing = parseStaffApprovedBenchmarkForm(
+    expert,
+    validForm({ method: "" }),
+    ["co-s"],
+  );
+  assert.equal(missing.ok, false);
+  if (!missing.ok) assert.equal(missing.reason, "method_not_allowed");
 });

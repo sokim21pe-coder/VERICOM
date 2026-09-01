@@ -199,7 +199,7 @@ LLM이 Valuation 최종 숫자(EBITDA, WACC, Multiple, EV, Equity Value)를 만�
 
 `Financial Input → Deterministic Engine → Benchmark → Result → TOM interpretation`
 
-LLM은 설명·비교·Sensitivity·리스크·추천만 담당한다. leftover `0008`/`0009`(PLACEHOLDER `valuations`)는 적용하지 않는다. LEVEL 0 승인 배수는 `0016_approved_valuation_benchmarks.sql`만 사용한다.
+LLM은 설명·비교·Sensitivity·리스크·추천만 담당한다. leftover `0008`/`0009`(PLACEHOLDER `valuations`)는 적용하지 않는다. 승인 배수는 `0016_approved_valuation_benchmarks.sql`과 `0017_approved_ev_ebitda_method.sql`만 사용한다.
 
 ---
 
@@ -246,7 +246,7 @@ force push와 Git history rewrite는 금지한다.
 
 원격 Supabase 프로젝트: `nzsgxxuyvbirnlwtqmmc`.
 
-`0008` / `0009` leftover는 적용하지 않는다. 승인 배수 persistence는 `0016`만 사용한다.
+`0008` / `0009` leftover는 적용하지 않는다. 승인 배수 persistence는 `0016`과 `0017`(EV_EBITDA method)만 사용한다.
 
 ---
 

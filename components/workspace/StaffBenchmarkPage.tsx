@@ -24,8 +24,9 @@ export async function StaffBenchmarkPage({
         승인 비교배수
       </h1>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-        {workspaceLabel} LEVEL 0 EV/Sales 승인 배수입니다. 검증된 출처와 기준일이
-        있을 때만 저장합니다. 업종 기본 배수·PLACEHOLDER·TEST_ONLY는 이 화면에
+        {workspaceLabel} LEVEL 0 EV/Sales와 LEVEL 1 EV/EBITDA 승인 배수입니다.
+        검증된 출처와 기준일이 있을 때만 저장합니다. EV/Sales 배수를 EV/EBITDA에
+        쓰지 않습니다. 업종 기본 배수·PLACEHOLDER·TEST_ONLY·DCF는 이 화면에
         없습니다.
       </p>
       {allowed ? (

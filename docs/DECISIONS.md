@@ -82,6 +82,8 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 
 2026-09-01 Sprint 2 LEVEL 1 EV/EBITDA Foundation: EV = 정규화 EBITDA × 승인된 EV/EBITDA 배수. 둘 다 있을 때만 계산한다. EV/Sales 레코드·PLACEHOLDER·TEST_ONLY·UNVERIFIED는 production/UI 금액에 쓰지 않는다. DCF·WACC·Precedent 스크랩은 하지 않는다. 0016 method 제약은 아직 EV_SALES라 EV/EBITDA persistence는 후속이다.
 
+2026-09-01 Sprint 2 LEVEL 1 EV/EBITDA Persistence: `0017`로 `approved_valuation_benchmarks.method`에 EV_EBITDA를 허용한다. Staff WRITE UI는 배정 Deal 매각 회사에 APPROVED EV/Sales 또는 EV/EBITDA를 저장한다. 가짜 기본 배수·DCF·0008/0009는 넣지 않는다. leftover 마이그레이션이 있어 전체 `db push`는 하지 않았다. 원격 CHECK 적용은 0017 SQL만 실행해야 한다.
+
 2026-08-31 Architecture Decision: VERICOM은 Cursor 자율 개발(Autonomous Development)을 공식 채택한다. 무제한 자율이 아니다. **Autonomous Development + Mandatory Human Approval for High-risk Changes.**
 
 왜: 새 Cursor 세션·다른 PC에서도 동일한 작업 운영을 유지한다. 사용자가 매 다음 작업을 지정하지 않아도 Cursor는 `MASTER_SPEC.md` Roadmap과 실제 코드를 기준으로 다음 중요 작업을 고른다. 고위험 변경은 자동 실행하지 않는다.

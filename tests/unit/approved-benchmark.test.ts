@@ -491,6 +491,26 @@ test("Expert can prepare an APPROVED insert with created_by from CurrentContext"
     assert.equal(built.row.approval_status, "APPROVED");
     assert.equal(built.row.source, "internal-review-fixture");
     assert.notEqual(built.row.source, "PLACEHOLDER");
+    assert.equal(built.row.method, "EV_SALES");
+  }
+});
+
+test("Expert can prepare an APPROVED EV/EBITDA insert without using EV/Sales", () => {
+  const expert = viewer("staff", PlatformRole.EXPERT_USER);
+  const built = buildApprovedBenchmarkInsert(expert, {
+    companyId: "co-a",
+    benchmark: approvedBenchmark({
+      method: "EV_EBITDA",
+      multiple: 8,
+      multipleBase: 8,
+    }),
+  });
+  assert.equal(built.ok, true);
+  if (built.ok) {
+    assert.equal(built.row.method, "EV_EBITDA");
+    assert.equal(built.row.created_by, expert.user.id);
+    assert.equal(built.row.approval_status, "APPROVED");
+    assert.notEqual(built.row.method, "EV_SALES");
   }
 });
 

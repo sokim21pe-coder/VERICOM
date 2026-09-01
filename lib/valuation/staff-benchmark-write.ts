@@ -3,6 +3,7 @@ import type {
   BenchmarkSourceType,
   ValuationBenchmark,
   ValuationConfidence,
+  ValuationMethod,
 } from "@/types/valuation";
 import {
   canWriteApprovedBenchmarkForAssignedSeller,
@@ -15,6 +16,11 @@ export type StaffBenchmarkTarget = {
   dealId: string;
   label: string;
 };
+
+export const STAFF_WRITE_METHODS = [
+  "EV_SALES",
+  "EV_EBITDA",
+] as const satisfies readonly ValuationMethod[];
 
 export const STAFF_WRITE_SOURCE_TYPES = [
   "INTERNAL_REVIEW",
@@ -37,7 +43,8 @@ export const staffBenchmarkWriteCopy = {
     "이 화면에서는 승인됨(APPROVED)만 저장합니다. TEST_ONLY·UNVERIFIED는 저장하지 않습니다.",
   source_type_not_allowed:
     "이 화면에서는 내부 검토 또는 시장 자료만 허용합니다.",
-  unique_conflict: "이미 같은 회사의 EV/Sales 승인 배수가 있습니다.",
+  unique_conflict: "이미 같은 회사의 같은 평가방식 승인 배수가 있습니다.",
+  method_not_allowed: "평가방식은 EV/Sales 또는 EV/EBITDA만 저장합니다.",
 } as const;
 
 export type StaffBenchmarkWriteReason = keyof typeof staffBenchmarkWriteCopy;
@@ -45,6 +52,7 @@ export type StaffBenchmarkWriteReason = keyof typeof staffBenchmarkWriteCopy;
 export type StaffBenchmarkFormInput = {
   companyId: string;
   dealId?: string | null;
+  method?: string | null;
   multipleLow?: string | number | null;
   multipleBase?: string | number | null;
   multipleHigh?: string | number | null;
@@ -80,6 +88,10 @@ export function assignedSellerCompanyIds(
   deals: readonly AccessibleDeal[],
 ): string[] {
   return staffBenchmarkTargetsFromDeals(deals).map((item) => item.companyId);
+}
+
+function asStaffMethod(value: string): ValuationMethod | null {
+  return value === "EV_SALES" || value === "EV_EBITDA" ? value : null;
 }
 
 function asStaffSourceType(value: string): BenchmarkSourceType | null {
@@ -121,6 +133,9 @@ export function parseStaffApprovedBenchmarkForm(
   }
   if (!input.confirmed) return { ok: false, reason: "confirmation_required" };
 
+  const method = asStaffMethod((input.method ?? "").trim());
+  if (!method) return { ok: false, reason: "method_not_allowed" };
+
   const source = input.source.trim();
   if (!source || source.toUpperCase() === "PLACEHOLDER") {
     return { ok: false, reason: "source_required" };
@@ -148,7 +163,7 @@ export function parseStaffApprovedBenchmarkForm(
     companyId,
     dealId,
     benchmark: {
-      method: "EV_SALES",
+      method,
       multiple: multipleBase ?? multipleLow ?? multipleHigh,
       multipleLow,
       multipleBase,

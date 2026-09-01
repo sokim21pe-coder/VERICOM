@@ -47,6 +47,7 @@ export async function submitApprovedEvSalesBenchmark(
     {
       companyId: formString(formData, "companyId"),
       dealId: formString(formData, "dealId"),
+      method: formString(formData, "method"),
       multipleLow: formString(formData, "multipleLow"),
       multipleBase: formString(formData, "multipleBase"),
       multipleHigh: formString(formData, "multipleHigh"),
@@ -97,7 +98,7 @@ export async function submitApprovedEvSalesBenchmark(
       return {
         ok: false,
         message:
-          "저장하지 못했습니다. 이미 같은 회사의 EV/Sales 승인 배수가 있을 수 있습니다.",
+          "저장하지 못했습니다. 이미 같은 회사의 같은 평가방식 승인 배수가 있을 수 있습니다.",
       };
     }
     return { ok: false, message: authErrorMessage[ErrorCode.VALIDATION_ERROR] };
@@ -111,5 +112,11 @@ export async function submitApprovedEvSalesBenchmark(
   revalidatePath("/seller/valuation");
   revalidatePath("/expert/benchmarks");
   revalidatePath("/internal/benchmarks");
-  return { ok: true, message: "승인된 EV/Sales 비교배수를 저장했습니다." };
+  return {
+    ok: true,
+    message:
+      parsed.benchmark.method === "EV_EBITDA"
+        ? "승인된 EV/EBITDA 비교배수를 저장했습니다."
+        : "승인된 EV/Sales 비교배수를 저장했습니다.",
+  };
 }

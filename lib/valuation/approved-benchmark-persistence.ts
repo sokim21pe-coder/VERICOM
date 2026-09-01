@@ -170,7 +170,7 @@ export function buildApprovedBenchmarkInsert(
     return { ok: false, reason: "company_required" };
   }
   const { benchmark } = input;
-  if (benchmark.method !== "EV_SALES") {
+  if (benchmark.method !== "EV_SALES" && benchmark.method !== "EV_EBITDA") {
     return { ok: false, reason: "method_mismatch" };
   }
   const source = benchmark.source.trim();
@@ -199,7 +199,7 @@ export function buildApprovedBenchmarkInsert(
       company_id: input.companyId,
       conversation_id: input.conversationId ?? null,
       deal_id: input.dealId ?? null,
-      method: "EV_SALES",
+      method: benchmark.method,
       multiple: benchmark.multiple,
       multiple_low: benchmark.multipleLow,
       multiple_base: benchmark.multipleBase,

@@ -152,6 +152,19 @@ async function main() {
       Boolean(await page.$('input[name="confirmed"]')),
       "expert_confirmation_checkbox",
     );
+    const methods = await page.evaluate(() =>
+      [...document.querySelectorAll("#benchmark-method option")].map((el) => el.value),
+    );
+    mark(
+      methods.includes("EV_SALES") && methods.includes("EV_EBITDA"),
+      "expert_method_ev_ebitda",
+    );
+    mark(!methods.includes("DCF") && !methods.includes("WACC"), "expert_method_no_dcf");
+    const selectedMethod = await page.evaluate(() => {
+      const el = document.getElementById("benchmark-method");
+      return el && "value" in el ? String(el.value) : "";
+    });
+    mark(selectedMethod === "", "expert_method_not_preselected");
 
     await login("test.internal.sprint0@vericom.test");
     mark(page.url().includes("/internal"), "internal_workspace");
