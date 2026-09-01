@@ -545,6 +545,40 @@ test("duplicate company-scope insert is reported as unique_conflict", async () =
   }
 });
 
+test("EV/EBITDA check constraint rejection is method_check_rejected", async () => {
+  const expert = viewer("staff", PlatformRole.EXPERT_USER);
+  const fakeClient = {
+    from() {
+      return {
+        insert() {
+          return {
+            select() {
+              return {
+                single: async () => ({
+                  data: null,
+                  error: { code: "23514", message: "check constraint" },
+                }),
+              };
+            },
+          };
+        },
+      };
+    },
+  };
+  const persisted = await persistApprovedEvSalesBenchmark(
+    fakeClient as never,
+    expert,
+    {
+      companyId: "co-a",
+      benchmark: approvedBenchmark({ method: "EV_EBITDA", multiple: 8, multipleBase: 8 }),
+    },
+  );
+  assert.equal(persisted.ok, false);
+  if (!persisted.ok) {
+    assert.equal(persisted.reason, "method_check_rejected");
+  }
+});
+
 test("conversation-scoped injection does not leak to another conversation", () => {
   assert.equal(
     injectApprovedEvSalesBenchmark({

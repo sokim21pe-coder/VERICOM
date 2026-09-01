@@ -45,6 +45,8 @@ export const staffBenchmarkWriteCopy = {
     "이 화면에서는 내부 검토 또는 시장 자료만 허용합니다.",
   unique_conflict: "이미 같은 회사의 같은 평가방식 승인 배수가 있습니다.",
   method_not_allowed: "평가방식은 EV/Sales 또는 EV/EBITDA만 저장합니다.",
+  method_check_rejected:
+    "원격 데이터베이스가 아직 EV/EBITDA 평가방식을 허용하지 않습니다. 0017 마이그레이션만 적용해야 합니다.",
 } as const;
 
 export type StaffBenchmarkWriteReason = keyof typeof staffBenchmarkWriteCopy;

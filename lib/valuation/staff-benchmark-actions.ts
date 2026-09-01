@@ -94,6 +94,9 @@ export async function submitApprovedEvSalesBenchmark(
     if (persisted.reason === "unique_conflict") {
       return { ok: false, message: staffBenchmarkWriteCopy.unique_conflict };
     }
+    if (persisted.reason === "method_check_rejected") {
+      return { ok: false, message: staffBenchmarkWriteCopy.method_check_rejected };
+    }
     if (persisted.reason === "insert_failed") {
       return {
         ok: false,

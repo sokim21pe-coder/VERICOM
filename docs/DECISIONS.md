@@ -102,4 +102,8 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 
 2026-09-01 S01 TOM(AI) 안내 패널: 랜딩 TOM 카드 제목·자세히 보기는 `/about/tom`으로 연결한다. 미로그인은 로그인·회원가입이며 `next`는 `/onboarding/purpose`다. Guest 익명 상담은 열지 않는다. Header에 「TOM과 상담 시작」은 넣지 않으며, 매각/인수 시작 CTA는 Hero `/start?intent=`를 유지한다. Teaser·NDA·IM·LOI·DD는 준비 중으로만 안내한다.
 
+2026-09-01 공개 푸터 회사소개: 사용자가 제출한 사업자등록증을 Source of Truth로 회사명·대표·사업자등록번호·소재지만 넣는다. 증명서에 없는 연락처는 Placeholder로 둔다. 제품 표시명 베리컴/VERICOM과 법인명 주식회사 에프오비인베스트는 구분한다.
+
+2026-09-01 Sprint 2 LEVEL 1 closeout: Expert WRITE UI에서 EV/EBITDA 저장 후 Seller `/seller/valuation` LEVEL 1이 비교배수 대기가 아니어야 한다. EBITDA가 없으면 금액을 만들지 않고 재무 입력 필요만 표시한다. 원격 CHECK가 EV_SALES만 허용하면 `0017`만 적용해야 하며 leftover `0008`/`0009`는 적용하지 않는다. Matching은 시작하지 않는다.
+
 
