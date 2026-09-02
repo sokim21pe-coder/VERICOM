@@ -34,6 +34,22 @@ export default async function SignupPage({
     }
   }
 
+  if (!isSupabaseConfigured()) {
+    return (
+      <>
+        <h1 className="text-2xl font-semibold text-foreground">회원가입</h1>
+        <div className="mt-6">
+          <EnvNotice />
+        </div>
+        <p className="mt-6 text-sm text-muted">
+          <Link href="/" className="text-navy underline">
+            홈으로
+          </Link>
+        </p>
+      </>
+    );
+  }
+
   return (
     <>
       <h1 className="text-2xl font-semibold text-foreground">회원가입</h1>
@@ -42,11 +58,6 @@ export default async function SignupPage({
           ? "이름, 이메일, 비밀번호만 입력하면 TOM(AI) 상담을 시작합니다."
           : "이름, 이메일, 비밀번호만 입력하면 됩니다."}
       </p>
-      {!isSupabaseConfigured() ? (
-        <div className="mt-6">
-          <EnvNotice />
-        </div>
-      ) : null}
       <SignupForm next={next} intent={intent} />
       <p className="mt-6 text-sm text-muted">
         이미 계정이 있으면{" "}
