@@ -13,7 +13,7 @@ export const authErrorMessage: Record<ErrorCode, string> = {
   [ErrorCode.EXPERT_SCOPE_VIOLATION]: "배정된 업무 범위 밖입니다.",
   [ErrorCode.CONFLICT_CHECK_REQUIRED]: "이해상충 확인이 필요합니다.",
   [ErrorCode.ENV_NOT_CONFIGURED]:
-    "Supabase 연결 정보가 없습니다. .env.local에 NEXT_PUBLIC_SUPABASE_URL과 NEXT_PUBLIC_SUPABASE_ANON_KEY를 넣어 주세요.",
+    "Supabase 연결 정보가 없습니다. NEXT_PUBLIC_SUPABASE_URL과 NEXT_PUBLIC_SUPABASE_ANON_KEY 환경변수를 설정해 주세요. (로컬은 .env.local, 배포 환경은 호스팅 환경변수에 추가 후 재배포)",
   [ErrorCode.SUPABASE_UNAVAILABLE]:
     "Supabase에 연결하지 못했습니다. 네트워크와 프로젝트 설정을 확인해 주세요.",
   [ErrorCode.DUPLICATE_EMAIL]: "이미 가입된 이메일입니다.",
