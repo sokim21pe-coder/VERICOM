@@ -61,15 +61,17 @@ export function ServiceExplainView({
         showStartCta={page.showStartCta}
       />
 
-      <p className="mt-8 text-sm text-muted">
-        <Link href={page.sectionHref ?? "/#service"} className="text-navy underline">
-          {landingSectionBackLabel(page)}
-        </Link>
-        {" · "}
-        <Link href="/" className="text-navy underline">
-          홈으로
-        </Link>
-      </p>
+      {page.hideBackLinks ? null : (
+        <p className="mt-8 text-sm text-muted">
+          <Link href={page.sectionHref ?? "/#service"} className="text-navy underline">
+            {landingSectionBackLabel(page)}
+          </Link>
+          {" · "}
+          <Link href="/" className="text-navy underline">
+            홈으로
+          </Link>
+        </p>
+      )}
     </main>
   );
 }

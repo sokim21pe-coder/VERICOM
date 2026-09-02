@@ -44,6 +44,7 @@ export type LandingServicePage = {
   showStartCta: boolean;
   sectionHref?: string;
   sectionLabel?: string;
+  hideBackLinks?: boolean;
 };
 
 export const LANDING_VALUE_CARDS: LandingValueCard[] = [
@@ -268,17 +269,22 @@ const pages: Record<LandingServiceSlug, LandingServicePage> = {
     title: "TOM(AI)",
     lead: "거래의 다음 단계를 안내합니다.",
     paragraphs: [
-      "TOM(AI)는 챗봇이 아니라 M&A Deal Copilot / Operating Agent입니다. 인간 경력이나 실제 Deal 경험을 허위로 말하지 않습니다.",
+      "TOM(AI)는 챗봇이 아니라 M&A Deal Copilot / Operating Agent입니다. 단순히 질문에 답하는 것을 넘어, 실제 Deal과 현재 Context를 이해하고 분석·판단·추천·초안작성·다음 행동 제안까지 지원하는 것을 목표로 합니다. 인간 경력이나 실제 Deal 경험이 있다고 허위로 말하지 않습니다.",
+      "TOM(AI)은 세 개의 층으로 동작합니다. ① Knowledge — 전략, 기업가치평가, Deal Structure, Teaser·NDA·IM·LOI·DD·SPA·Closing·PMI 등 Sell-side와 Buy-side 실무 지식. ② Deal Context — User·Company·Platform Role·Active Deal·Deal Role·Deal Stage·Permission·Structured Memory를 함께 보고 맥락에 맞게 답하는 층. ③ Action — 분석·리스크 식별·추천·문서 초안·다음 행동으로 이어지는 실행 층.",
+      "같은 질문이라도 Seller와 Buyer에게 답이 다릅니다. 예를 들어 「LOI 독점기간 3개월 괜찮나요?」에 대해 Seller에게는 가격 확정도·협상력·No-shop 리스크를, Buyer에게는 DD 확보·경쟁 차단·Financing 확보 관점을 중심으로 설명합니다.",
+      "중요한 실행은 항상 「이해 → 분석 → 추천 → 초안 → 승인 요청 → 실행 → 기록」 순서를 지킵니다. Seller 신원 공개, IM 공개, NDA·Deal 단계 변경, LOI·SPA 확정 같은 민감한 실행은 초안을 만든 뒤 사용자의 명시적 승인 없이는 진행하지 않습니다.",
+      "가치평가에서 LLM은 설명·비교·민감도·리스크·추천만 담당하고, EBITDA·WACC·배수·기업가치(EV)·지분가치 같은 최종 숫자는 만들지 않습니다. 최종 숫자는 결정형 계산 엔진과 검증된 비교배수에서 나옵니다.",
       "상담은 로그인 계정에 저장됩니다. Guest 익명 상담은 하지 않습니다. 진입은 랜딩 → 회원가입 또는 로그인 → 이용목적 선택 → 회사 연결 또는 신규등록 → 역할 워크스페이스 → TOM(AI) 상담입니다.",
-      "이후 티저, NDA(비밀유지계약), IM(투자설명서), LOI(인수의향서), DD(실사) 자료와 연결할 수 있도록 준비합니다. 중개자가 모든 대화를 대신해야만 진행되는 구조가 아니며, TOM(AI)은 메시지 전달 중개자가 아닙니다.",
+      "이후 티저, NDA(비밀유지계약), IM(투자설명서), LOI(인수의향서), DD(실사) 자료와 연결할 수 있도록 준비합니다. TOM(AI)은 메시지 전달 중개자가 아니며, 중개자가 모든 대화를 대신해야만 진행되는 구조가 아닙니다. 상황이 복잡하면 회계·법률·세무·산업 전문가의 VERICOM 중개자문 요청으로 연결할 수 있고, 이는 실패가 아니라 Self-Service → AI 보조 → 자문 보조 → 전문가 보조로 이어지는 정상 경로입니다.",
     ],
     available: [
       "로그인 후 매각 상담과 인수 상담을 계정에 저장할 수 있습니다.",
       "Seller는 가치평가 LEVEL 0/1 상태를 확인하고, Buyer는 인수조건을 한 질문씩 정리할 수 있습니다.",
+      "현재 Context(역할·회사·Active Deal)에 따라 Seller와 Buyer에게 다르게 답합니다.",
     ],
     upcoming: [
       "티저·NDA·IM·LOI·DD 문서 연결과 실제 LLM 모델 연동은 준비 중입니다.",
-      "Matching Engine과 Opportunity 메시징은 후속 단계입니다.",
+      "Matching Engine과 Opportunity 메시징, VERICOM 중개자문 요청은 후속 단계입니다.",
     ],
     loginNext: "/onboarding/purpose",
     intent: null,
@@ -286,6 +292,7 @@ const pages: Record<LandingServiceSlug, LandingServicePage> = {
     showStartCta: false,
     sectionHref: "/#tom",
     sectionLabel: "TOM(AI)",
+    hideBackLinks: true,
   },
 };
 
