@@ -3,7 +3,6 @@ import { TOM_PRODUCT_NAME } from "@/lib/brand/tom-display";
 import {
   LANDING_TOM_HREF,
   getLandingServicePage,
-  serviceAuthHrefs,
 } from "@/lib/landing/service-pages";
 
 const titleLinkClass =
@@ -13,9 +12,6 @@ const textLinkClass = "text-navy underline underline-offset-4";
 
 export function TomIntro({ signedIn = false }: { signedIn?: boolean }) {
   const page = getLandingServicePage("tom");
-  const auth = page
-    ? serviceAuthHrefs(page)
-    : { login: "/login", signup: "/signup" };
   const continueHref = page?.loginNext ?? "/onboarding/purpose";
 
   return (
@@ -49,12 +45,6 @@ export function TomIntro({ signedIn = false }: { signedIn?: boolean }) {
         <p className="mt-5 flex flex-wrap gap-x-4 gap-y-2 text-sm">
           <Link href={LANDING_TOM_HREF} className={textLinkClass}>
             자세히 보기
-          </Link>
-          <Link href={auth.login} className={textLinkClass}>
-            로그인
-          </Link>
-          <Link href={auth.signup} className={textLinkClass}>
-            회원가입
           </Link>
         </p>
       )}
