@@ -34,6 +34,22 @@ export default async function LoginPage({
     }
   }
 
+  if (!isSupabaseConfigured()) {
+    return (
+      <>
+        <h1 className="text-2xl font-semibold text-foreground">로그인</h1>
+        <div className="mt-6">
+          <EnvNotice />
+        </div>
+        <p className="mt-6 text-sm text-muted">
+          <Link href="/" className="text-navy underline">
+            홈으로
+          </Link>
+        </p>
+      </>
+    );
+  }
+
   return (
     <>
       <h1 className="text-2xl font-semibold text-foreground">로그인</h1>
@@ -42,11 +58,6 @@ export default async function LoginPage({
           ? "로그인하면 TOM(AI) 상담을 이어서 시작합니다."
           : "이메일과 비밀번호로 로그인합니다."}
       </p>
-      {!isSupabaseConfigured() ? (
-        <div className="mt-6">
-          <EnvNotice />
-        </div>
-      ) : null}
       <LoginForm next={next} intent={intent} />
       <p className="mt-6 text-sm text-muted">
         <Link href={`/signup${query}`} className="text-navy underline">
