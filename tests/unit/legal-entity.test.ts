@@ -4,8 +4,8 @@ import { LEGAL_ENTITY } from "@/lib/brand/legal-entity";
 
 test("public company intro keeps only confirmed registration fields", () => {
   assert.equal(LEGAL_ENTITY.legalName, "주식회사 에프오비인베스트");
-  assert.equal(LEGAL_ENTITY.representative, "김순오");
+  assert.equal(LEGAL_ENTITY.representative, "김순오, 김영준");
   assert.equal(LEGAL_ENTITY.businessRegistrationNumber, "310-86-02821");
   assert.ok(LEGAL_ENTITY.address.includes("목동중앙로 143"));
-  assert.ok(LEGAL_ENTITY.contact.startsWith("TODO"));
+  assert.equal(LEGAL_ENTITY.contact, "02-4007-1888");
 });
