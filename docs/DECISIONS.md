@@ -106,4 +106,6 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 
 2026-09-01 Sprint 2 LEVEL 1 closeout: Expert WRITE UI에서 EV/EBITDA 저장 후 Seller `/seller/valuation` LEVEL 1이 비교배수 대기가 아니어야 한다. EBITDA가 없으면 금액을 만들지 않고 재무 입력 필요만 표시한다. 원격 CHECK가 EV_SALES만 허용하면 `0017`만 적용해야 하며 leftover `0008`/`0009`는 적용하지 않는다. Matching은 시작하지 않는다.
 
+2026-09-03 Sprint 2 LIVE Closeout — Migration Gate PASS: 사용자가 Supabase SQL Editor(project `nzsgxxuyvbirnlwtqmmc`)에서 `0017_approved_ev_ebitda_method.sql` 원문을 실행했고 결과는 "Success. No rows returned"이다. ALTER가 성공했으므로 (A) `approved_valuation_benchmarks` 테이블 존재(=`0016` 원격 적용 확인), (B) `method` CHECK가 `EV_SALES`·`EV_EBITDA` 둘 다 허용(=`0017` 원격 적용 확인)이 동시에 증명됐다. 따라서 Migration Gate(종료기준 ①·②)는 PASS. `0008`/`0009`는 미적용 유지. `0015`(management_meetings) drift는 코드/라우트 의존 0건인 orphan으로 남아 있으며 원격 존재 여부는 이번에 미확인(별도 운영 이슈, 이번 작업에서 생성/적용/삭제/rollback 안 함). 자동 검증(tsc PASS, unit 202/202 PASS, build PASS)과 Production 공개 응답(`/`·`/login` 200, 보호 라우트 307)은 이 게이트 이전에 확인했다. 남은 종료기준(③~⑩: 인증 Seller E2E, LEVEL 0/1 라이브, Staff benchmark, persistence, security)은 미검증이라 Sprint 2는 아직 CLOSED가 아니다. Sprint 3(Buyer Matching)은 시작하지 않는다.
+
 
