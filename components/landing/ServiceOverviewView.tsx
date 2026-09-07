@@ -38,73 +38,6 @@ const AREAS: Area[] = [
   },
 ];
 
-/* ── M&A 실무 Workflow ────────────────────────── */
-type Step = { label: string; optional?: boolean };
-const SELLER_STEPS: Step[] = [
-  { label: "Discovery" },
-  { label: "Financial" },
-  { label: "Valuation" },
-  { label: "Mandate", optional: true },
-  { label: "Teaser" },
-  { label: "NDA" },
-  { label: "IM/CIM" },
-  { label: "경영진 미팅" },
-  { label: "IOI/LOI" },
-  { label: "DD" },
-  { label: "SPA" },
-  { label: "Closing" },
-  { label: "PMI" },
-];
-const BUYER_STEPS: Step[] = [
-  { label: "Criteria" },
-  { label: "Target Review" },
-  { label: "Mandate", optional: true },
-  { label: "NDA" },
-  { label: "IM/CIM" },
-  { label: "경영진 미팅" },
-  { label: "IOI/LOI" },
-  { label: "DD" },
-  { label: "SPA" },
-  { label: "Closing" },
-  { label: "PMI" },
-];
-
-function StepFlow({ title, steps }: { title: string; steps: Step[] }) {
-  return (
-    <div>
-      <h3 className="text-sm font-semibold uppercase tracking-wider text-navy">
-        {title}
-      </h3>
-      <div className="mt-4 flex flex-col items-start gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-2 sm:gap-y-3">
-        {steps.map((step, index) => (
-          <div key={step.label} className="flex items-center gap-2">
-            <span
-              className={
-                step.optional
-                  ? "inline-flex items-center rounded-md border border-dashed border-navy/50 bg-navy/[0.04] px-3 py-1.5 text-sm font-medium text-navy"
-                  : "inline-flex items-center rounded-md border border-line bg-white px-3 py-1.5 text-sm font-medium text-foreground"
-              }
-            >
-              {step.label}
-              {step.optional ? (
-                <span className="ml-1.5 text-xs font-normal text-navy/70">
-                  (필요 시)
-                </span>
-              ) : null}
-            </span>
-            {index < steps.length - 1 ? (
-              <span aria-hidden="true" className="shrink-0 text-navy/60">
-                <span className="sm:hidden">↓</span>
-                <span className="hidden sm:inline">→</span>
-              </span>
-            ) : null}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /* ── AI가 지원하는 업무 ────────────────────────── */
 const AI_DOES: string[] = [
   "사용자 의도 파악과 정보 구조화",
@@ -212,31 +145,8 @@ export function ServiceOverviewView({ signedIn }: { signedIn: boolean }) {
         </div>
       </section>
 
-      {/* 3. M&A 실무 Workflow */}
+      {/* 3. AI가 지원하는 업무 */}
       <section className="border-b border-line bg-white">
-        <div className={`${container} ${sectionPad}`}>
-          <AccentBar />
-          <h2 className={h2Class}>M&amp;A 실무 Workflow</h2>
-          <p className={leadClass}>
-            매각(Seller)과 인수(Buyer)의 표준 흐름입니다. 일부 단계는 단계적으로
-            구축됩니다.
-          </p>
-          <div className="mt-10 space-y-10">
-            <StepFlow title="Seller-side" steps={SELLER_STEPS} />
-            <StepFlow title="Buyer-side" steps={BUYER_STEPS} />
-          </div>
-          <p className="mt-8 max-w-3xl break-keep rounded-lg border border-line bg-surface-subtle px-5 py-4 text-sm leading-7 text-muted">
-            <span className="font-semibold text-foreground">Mandate 계약</span>은
-            M&amp;A Advisor를 공식 선임하는 경우, 업무범위·보수·기간·역할을 정한 뒤
-            자문이 개시되는 단계입니다. 플랫폼 이용의 필수 조건이 아니며,
-            플랫폼 이용 계약과는 별개입니다. Mandate 없이 직접 진행하는
-            Self-Service도 가능합니다.
-          </p>
-        </div>
-      </section>
-
-      {/* 4. AI가 지원하는 업무 */}
-      <section className="border-b border-line bg-surface-subtle">
         <div className={`${container} ${sectionPad}`}>
           <AccentBar />
           <h2 className={h2Class}>AI가 지원하는 업무</h2>
@@ -264,8 +174,8 @@ export function ServiceOverviewView({ signedIn }: { signedIn: boolean }) {
         </div>
       </section>
 
-      {/* 5. Seller / Buyer / Expert */}
-      <section className="border-b border-line bg-white">
+      {/* 4. Seller / Buyer / Expert */}
+      <section className="border-b border-line bg-surface-subtle">
         <div className={`${container} ${sectionPad}`}>
           <AccentBar />
           <h2 className={h2Class}>Seller / Buyer / Expert</h2>
@@ -292,8 +202,8 @@ export function ServiceOverviewView({ signedIn }: { signedIn: boolean }) {
         </div>
       </section>
 
-      {/* 6. Direct + Advisory */}
-      <section className="border-b border-line bg-surface-subtle">
+      {/* 5. Direct + Advisory */}
+      <section className="border-b border-line bg-white">
         <div className={`${container} ${sectionPad}`}>
           <AccentBar />
           <h2 className={h2Class}>직접 진행 + 전문가 지원</h2>
@@ -317,8 +227,8 @@ export function ServiceOverviewView({ signedIn }: { signedIn: boolean }) {
         </div>
       </section>
 
-      {/* 7. Security / CTA */}
-      <section className="bg-white">
+      {/* 6. Security / CTA */}
+      <section className="bg-surface-subtle">
         <div className={`${container} ${sectionPad}`}>
           <AccentBar />
           <h2 className={h2Class}>보안과 기밀성</h2>
