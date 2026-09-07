@@ -60,6 +60,17 @@ export function isValidSellerStageKey(key: string): key is WorkflowStageKey {
   return Boolean(stage && stage.side === "SELLER");
 }
 
+/**
+ * 현재 stage와 선택한 stage가 같은 재확정인지. 같으면 불필요한 Update/Event를 만들지 않는다(no-op).
+ * current가 NULL(미확정)이면 재확정이 아니다(첫 확정으로 처리).
+ */
+export function isRedundantStageChange(
+  current: string | null,
+  next: string,
+): boolean {
+  return current != null && current === next.trim();
+}
+
 /** 현재 Context가 해당 Deal의 Seller stage를 전환할 수 있는지. Buyer 역할/타 Deal은 불가. */
 export function canContextTransitionSellerStage(
   context: CurrentContext | null,

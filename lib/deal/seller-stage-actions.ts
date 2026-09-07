@@ -8,14 +8,17 @@
  * Stage 전환은 명시적 호출로만 발생하며 자동 진행/AI 확정을 하지 않는다.
  */
 
+import { revalidatePath } from "next/cache";
 import { recordAudit } from "@/lib/audit";
 import { authErrorMessage } from "@/lib/auth/errors";
 import { getCurrentContext } from "@/lib/auth/session";
 import {
+  isRedundantStageChange,
   parseSellerStageTransition,
   type SellerStageTransitionInput,
 } from "@/lib/deal/seller-stage-transition";
 import { persistSellerStageTransition } from "@/lib/deal/seller-stage-persistence";
+import { readSellerDealStage } from "@/lib/deal/seller-stage-read";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ErrorCode } from "@/types/enums";
@@ -94,4 +97,56 @@ export async function transitionSellerDealStage(
     eventId: persisted.eventId,
     message: "현재 단계를 저장했습니다.",
   };
+}
+
+export type SellerStageFormState = { ok: boolean; message: string | null };
+
+/**
+ * Seller Workspace 폼용 명시적 "거래 단계 확정" 액션.
+ * dealId는 client가 아니라 서버 CurrentContext(active Deal)에서만 취한다.
+ * 동일 stage 재확정은 no-op(중복 Event 생성 안 함). 모든 write는 transitionSellerDealStage 경유.
+ */
+export async function confirmSellerDealStage(
+  _prev: SellerStageFormState,
+  formData: FormData,
+): Promise<SellerStageFormState> {
+  if (!isSupabaseConfigured()) {
+    return { ok: false, message: authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED] };
+  }
+
+  const context = await getCurrentContext();
+  if (!context) {
+    return { ok: false, message: authErrorMessage[ErrorCode.AUTH_REQUIRED] };
+  }
+  if (!context.deal) {
+    return { ok: false, message: authErrorMessage[ErrorCode.PERMISSION_DENIED] };
+  }
+
+  const toStageKey =
+    typeof formData.get("toStageKey") === "string"
+      ? String(formData.get("toStageKey")).trim()
+      : "";
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) {
+    return { ok: false, message: authErrorMessage[ErrorCode.ENV_NOT_CONFIGURED] };
+  }
+
+  const current = await readSellerDealStage(supabase, context.deal.id);
+  if (isRedundantStageChange(current.stageKey, toStageKey)) {
+    return { ok: true, message: "이미 해당 단계입니다. 변경하지 않았습니다." };
+  }
+
+  const result = await transitionSellerDealStage({
+    dealId: context.deal.id,
+    toStageKey,
+    source: "USER_ACTION",
+  });
+
+  if (!result.ok) {
+    return { ok: false, message: result.message };
+  }
+
+  revalidatePath("/seller/deals");
+  return { ok: true, message: result.message };
 }

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   canContextTransitionSellerStage,
+  isRedundantStageChange,
   isValidSellerStageKey,
   parseSellerStageTransition,
   SELLER_STAGE_WRITE_ROLES,
@@ -174,6 +175,14 @@ test("empty note becomes null; explicit source preserved", () => {
     assert.equal(r.note, null);
     assert.equal(r.source, "STAFF_ACTION");
   }
+});
+
+test("same-stage reconfirm is a no-op; null current is not", () => {
+  assert.equal(isRedundantStageChange("SELLER_NDA", "SELLER_NDA"), true);
+  assert.equal(isRedundantStageChange("SELLER_NDA", " SELLER_NDA "), true);
+  assert.equal(isRedundantStageChange("SELLER_NDA", "SELLER_VALUATION"), false);
+  // 미확정(NULL) → 첫 확정은 no-op이 아니다.
+  assert.equal(isRedundantStageChange(null, "SELLER_DISCOVERY"), false);
 });
 
 test("transition source whitelist excludes AI-inferred values", () => {
