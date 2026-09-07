@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ServiceDetailView } from "@/components/landing/ServiceDetailView";
 import { ServiceExplainView } from "@/components/landing/ServiceExplainView";
+import { TomDetailView } from "@/components/tom/TomDetailView";
 import {
   LANDING_SERVICE_SLUGS,
   getLandingServicePage,
@@ -39,6 +40,9 @@ export default async function AboutServicePage({
 
   const context = await getCurrentContext();
   const signedIn = Boolean(context);
+  if (page.slug === "tom") {
+    return <TomDetailView page={page} signedIn={signedIn} />;
+  }
   if (page.detail) {
     return <ServiceDetailView page={page} signedIn={signedIn} />;
   }
