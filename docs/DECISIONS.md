@@ -118,6 +118,12 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 
   **[수정]** `0018_benchmark_write_assigned_scope.sql` 추가: `is_staff_assigned_to_seller_company(uuid)`(staff role AND 해당 매각 회사의 deal 참여자)로 insert/update/delete 정책을 좁혀 배정되지 않은 self-expert의 write를 차단(SELECT 정책은 불변). **원격 적용 대기** — 사용자가 Supabase SQL Editor에서 `0018`만 실행해야 완료(전체 db push 금지, 0008/0009/0015 손대지 않음). 적용 후 배정 없는 self-expert INSERT가 42501로 거부되는지 라이브 재검증 예정.
 
-  **Sprint 2 상태: NOT CLOSED** — 기능 경로(auth·onboarding·TOM·normalization·LEVEL 0/1 no-benchmark & CALCULABLE·staff write·persistence·seller-insert-denied)는 라이브 PASS이나, **보안 종료기준(Expert assigned scope)** 이 `0018` 원격 적용 전까지 미충족. `0018` 적용+재검증 후 CLOSED 판정. Sprint 3(Buyer Matching)은 시작하지 않는다.
+  **Sprint 2 상태(당시): NOT CLOSED** — 기능 경로(auth·onboarding·TOM·normalization·LEVEL 0/1 no-benchmark & CALCULABLE·staff write·persistence·seller-insert-denied)는 라이브 PASS이나, **보안 종료기준(Expert assigned scope)** 이 `0018` 원격 적용 전까지 미충족. `0018` 적용+재검증 후 CLOSED 판정. Sprint 3(Buyer Matching)은 시작하지 않는다.
+
+2026-09-07 Sprint 2 LIVE Closeout — **CLOSED**: 사용자가 Supabase SQL Editor(project `nzsgxxuyvbirnlwtqmmc`)에서 `0018_benchmark_write_assigned_scope.sql`을 실행해 원격 적용 완료. 라이브 재검증 결과: (1) 배정 없는 self-등록 EXPERT(EXPERT_USER, deal 참여 0건)는 `has_staff_platform_role()`=true지만 `is_staff_assigned_to_seller_company(company1)`=false이고, 해당 회사 benchmark **INSERT가 42501로 거부**됨(=0018 적용 전 성공하던 우회가 차단됨). (2) 기존 배정/저장된 seller1 승인 배수(EV_SALES 1.2·EV_EBITDA 6)는 그대로 조회되어 수정이 기존 데이터·SELECT를 깨지 않음. 이로써 보안 종료기준(Expert assigned scope) 충족. 최종 테스트 게이트: `tsc --noEmit` PASS, unit 202/202 PASS, `npm run build` PASS.
+
+  **Sprint 2 종료기준 최종 체크(모두 PASS)**: ① 0017 적용 · ② Production login · ③ Seller onboarding · ④ Seller Workspace · ⑤ TOM · ⑥ Financial input · ⑦ Normalization · ⑧ LEVEL 0(no-benchmark 정직상태 + CALCULABLE EV/Sales 100~150억·지분가치 90~140억) · ⑨ LEVEL 1(no-benchmark 정직상태 + CALCULABLE EV/EBITDA 100~140억·지분가치 90~130억, DCF 미사용) · ⑩ APPROVED Staff Benchmark(EV_SALES·EV_EBITDA write PASS, 일반 Seller write 42501 거부) · ⑪ Persistence(refresh·relogin) · ⑫ Permission/Security(cross-company 격리 0건, 0018로 assigned-scope 강제) · ⑬ tests(tsc·unit 202/202) · ⑭ build · ⑮ Production deployment. **Sprint 2 = CLOSED.**
+
+  참고 정리: Production에 생성한 TEST 데이터(`e2e.seller.*`·`e2e.expert*.*`·`e2e.seller2.*@vericom.test` 계정, TEST 회사, TEST 승인 배수)는 모두 TEST 식별자가 명확하며 실제 고객 데이터가 아니다. 다음 단계는 Sprint 3(Buyer Matching) 첫 Feature Slice이며, 이번 작업에서는 구현을 시작하지 않았다.
 
 
