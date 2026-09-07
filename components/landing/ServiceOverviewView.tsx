@@ -1,4 +1,6 @@
+import { MaWorkflow } from "@/components/landing/MaWorkflow";
 import { StartConsultButtons } from "@/components/landing/StartConsultButtons";
+import { MA_WORKFLOW_LEAD, MA_WORKFLOW_TITLE } from "@/lib/landing/ma-workflow";
 
 const container = "mx-auto w-full max-w-[1200px] px-6 sm:px-8 lg:px-10";
 const sectionPad = "py-16 sm:py-20 lg:py-24";
@@ -70,16 +72,16 @@ const ROLES: Role[] = [
     items: [
       "Deal별 초대와 권한 범위 내 참여",
       "회계·세무·법무·기술·협상 지원",
-      "필요 시 Mandate 계약 후 공식 자문",
+      "필요 시 자문계약 후 공식 자문",
     ],
   },
 ];
 
 /* ── Direct + Advisory ─────────────────────────── */
 const MODES: { title: string; body: string }[] = [
-  { title: "Self-Service", body: "Mandate 없이 플랫폼에서 직접 진행" },
+  { title: "Self-Service", body: "자문계약 없이 플랫폼에서 직접 진행" },
   { title: "AI-Assisted", body: "TOM(AI)이 준비·분석·초안을 지원" },
-  { title: "Advisor-Assisted", body: "Mandate 계약 후 M&A Advisor가 공식 지원" },
+  { title: "Advisor-Assisted", body: "자문계약 후 M&A Advisor가 공식 지원" },
   { title: "Expert-Assisted", body: "회계·세무·법무·기술 전문가가 범위 내 참여" },
 ];
 
@@ -145,8 +147,20 @@ export function ServiceOverviewView({ signedIn }: { signedIn: boolean }) {
         </div>
       </section>
 
-      {/* 3. AI가 지원하는 업무 */}
+      {/* 3. M&A 거래진행흐름 */}
       <section className="border-b border-line bg-white">
+        <div className={`${container} ${sectionPad}`}>
+          <AccentBar />
+          <h2 className={h2Class}>{MA_WORKFLOW_TITLE}</h2>
+          <p className={leadClass}>{MA_WORKFLOW_LEAD}</p>
+          <div className="mt-10">
+            <MaWorkflow variant="detailed" />
+          </div>
+        </div>
+      </section>
+
+      {/* 4. AI가 지원하는 업무 */}
+      <section className="border-b border-line bg-surface-subtle">
         <div className={`${container} ${sectionPad}`}>
           <AccentBar />
           <h2 className={h2Class}>AI가 지원하는 업무</h2>
@@ -174,8 +188,8 @@ export function ServiceOverviewView({ signedIn }: { signedIn: boolean }) {
         </div>
       </section>
 
-      {/* 4. Seller / Buyer / Expert */}
-      <section className="border-b border-line bg-surface-subtle">
+      {/* 5. Seller / Buyer / Expert */}
+      <section className="border-b border-line bg-white">
         <div className={`${container} ${sectionPad}`}>
           <AccentBar />
           <h2 className={h2Class}>Seller / Buyer / Expert</h2>
@@ -202,15 +216,15 @@ export function ServiceOverviewView({ signedIn }: { signedIn: boolean }) {
         </div>
       </section>
 
-      {/* 5. Direct + Advisory */}
-      <section className="border-b border-line bg-white">
+      {/* 6. Direct + Advisory */}
+      <section className="border-b border-line bg-surface-subtle">
         <div className={`${container} ${sectionPad}`}>
           <AccentBar />
           <h2 className={h2Class}>직접 진행 + 전문가 지원</h2>
           <p className={leadClass}>
             사용자는 플랫폼에서 직접 진행하고, 필요할 때 Advisor 또는 Expert를
             Deal에 참여시킬 수 있습니다. Advisor가 공식적으로 M&amp;A 업무를
-            수행할 때는 Mandate 계약으로 역할과 보수 범위를 정합니다.
+            수행할 때는 자문계약으로 역할과 보수 범위를 정합니다.
           </p>
           <div className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
             {MODES.map((mode) => (
@@ -227,8 +241,8 @@ export function ServiceOverviewView({ signedIn }: { signedIn: boolean }) {
         </div>
       </section>
 
-      {/* 6. Security / CTA */}
-      <section className="bg-surface-subtle">
+      {/* 7. Security / CTA */}
+      <section className="bg-white">
         <div className={`${container} ${sectionPad}`}>
           <AccentBar />
           <h2 className={h2Class}>보안과 기밀성</h2>

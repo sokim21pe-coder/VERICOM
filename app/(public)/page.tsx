@@ -8,8 +8,8 @@ import {
   LANDING_SELL_HREF,
   LANDING_VALUE_CARDS,
 } from "@/lib/landing/service-pages";
-import { MACRO_MA_PROCESS } from "@/lib/deal/macro-process";
-import { journeyProcessHref } from "@/lib/landing/journey-pages";
+import { MaWorkflow } from "@/components/landing/MaWorkflow";
+import { MA_WORKFLOW_LEAD, MA_WORKFLOW_TITLE } from "@/lib/landing/ma-workflow";
 import { getCurrentContext } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
@@ -94,39 +94,14 @@ export default async function Home() {
         <div className="mx-auto w-full max-w-[1200px] px-6 py-20 sm:px-8 sm:py-24 lg:px-10 lg:py-28">
           <span aria-hidden="true" className="block h-1 w-10 rounded-full bg-navy" />
           <h2 className="mt-5 text-2xl font-semibold tracking-tight text-foreground sm:text-[2rem] sm:leading-[1.2]">
-            거래 진행 흐름
+            {MA_WORKFLOW_TITLE}
           </h2>
           <p className="mt-4 max-w-2xl text-[15px] leading-7 text-muted sm:text-base sm:leading-7">
-            베리컴 표준 M&amp;A 10단계입니다. NDA는 비밀유지계약, CIM/IM은
-            투자설명서, LOI는 인수의향서, DD는 실사, SPA는 주식매매계약,
-            PMI는 인수 후 통합입니다.
+            {MA_WORKFLOW_LEAD}
           </p>
-          <ol className="mt-10 grid gap-4 sm:mt-12 sm:grid-cols-2 lg:grid-cols-5">
-            {MACRO_MA_PROCESS.map((step) => (
-              <li key={step.id} className="h-full">
-                <Link
-                  href={journeyProcessHref(step.id)}
-                  className="group flex h-full flex-col rounded-xl border border-line bg-white px-5 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)] transition-all hover:-translate-y-0.5 hover:border-navy hover:shadow-[0_12px_28px_-12px_rgba(0,33,71,0.22)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
-                >
-                  <span className="font-mono text-[11px] tracking-wider text-navy">
-                    {String(step.order).padStart(2, "0")}
-                  </span>
-                  <p className="mt-2.5 text-sm font-medium leading-6 text-foreground">
-                    {step.label}
-                  </p>
-                  <p className="mt-auto pt-4 inline-flex items-center gap-1.5 text-sm text-navy">
-                    자세히 보기
-                    <span
-                      aria-hidden="true"
-                      className="transition-transform duration-200 group-hover:translate-x-1"
-                    >
-                      →
-                    </span>
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ol>
+          <div className="mt-10 sm:mt-12">
+            <MaWorkflow variant="compact" />
+          </div>
         </div>
       </section>
 
