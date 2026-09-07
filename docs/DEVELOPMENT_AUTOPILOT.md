@@ -17,8 +17,11 @@ Cursor는 사용자가 매 다음 작업을 지정하지 않아도, 이 문서�
 3. `docs/DECISIONS.md` — Architecture Decision 및 Sprint 결정
 4. `docs/TOM_ARCHITECTURE.md` — TOM / Direct M&A Architecture 상세
 5. `docs/DEVELOPMENT_AUTOPILOT.md` — 이 문서. 작업 운영 규칙
+6. `docs/MA_STANDARD_WORKFLOW.md` — 사용자 확정 Standard M&A Operating Flow. **M&A 업무 단계 순서의 최상위 기준** (Security/Permission은 `MASTER_SPEC.md` 우선)
 
 화면이면 Screen ID, Actor/Role/Permission, Approval Gate, Source of Truth, Audit 필요 여부를 확인한다. TOM 또는 M&A 기능이면 User / Company / Platform Role / Active Deal / Deal Role / Permissions / Deal Stage Context를 고려한다.
+
+**M&A 업무 플로우(화면·Stage·TOM next-action·문서·Checklist·Timeline 등)를 만들 때는 `docs/MA_STANDARD_WORKFLOW.md` 의 Seller 13단계 / Buyer 13단계 순서를 기본값으로 사용한다. 새 Feature Slice를 고를 때 먼저 「이 기능은 표준 Workflow의 어느 단계인가 / 앞 단계 prerequisite가 완료됐는가」를 판단한다. 순서를 임의 변경하지 않으며, Deal별 생략/병행/순서조정은 override + 사유로 처리한다. Security/Permission/Audit/RLS/Approval Gate는 어떤 경우에도 약화하지 않는다.**
 
 ---
 

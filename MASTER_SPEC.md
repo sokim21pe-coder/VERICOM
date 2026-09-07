@@ -8,7 +8,8 @@
 > **기본 언어:** 한국어 UI, 한국어 사용자 문구, 코드/Enum/API 식별자는 영문 사용  
 > **TOM Architecture 상세:** `docs/TOM_ARCHITECTURE.md` (충돌 시 이 파일 0.3절·0.4절·20절이 우선)  
 > **작업 운영 규칙:** `docs/DEVELOPMENT_AUTOPILOT.md`  
-> **Architecture Decision:** `docs/DECISIONS.md`
+> **Architecture Decision:** `docs/DECISIONS.md`  
+> **M&A 표준 거래진행흐름:** `docs/MA_STANDARD_WORKFLOW.md` (사용자 확정 Standard M&A Operating Flow. **M&A 업무 단계 순서**의 최상위 기준. Architecture / Security / Permission 은 본 명세가 계속 우선)
 
 ---
 
@@ -609,6 +610,8 @@ CANDIDATE
 ## 7.7 베리컴 표준 M&A Macro Process
 
 사용자를 위한 **상위 Deal Process**이다. 7.2 Deal Stage / 7.3 Opportunity Stage를 대체하거나 삭제하지 않는다. 내부 Workflow 제어는 기존 Stage를 유지하고, 화면 상단 Progress는 아래 순서를 표시한다.
+
+> **[2026-09-07 상위 지정]** 사용자 대상 **M&A 거래진행흐름(Seller 13단계 / Buyer 13단계)의 순서 기준**은 `docs/MA_STANDARD_WORKFLOW.md` 가 최상위이다. 아래 7.7 Macro Process(12단계)와 7.2/7.3 내부 Stage는 **삭제하지 않고 내부 sub-state로 유지**하되, 화면·메뉴·Deal Timeline·TOM next-action 등 사용자 대상 순서는 표준 문서를 따른다. 순서 충돌 시 표준 문서 → 본 명세 Architecture/Security → DECISIONS → 코드 순으로 우선한다. **Security / Permission / Audit / RLS / Approval Gate 는 절대 약화하지 않는다.**
 
 화면 표시명 **경영진 미팅(MM)**. 코드 `MANAGEMENT_MEETING`.
 

@@ -106,4 +106,19 @@ Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라�
 
 2026-09-01 Sprint 2 LEVEL 1 closeout: Expert WRITE UI에서 EV/EBITDA 저장 후 Seller `/seller/valuation` LEVEL 1이 비교배수 대기가 아니어야 한다. EBITDA가 없으면 금액을 만들지 않고 재무 입력 필요만 표시한다. 원격 CHECK가 EV_SALES만 허용하면 `0017`만 적용해야 하며 leftover `0008`/`0009`는 적용하지 않는다. Matching은 시작하지 않는다.
 
+2026-09-07 M&A Standard Workflow 최상위 지정: 사용자 확정 **M&A Standard Operating Flow(Seller 13단계 / Buyer 13단계)** 를 Seller/Buyer 개발의 **최상위 업무 프로세스 기준**으로 지정한다. 표준 문서는 `docs/MA_STANDARD_WORKFLOW.md` 이며, 화면·메뉴·단계표시·Deal Stage·TOM next-action·Workspace·문서 생성 순서·Approval Gate·Opportunity 진행상태·Notification·Checklist·VDR/Expert/Advisor 개입시점·Analytics·Deal Timeline 설계 시 이 순서를 기본값으로 사용한다.
+
+- Seller: `DISCOVERY(초기 상담 및 기업 파악) → TEASER(티저 작성·배포) → NDA(비밀유지계약 체결) → FINANCIAL(재무자료 정리) → MANDATE(자문계약) → VALUATION(기업가치 평가) → IM_CIM(기업소개자료 제공) → MANAGEMENT_MEETING(경영진 미팅) → IOI_LOI(인수의향서/인수제안서) → DUE_DILIGENCE(실사) → SPA(주식매매계약 협상·체결) → CLOSING(거래종결) → PMI(인수 후 통합)`.
+- Buyer: `ACQUISITION_CRITERIA(인수조건 설정) → TARGET_REVIEW(인수후보 검토) → ACQUISITION_STRATEGY(인수전략 수립) → NDA(비밀유지계약 체결) → TEASER_REVIEW(매각기업 소개 및 티저 제공) → MANDATE(자문계약) → IM_CIM_REVIEW(기업소개자료 검토) → MANAGEMENT_MEETING(경영진 미팅) → IOI_LOI → DUE_DILIGENCE(실사) → SPA(협상·체결) → CLOSING(거래종결) → PMI(인수 후 통합)`.
+
+충돌·우선순위: 업무 **단계 순서** 충돌 시 (1) 표준 Workflow → (2) `MASTER_SPEC` Architecture/Security → (3) DECISIONS → (4) 코드 → (5) 과거 문서. 단 Security/Permission/Audit/RLS/Approval Gate 는 절대 약화하지 않는다.
+
+예외: 표준은 기본값이며 Deal별로 생략/병행/순서조정 가능하다. 지우지 말고 `Standard Flow + Deal-specific Adjustment(override+사유)` 구조로 설계한다.
+
+Mandate: 플랫폼 이용계약이 아니라 M&A Advisor 공식 선임 자문계약. Self-Service는 Mandate 없이 진행. `MANDATE_REQUIRED` 단순 boolean으로 거래 전체를 강제하지 않고 Advisor-Assisted 여부와 연결한다.
+
+Seller/Buyer Stage는 하나의 enum으로 합치지 않는다. 공통 상위는 별도 Deal Phase abstraction(선택)로 매핑한다. 기존 `types/enums.ts` `DealStage`/`OpportunityStage` 와 `MASTER_SPEC` §7.7(12단계)은 삭제/개명하지 않고 내부 sub-state로 유지하며 표준에서 from-mapping 한다.
+
+이번 작업 범위: **문서/거버넌스만** 수행했다. Standard 문서 생성, `MASTER_SPEC`(루트·docs 사본) §7.7·헤더 참조 연결, `DEVELOPMENT_AUTOPILOT` 필수문서·개발규칙 연결, 본 DECISIONS 기록. **코드/Enum/DB/Production 변경 없음.** 실제 Stage/DB migration은 충돌 분석(표준 문서 12절) 후 추가형(additive)·하위호환으로 별도 승인·안전검토 후 진행한다(destructive migration·전체 db push·기존 Stage 삭제 금지).
+
 
