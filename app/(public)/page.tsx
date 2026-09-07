@@ -52,7 +52,9 @@ export default async function Home() {
         <div className="mx-auto w-full max-w-[1200px] px-6 py-20 sm:px-8 sm:py-24 lg:px-10 lg:py-28">
           <span aria-hidden="true" className="block h-1 w-10 rounded-full bg-navy" />
           <h2 className="mt-5 text-2xl font-semibold tracking-tight text-foreground sm:text-[2rem] sm:leading-[1.2]">
-            서비스 소개
+            <Link href="/about/service" className={titleLinkClass}>
+              서비스 소개
+            </Link>
           </h2>
           <p className="mt-4 max-w-2xl text-[15px] leading-7 text-muted sm:text-base sm:leading-7">
             베리컴은 Seller, Buyer, Expert가 각자의 워크스페이스에서 활동하고,
