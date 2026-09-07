@@ -46,6 +46,7 @@ import {
   type VisibleField,
 } from "@/lib/workspace/visibility";
 import { dealRoleLabel } from "@/lib/workspace/visibility";
+import { resolveCompanyName, resolveUserName } from "@/lib/workspace/user-display";
 
 export type WorkspaceContextView = {
   userName: string;
@@ -99,8 +100,11 @@ export type BuyerHomeModel = {
 
 function contextViewFrom(context: CurrentContext): WorkspaceContextView {
   return {
-    userName: context.user.displayName,
-    companyName: context.company?.name ?? "미연결",
+    userName: resolveUserName({
+      displayName: context.user.displayName,
+      email: context.user.email,
+    }),
+    companyName: resolveCompanyName(context.company?.name) ?? "미등록",
     companyIndustry: context.company?.industry ?? null,
     platformRole: platformRoleLabel(context.platformRole),
     dealTitle: context.deal?.title?.trim() || (context.deal ? "제목 없음" : "미선택"),

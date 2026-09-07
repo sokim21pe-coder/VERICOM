@@ -34,6 +34,22 @@ export function resolvePostAuthPath(context: CurrentContext | null): string {
 
 export type WorkspaceKind = "seller" | "buyer" | "expert" | "internal";
 
+/** 현재 활성 platformRole에 해당하는 Workspace 종류. 계정 공통 페이지 등에서 사용. */
+export function workspaceKindForRole(
+  role: PlatformRole | null,
+): WorkspaceKind | null {
+  if (role === PlatformRole.SELLER_USER) return "seller";
+  if (role === PlatformRole.BUYER_USER) return "buyer";
+  if (role === PlatformRole.EXPERT_USER) return "expert";
+  if (
+    role === PlatformRole.INTERNAL_DEAL_MANAGER ||
+    role === PlatformRole.ADMIN
+  ) {
+    return "internal";
+  }
+  return null;
+}
+
 export function userCanAccessWorkspace(
   workspace: WorkspaceKind,
   roles: PlatformRole[],
