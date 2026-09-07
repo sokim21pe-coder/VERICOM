@@ -1,7 +1,5 @@
-import Link from "next/link";
 import { ServiceAuthCtas } from "@/components/landing/ServiceAuthCtas";
 import {
-  landingSectionBackLabel,
   serviceAuthHrefs,
   type LandingServicePage,
 } from "@/lib/landing/service-pages";
@@ -60,18 +58,6 @@ export function ServiceExplainView({
         startIntent={page.startIntent}
         showStartCta={page.showStartCta}
       />
-
-      {page.hideBackLinks ? null : (
-        <p className="mt-8 text-sm text-muted">
-          <Link href={page.sectionHref ?? "/#service"} className="text-navy underline">
-            {landingSectionBackLabel(page)}
-          </Link>
-          {" · "}
-          <Link href="/" className="text-navy underline">
-            홈으로
-          </Link>
-        </p>
-      )}
     </main>
   );
 }
