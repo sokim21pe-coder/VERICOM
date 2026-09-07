@@ -3,8 +3,8 @@ import { LEGAL_ENTITY } from "@/lib/brand/legal-entity";
 
 export function PublicFooter() {
   return (
-    <footer className="border-t border-line bg-[#FFFFFF] px-5 py-12 text-sm text-muted sm:px-8">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
+    <footer className="border-t border-line bg-surface-subtle px-6 py-14 text-sm text-muted sm:px-8 lg:px-10 lg:py-16">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-10 sm:flex-row sm:items-start sm:justify-between">
         <div className="bg-[#FFFFFF]">
           <BrandLogo className="h-11 sm:h-12" />
         </div>

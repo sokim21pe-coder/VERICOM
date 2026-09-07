@@ -28,8 +28,8 @@ export function Header({
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-[#FFFFFF]">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3.5 sm:px-8 lg:py-4">
+    <header className="sticky top-0 z-40 border-b border-line bg-[#FFFFFF]/95 backdrop-blur supports-[backdrop-filter]:bg-[#FFFFFF]/80">
+      <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-4 px-6 py-3.5 sm:px-8 lg:px-10 lg:py-4">
         <Link
           href="/#top"
           className="shrink-0 bg-[#FFFFFF]"
@@ -39,7 +39,7 @@ export function Header({
         </Link>
         <nav
           aria-label="주요 메뉴"
-          className="hidden items-center gap-8 text-[13px] tracking-wide text-muted lg:flex"
+          className="hidden items-center gap-7 text-[13px] tracking-wide text-muted lg:flex xl:gap-9"
         >
           {nav.map((item) => (
             <Link
@@ -68,7 +68,7 @@ export function Header({
           {signedIn ? null : (
             <Link
               href="/signup"
-              className="inline-flex h-10 items-center rounded-md border border-line px-4 text-[13px] font-medium text-foreground hover:border-navy"
+              className="inline-flex h-10 items-center rounded-md border border-line px-4 text-[13px] font-medium text-foreground transition-colors hover:border-navy hover:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
               회원가입
             </Link>
@@ -97,7 +97,7 @@ export function Header({
         <nav
           id="mobile-nav"
           aria-label="모바일 메뉴"
-          className="flex flex-col border-t border-line bg-[#FFFFFF] px-5 py-3 sm:px-8 lg:hidden"
+          className="flex flex-col border-t border-line bg-[#FFFFFF] px-6 py-3 sm:px-8 lg:hidden"
         >
           {nav.map((item) => (
             <Link
