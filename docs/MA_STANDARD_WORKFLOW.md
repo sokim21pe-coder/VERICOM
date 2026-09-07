@@ -207,7 +207,7 @@ Seller/Buyer Stage Key는 3절 표와 같다. **하나의 enum으로 합치지 �
 | `lib/landing/journey-pages.ts` + `/about/process/[slug]` | 10 macro slug 설명 페이지 | 표준 13단계와 불일치(참고용 설명 페이지) |
 | `MASTER_SPEC.md` §7.7 | 12단계(Q&A·MM 포함, DISCOVERY/FINANCIAL 분리 없음, Buyer path 없음) | 표준 13단계와 상이 → §7.7에 “사용자 대상 순서는 이 문서 우선” 명시 |
 | TOM (`lib/tom/*`) | `dealStage` 항상 `null` | Stage 인식 next-action 미구현 |
-| DB (`supabase/migrations/*`) | `deals.status='draft'` 만 존재. stage 컬럼/enum 없음 | Stage persistence 부재 |
+| DB (`supabase/migrations/*`) | `deals.status='draft'`. Phase C에서 `deals.seller_stage_key`(nullable) + `deal_stage_events` migration 준비(`0018`, **Production 미적용**) | Seller Stage persistence foundation 준비 완료. Buyer는 Opportunity 후속 |
 
 ---
 
@@ -221,13 +221,23 @@ Seller/Buyer Stage Key는 3절 표와 같다. **하나의 enum으로 합치지 �
 
 ## 14. 안전한 단계적 수정 계획 (Migration Plan)
 
-- **Phase A — 문서/거버넌스 (이번 턴, 완료):** 이 문서 생성, `MASTER_SPEC`·`AUTOPILOT`·`DECISIONS` 참조 연결. 코드/DB 미변경.
-- **Phase B — 코드 상수화 (다음, 비파괴):** 표준 Stage Key/순서/매핑을 코드 상수로 정의(예: `lib/deal/standard-workflow.ts`)하고 `lib/landing/ma-workflow.ts` 각 단계에 `key` 추가. UI 동작 변화 없음(라벨/순서 그대로). Enum/DB 미변경.
-- **Phase C — DB 추가형 persistence (승인 후):** `deals`(Seller)·participant/opportunity(Buyer)에 **nullable** stage 컬럼 + `deal_stage_events` audit 테이블 추가, RLS 추가(약화 금지). 기존 값 보존.
+- **Phase A — 문서/거버넌스 (완료):** 이 문서 생성, `MASTER_SPEC`·`AUTOPILOT`·`DECISIONS` 참조 연결. 코드/DB 미변경.
+- **Phase B — 코드 상수화 (완료, 비파괴):** 표준 Stage Key/순서/매핑을 `lib/deal/standard-workflow.ts` 상수로 정의하고 `lib/landing/ma-workflow.ts` 각 단계에 `key` 연결. UI 동작 변화 없음. Enum/DB 미변경.
+- **Phase C — Seller Stage persistence foundation (코드/migration 준비 완료, Production 미적용):** Seller 전용. `deals.seller_stage_key`(nullable, default 없음) + append-only `deal_stage_events` + 단일 write path RPC `transition_seller_deal_stage` + 서버 boundary `transitionSellerDealStage`. Buyer stage는 넣지 않음(→ Opportunity 기반 후속 Phase). 유효 stage key는 코드 SoT가 검증, DB는 `SELLER_` prefix 형태 CHECK만(enum 미사용, drift 최소화). **Production 적용은 별도 승인 후.** 파일: `supabase/migrations/0018_seller_standard_stage.sql`, `lib/deal/seller-stage-transition.ts`, `lib/deal/seller-stage-persistence.ts`, `lib/deal/seller-stage-actions.ts`.
+- **Phase C-Buyer — Buyer/Opportunity stage persistence (후속, 별도 설계):** Buyer Workflow persistence는 `deals`가 아니라 **Opportunity(Seller↔Buyer 1:1 path)** Architecture 위에 별도 설계한다. Deal=Seller project 원칙 유지.
 - **Phase D — TOM Stage 인식:** 서버 `CurrentContext` 에서 persisted stage를 읽어 next-action 추천에 반영. Stage 확정은 사용자 행동/승인/Event.
 - **Phase E — 내부 모델 정합화(대규모, 승인 후):** `MACRO_MA_PROCESS`/`DealStage`/§7.7 를 표준으로 정합화(`ADVISORY_L2` 재배치, `FINANCIAL`·`MANAGEMENT_MEETING` 분리, `IOI`/`LOI` 표시 정리). enum/DB 영향 큼 → 승인·회귀검증 필수.
 
-각 Phase는 독립적으로 검증 가능하며, C 이후는 `docs/DEVELOPMENT_AUTOPILOT.md` §6 승인 필요 작업에 해당한다.
+각 Phase는 독립적으로 검증 가능하며, Phase C의 **Production 적용(원격 migration)** 및 이후 Phase는 `docs/DEVELOPMENT_AUTOPILOT.md` §6 승인 필요 작업에 해당한다.
+
+### 14.1 Seller Stage Persistence 설계 (Phase C)
+- **저장 위치:** `deals.seller_stage_key`(Seller 현재 단계, nullable). Deal = Seller 매각 프로젝트이므로 Seller 현재 단계는 Deal에 둔다. Buyer는 여기 저장 금지.
+- **컬럼명:** `seller_stage_key` 선택. `standard_stage_key`(side 불명확)보다 Seller 범위를 명시해 향후 Buyer/Opportunity stage와 혼동을 막는다. 저장 값은 코드 SoT의 `SELLER_*` WorkflowStageKey.
+- **NULL 의미:** "아직 Standard Workflow Stage가 명시적으로 확정되지 않음." 자동으로 `SELLER_DISCOVERY`로 채우지 않는다.
+- **검증 방식:** (1) 서버 코드 SoT(`isValidSellerStageKey`, 13개 Seller key) = primary, (2) DB CHECK = `SELLER_` prefix 형태 guard만(정확한 13개 열거/enum 아님) = drift 방지. PostgreSQL enum은 사용하지 않는다(확장/override 대비).
+- **이력:** `deal_stage_events`(append-only, deal-scoped RLS). 기존 `audit_logs`/`activities`는 actor-scoped라 from/to stage·deal 이력에 부적합하여 별도 도메인 테이블을 추가하고, 일반 감사 로그는 `recordAudit()`로 병행 기록한다.
+- **write path:** 단일 security-definer RPC `transition_seller_deal_stage`(권한 검증 + event append + 현재 stage 갱신을 원자적으로). 서버 boundary `transitionSellerDealStage`가 유일 진입점. 직접 table INSERT/UPDATE 권한은 authenticated에 부여하지 않는다.
+- **자동 진행 금지:** NDA/Valuation/IM 생성이 stage를 자동 변경하지 않는다. 순서 강제(Mandate 필수 등) Hard Constraint 없음(Deal-specific Adjustment 대비).
 
 ---
 
