@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ServiceDetailView } from "@/components/landing/ServiceDetailView";
 import { ServiceExplainView } from "@/components/landing/ServiceExplainView";
 import {
   LANDING_SERVICE_SLUGS,
@@ -37,5 +38,9 @@ export default async function AboutServicePage({
   if (!page) notFound();
 
   const context = await getCurrentContext();
-  return <ServiceExplainView page={page} signedIn={Boolean(context)} />;
+  const signedIn = Boolean(context);
+  if (page.detail) {
+    return <ServiceDetailView page={page} signedIn={signedIn} />;
+  }
+  return <ServiceExplainView page={page} signedIn={signedIn} />;
 }
