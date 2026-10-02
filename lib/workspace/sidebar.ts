@@ -35,6 +35,7 @@ const sellerSidebar: SidebarGroup[] = [
     items: [
       { href: "/seller#discovery", label: "매각 Discovery" },
       { href: "/seller#financial", label: "기업·재무정보" },
+      { href: "/seller/teaser", label: "티저(Teaser)" },
       { href: "/seller/valuation", label: "가치평가" },
     ],
   },

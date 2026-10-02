@@ -1,3 +1,15 @@
+# 2026-10-02 Seller Teaser Foundation (Draft → Review → Explicit Approval → Audit)
+
+Seller가 NDA 전에 쓰는 익명·제한정보 Teaser를 Rule 기반(LLM 아님)으로 만들고, 직접 검토한 뒤 명시적으로 승인하는 수직 슬라이스를 추가했다. 표준 M&A Workflow 순서(초기상담→티저→NDA→…)는 바꾸지 않았고, Teaser는 Valuation보다 앞 단계라 Valuation이 없어도 Draft를 만들 수 있다(있으면 매출 구간만 참조).
+
+원칙: 확인된 구조화 사실만 사용하고 없는 정보는 창작하지 않고 "확인 필요"로 남긴다. 회사명은 식별정보 공개 승인 전 노출하지 않고 마스킹 descriptor(예: "국내 산업용 배터리팩 전문기업")로 헤드라인을 만든다. 기업가치(EV)·배수·Multiple은 Teaser에 넣지 않으며 재무 섹션은 매출 구간과 "상세 재무·기업가치는 NDA 이후 IM 단계에서 제공" 면책 문구만 둔다. Buyer 배포/매칭/Opportunity/다운로드/관심 추적은 이번 Phase 범위에서 제외했다.
+
+상태는 최소(DRAFT → IN_REVIEW → APPROVED)로 둔다. 승인은 오직 approve_teaser RPC(IN_REVIEW에서만)로만 일어나고, 저장=승인/미리보기=승인/AI 자동승인은 없다. 승인된 내용을 수정하면 save_teaser_version이 상태를 DRAFT로 되돌려 승인을 무효화하되, 기존 승인 버전 스냅샷(teaser_versions)은 보존한다.
+
+저장소: `0020_seller_teaser_foundation.sql`(additive)로 `teasers` 헤더 + `teaser_versions` 불변 스냅샷 테이블과 RLS, security-definer RPC(create_teaser_draft/save_teaser_version/submit_teaser_for_review/approve_teaser)를 추가했다. 보안 헬퍼는 0016의 has_staff_platform_role()/is_seller_member_of_company(uuid)를 재사용한다. SELECT는 (해당 회사 Seller) 또는 (Staff)만, 모든 쓰기는 RPC로만 한다. Buyer는 승인 전·후 모두 접근 불가, 타 Seller Company도 불가, Staff는 조회만. Audit는 TEASER_DRAFT_CREATED/UPDATED/REVIEWED/APPROVED를 기록한다.
+
+마이그레이션 게이트: 명세대로 0020은 파일만 작성했고 Production에 자동 적용하지 않는다. 데이터 레이어는 테이블 미적용 상태에서도 깨지지 않게(storageReady=false) 프리뷰만 제공하도록 했다. 승인 단계 Stage 자동 변경·NDA 워크플로는 구현하지 않았다. 오프라인 게이트(단위 223 PASS/lint/tsc/build)는 통과했고, LIVE RLS 검증은 0020 적용 후로 남긴다.
+
 # 2026-08-25
 
 Sprint 0 기초: 명세 29절 권장 폴더 구조를 만들고 Supabase 클라이언트 뼈대와 로그인·회원가입 화면 틀을 추가했다. 실제 Auth 연동·RLS·테이블 CREATE는 프로젝트 URL/키가 준비된 뒤 진행한다. Business Rule은 변경하지 않았다.
