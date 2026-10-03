@@ -12,6 +12,8 @@
   --accent: #002147;
   --accent-soft: #002147;
   --line: #e8eaed;
+  --surface-subtle: #f7f8fa;
+  --line-strong: #dcdfe4;
 }
 
 @theme inline {
@@ -26,6 +28,8 @@
   --color-accent-soft: var(--accent-soft);
   --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-line-strong: var(--line-strong);
   --font-sans: var(--font-noto);
   --font-display: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -55,6 +59,22 @@ h2,
 h3 {
   font-family: var(--font-display), var(--font-sans), "Apple SD Gothic Neo",
     "Malgun Gothic", sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  word-break: keep-all;
+}
+
+h1,
+h2 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+  word-break: keep-all;
 }
 
 ::selection {

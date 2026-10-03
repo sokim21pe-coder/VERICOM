@@ -17,17 +17,17 @@ export function TomIntro({ signedIn = false }: { signedIn?: boolean }) {
   return (
     <section
       id="tom"
-      className="rounded-xl border border-line bg-[#FFFFFF] p-5 sm:p-7 lg:p-8"
+      className="rounded-2xl border border-line bg-[#FFFFFF] p-6 shadow-[0_10px_40px_-16px_rgba(0,33,71,0.16)] sm:p-8 lg:p-9"
     >
-      <p className="text-[11px] font-medium tracking-[0.2em] text-navy">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-navy">
         {TOM_PRODUCT_NAME}
       </p>
-      <h2 className="mt-3 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+      <h2 className="mt-3.5 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
         <Link href={LANDING_TOM_HREF} className={titleLinkClass}>
           거래의 다음 단계를 안내합니다
         </Link>
       </h2>
-      <p className="mt-2.5 text-sm leading-relaxed text-muted">
+      <p className="mt-3 text-sm leading-relaxed text-muted sm:text-[15px] sm:leading-7">
         상담은 로그인 계정에 저장됩니다. 이후 티저, NDA(비밀유지계약),
         IM(투자설명서), LOI(인수의향서), DD(실사) 자료와 연결할 수 있도록
         준비합니다.

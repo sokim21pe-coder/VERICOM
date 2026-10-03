@@ -5,9 +5,9 @@ import { startOnboardingHref, type TomIntent } from "@/lib/tom/paths";
 
 const buttonClass = {
   primary:
-    "inline-flex h-11 items-center justify-center rounded-md bg-navy px-6 text-sm font-medium text-white hover:bg-navy-hover",
+    "inline-flex h-12 items-center justify-center rounded-md bg-navy px-7 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(0,33,71,0.24)] transition-colors hover:bg-navy-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy",
   secondary:
-    "inline-flex h-11 items-center justify-center rounded-md border border-line bg-white px-6 text-sm font-medium text-foreground hover:border-navy",
+    "inline-flex h-12 items-center justify-center rounded-md border border-line bg-white px-7 text-sm font-semibold text-foreground transition-colors hover:border-navy hover:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy",
 };
 
 export function StartConsultButtons({

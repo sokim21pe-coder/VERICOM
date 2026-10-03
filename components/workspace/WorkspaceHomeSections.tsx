@@ -10,28 +10,58 @@ import type {
 import type { NextAction, VisibleField } from "@/lib/workspace/visibility";
 import { SellerValuationStatus } from "@/components/workspace/SellerValuationStatus";
 
-export function ContextStrip({ view }: { view: WorkspaceContextView }) {
+export function Card({
+  children,
+  className = "",
+  id,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  id?: string;
+}) {
   return (
-    <dl className="mt-6 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
-      <div>
-        <dt className="text-xs text-muted">회사</dt>
-        <dd className="mt-1 text-foreground">
-          {view.companyName}
-          {view.companyIndustry ? ` · ${view.companyIndustry}` : ""}
-        </dd>
-      </div>
-      <div>
-        <dt className="text-xs text-muted">플랫폼 역할</dt>
-        <dd className="mt-1 text-foreground">{view.platformRole}</dd>
-      </div>
-      <div>
-        <dt className="text-xs text-muted">Active Deal</dt>
-        <dd className="mt-1 text-foreground">{view.dealTitle}</dd>
-      </div>
-      <div>
-        <dt className="text-xs text-muted">Deal 역할</dt>
-        <dd className="mt-1 text-foreground">{view.dealRole}</dd>
-      </div>
+    <section
+      id={id}
+      className={`scroll-mt-20 rounded-xl border border-line bg-white p-5 sm:p-6 ${className}`}
+    >
+      {children}
+    </section>
+  );
+}
+
+export function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="text-base font-semibold text-foreground sm:text-lg">
+      {children}
+    </h2>
+  );
+}
+
+export function ContextStrip({ view }: { view: WorkspaceContextView }) {
+  const items = [
+    {
+      label: "회사",
+      value:
+        view.companyName +
+        (view.companyIndustry ? ` · ${view.companyIndustry}` : ""),
+    },
+    { label: "플랫폼 역할", value: view.platformRole },
+    { label: "Active Deal", value: view.dealTitle },
+    { label: "Deal 역할", value: view.dealRole },
+  ];
+  return (
+    <dl className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {items.map((item) => (
+        <div
+          key={item.label}
+          className="rounded-lg border border-line bg-[#FBFCFE] px-4 py-3"
+        >
+          <dt className="text-xs text-muted">{item.label}</dt>
+          <dd className="mt-1 text-sm font-medium text-foreground">
+            {item.value}
+          </dd>
+        </div>
+      ))}
     </dl>
   );
 }
@@ -61,16 +91,18 @@ export function FieldRows({ fields }: { fields: VisibleField[] }) {
 
 export function NextActionBlock({ action }: { action: NextAction }) {
   return (
-    <div className="mt-6">
-      <p className="text-xs text-muted">다음 할 일</p>
-      <p className="mt-1 text-sm leading-6 text-foreground">{action.detail}</p>
+    <section className="mt-6 rounded-xl border border-navy/15 bg-[#F1F4F9] p-5 sm:p-6">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-navy">
+        다음 할 일
+      </p>
+      <p className="mt-2 text-sm leading-6 text-foreground">{action.detail}</p>
       <Link
         href={action.href}
-        className="mt-3 inline-flex h-11 items-center rounded-md bg-navy px-5 text-sm font-medium text-white hover:bg-navy-hover"
+        className="mt-4 inline-flex h-11 items-center rounded-md bg-navy px-5 text-sm font-medium text-white hover:bg-navy-hover"
       >
         {action.label}
       </Link>
-    </div>
+    </section>
   );
 }
 
@@ -84,9 +116,11 @@ export function TomHomeBlock({
   continueLabel: string;
 }) {
   return (
-    <section className="mt-12 border-t border-line pt-10">
+    <Card id="tom" className="mt-6">
       <p className="text-[11px] tracking-[0.18em] text-navy">TOM(AI)</p>
-      <h2 className="mt-2 text-lg font-semibold text-foreground">상담</h2>
+      <h2 className="mt-2 text-base font-semibold text-foreground sm:text-lg">
+        상담
+      </h2>
       <p className="mt-2 text-sm leading-6 text-muted">{tom.purpose}</p>
       <p className="mt-3 text-sm text-foreground">
         {tom.started ? "상담이 이어지고 있습니다." : "아직 상담을 시작하지 않았습니다."}
@@ -118,13 +152,13 @@ export function TomHomeBlock({
       >
         {tom.started ? continueLabel : startLabel}
       </Link>
-    </section>
+    </Card>
   );
 }
 
 export function SellerHomeView({ model }: { model: SellerHomeModel }) {
   return (
-    <>
+    <div className="mt-2 space-y-6">
       <ContextStrip view={model.contextView} />
       <NextActionBlock action={model.nextAction} />
       <TomHomeBlock
@@ -133,16 +167,16 @@ export function SellerHomeView({ model }: { model: SellerHomeModel }) {
         continueLabel="TOM(AI) 상담 이어가기"
       />
 
-      <section className="mt-12 border-t border-line pt-10">
-        <h2 className="text-lg font-semibold text-foreground">매각 Discovery</h2>
+      <Card id="discovery">
+        <SectionTitle>매각 Discovery</SectionTitle>
         <p className="mt-2 text-sm text-muted">
           TOM(AI) 상담에서 받은 내용입니다. 없는 항목은 추정하지 않습니다.
         </p>
         <FieldRows fields={model.discovery} />
-      </section>
+      </Card>
 
-      <section className="mt-12 border-t border-line pt-10">
-        <h2 className="text-lg font-semibold text-foreground">재무 입력</h2>
+      <Card id="financial">
+        <SectionTitle>재무 입력</SectionTitle>
         <p className="mt-2 text-sm text-muted">정규화 상태: {model.financial.status}</p>
         {model.financial.industry ? (
           <p className="mt-2 text-sm text-foreground">업종 {model.financial.industry}</p>
@@ -187,10 +221,10 @@ export function SellerHomeView({ model }: { model: SellerHomeModel }) {
             },
           ]}
         />
-      </section>
+      </Card>
 
-      <section className="mt-12 border-t border-line pt-10">
-        <h2 className="text-lg font-semibold text-foreground">가치평가</h2>
+      <Card id="valuation">
+        <SectionTitle>가치평가</SectionTitle>
         <div className="mt-4">
           <SellerValuationStatus valuation={model.valuation} compact />
         </div>
@@ -200,10 +234,10 @@ export function SellerHomeView({ model }: { model: SellerHomeModel }) {
         >
           가치평가 상세
         </Link>
-      </section>
+      </Card>
 
-      <section className="mt-12 border-t border-line pt-10">
-        <h2 className="text-lg font-semibold text-foreground">비공개 자료</h2>
+      <Card id="documents">
+        <SectionTitle>비공개 자료</SectionTitle>
         <p className="mt-2 text-sm text-muted">{model.documents.status}</p>
         <p className="mt-1 text-sm text-foreground">
           {model.documents.count == null
@@ -216,14 +250,14 @@ export function SellerHomeView({ model }: { model: SellerHomeModel }) {
         >
           자료실 열기
         </Link>
-      </section>
-    </>
+      </Card>
+    </div>
   );
 }
 
 export function BuyerHomeView({ model }: { model: BuyerHomeModel }) {
   return (
-    <>
+    <div className="mt-2 space-y-6">
       <ContextStrip view={model.contextView} />
       <NextActionBlock action={model.nextAction} />
       <TomHomeBlock
@@ -232,33 +266,32 @@ export function BuyerHomeView({ model }: { model: BuyerHomeModel }) {
         continueLabel="TOM(AI) 상담 이어가기"
       />
 
-      <section className="mt-12 border-t border-line pt-10">
-        <h2 className="text-lg font-semibold text-foreground">인수조건</h2>
+      <Card id="criteria">
+        <SectionTitle>인수조건</SectionTitle>
         <p className="mt-2 text-sm text-muted">
           상담에서 받은 조건입니다. 없는 항목은 추정하지 않습니다.
         </p>
         <FieldRows fields={model.criteriaFields} />
+        <div className="mt-6">
+          <h3 className="text-sm font-medium text-foreground">정규화 요약</h3>
+          <FieldRows fields={model.normalizedRows} />
+        </div>
         <Link
           href="/buyer/criteria"
           className="mt-4 inline-flex text-sm text-navy underline"
         >
           정규화된 인수조건 보기
         </Link>
-      </section>
+      </Card>
 
-      <section className="mt-8">
-        <h3 className="text-sm font-medium text-foreground">정규화 요약</h3>
-        <FieldRows fields={model.normalizedRows} />
-      </section>
-
-      <section className="mt-12 border-t border-line pt-10">
-        <h2 className="text-lg font-semibold text-foreground">Matching</h2>
+      <Card id="matching">
+        <SectionTitle>Matching</SectionTitle>
         <p className="mt-2 text-sm text-muted">{model.matching.statusLabel}</p>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-foreground">
           {model.matching.copy}
         </p>
-      </section>
-    </>
+      </Card>
+    </div>
   );
 }
 

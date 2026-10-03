@@ -1,21 +1,17 @@
-import { WorkspaceHeader, type WorkspaceNavItem } from "@/components/layout/WorkspaceHeader";
+import Link from "next/link";
+import { WorkspaceShell } from "@/components/layout/WorkspaceShell";
+import { BrandLogo } from "@/components/layout/BrandLogo";
 import { EnvNotice } from "@/components/system/EnvNotice";
 import { requireWorkspace } from "@/lib/auth/require-workspace";
 import { listAccessibleDeals } from "@/lib/auth/session";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { buyerNav, expertNav, internalNav, sellerNav } from "@/lib/workspace/nav";
+import { sidebarForWorkspace } from "@/lib/workspace/sidebar";
+import { initialsFrom, resolveUserName } from "@/lib/workspace/user-display";
 import type { WorkspaceKind } from "@/lib/auth/workspace-router";
 
-const navByWorkspace: Record<WorkspaceKind, WorkspaceNavItem[]> = {
-  seller: sellerNav,
-  buyer: buyerNav,
-  expert: expertNav,
-  internal: internalNav,
-};
-
 const roleLabel: Record<WorkspaceKind, string> = {
-  seller: "Seller 워크스페이스",
-  buyer: "Buyer 워크스페이스",
+  seller: "매각 워크스페이스",
+  buyer: "인수 워크스페이스",
   expert: "전문가 워크스페이스",
   internal: "Internal 워크스페이스",
 };
@@ -29,28 +25,52 @@ export async function WorkspaceChrome({
 }) {
   const configured = isSupabaseConfigured();
   const context = await requireWorkspace(workspace);
-  const accessibleDeals = context ? await listAccessibleDeals() : [];
+
+  if (!context) {
+    return (
+      <div className="min-h-screen bg-[#FFFFFF] text-foreground">
+        <header className="border-b border-line bg-[#FFFFFF]">
+          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
+            <Link href="/" aria-label="베리컴 홈" className="bg-[#FFFFFF]">
+              <BrandLogo className="h-9 sm:h-10" priority />
+            </Link>
+            <Link href="/login" className="text-sm text-navy underline">
+              로그인
+            </Link>
+          </div>
+        </header>
+        {!configured ? (
+          <div className="mx-auto max-w-6xl px-5 pt-4 sm:px-8">
+            <EnvNotice />
+          </div>
+        ) : null}
+        {children}
+      </div>
+    );
+  }
+
+  const accessibleDeals = await listAccessibleDeals();
+  const name = resolveUserName({
+    displayName: context.user.displayName,
+    email: context.user.email,
+  });
 
   return (
-    <div className="min-h-screen bg-[#FFFFFF] text-foreground">
-      <WorkspaceHeader
-        roleLabel={roleLabel[workspace]}
-        nav={navByWorkspace[workspace]}
-        signedIn={Boolean(context)}
-        userName={context?.user.displayName}
-        companyName={context?.company?.name}
-        platformRoles={context?.platformRoles ?? []}
-        currentRole={context?.platformRole ?? null}
-        accessibleDeals={accessibleDeals}
-        currentDealId={context?.deal?.id ?? null}
-      />
-      {!configured ? (
-        <div className="mx-auto max-w-6xl px-5 pt-4 sm:px-8">
-          <EnvNotice />
-        </div>
-      ) : null}
+    <WorkspaceShell
+      roleLabel={roleLabel[workspace]}
+      sidebar={sidebarForWorkspace(workspace)}
+      user={{
+        name,
+        email: context.user.email ?? null,
+        initials: initialsFrom(name),
+      }}
+      platformRoles={context.platformRoles}
+      currentRole={context.platformRole}
+      accessibleDeals={accessibleDeals}
+      currentDealId={context.deal?.id ?? null}
+    >
       {children}
-    </div>
+    </WorkspaceShell>
   );
 }
 
