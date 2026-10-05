@@ -181,5 +181,18 @@ Active Deal은 최신 행으로 자동 선택하지 않고 헤더에서 `TEST_DE
 
 오프라인 게이트: `npm test` 244 PASS, lint 0 errors, `tsc --noEmit` PASS, `npm run build` PASS(`/seller/deals` 포함). Production `/seller/deals` smoke는 main merge 후 배포 확인 단계다.
 
+2026-10-05 PR #11 Standard Workflow / Seller Stage = **CLOSED**(Production smoke 8/8 PASS). `origin/main` SHA `4c2e639feecf5d2f2323bcd2c5cd48a03da04a95`(Merge PR #11). GitHub Production deployment `6858673065`(ref=해당 SHA, environment=Production). Vercel commit status `state=success`, description=`Deployment has completed`, dashboard `https://vercel.com/sokim21pe-coders-projects/vericom/2kjLWfJU5T87j3BXZGqRj326oNtW`. 사이트 `https://www.vericom.kr`. `0021` 재실행·`supabase db push`·`schema_migrations` 수정·신규 Deal/계정 생성은 없다. computerUse 서브에이전트는 이 VM 도구 목록에 없어 headed Chrome(`DISPLAY=:1`) + `puppeteer-core` + RecordScreen으로 Production UI를 실검증했다.
+
+1. SHA·Vercel Production 완료: PASS — 위 SHA/deployment/Vercel success와 동일. Production에 `/seller/deals` 단계 패널(PR #11 UI)이 살아 있다.
+2. `/seller/deals` 로드: PASS — 미로그인 `GET` HTTP 307, `Location=/login?next=%2Fseller&intent=sell`, `x-matched-path=/seller/deals`. 로그인 후 Deal 선택 시 HTTP 200, 한글 「현재 거래 단계」 패널.
+3. 로그인: PASS — `test.seller.sprint0@vericom.test`(SELLER_OWNER, 회사 `TEST_DEV_SELLER_CO`)로 Production `/login` 성공, `/seller` 매각 워크스페이스(한글) 진입.
+4. Active Deal 명시 선택 + 현재 단계 라벨: PASS — 헤더에서 `TEST_DEV_DEAL_A (Seller)`만 선택(최신 Deal 자동 선택 없음, 선택 전 「거래 미선택」). ContextStrip Active Deal=`TEST_DEV_DEAL_A`, Deal 역할=매각 책임. 전환 전 JWT `seller_stage_key=SELLER_TEASER`, UI 한글 라벨 「티저 작성·배포」.
+5. 다음 미사용 Standard Seller 단계로 1회 전환: PASS — `SELLER_NDA` / 「비밀유지계약 체결」 확정, 메시지 「현재 단계를 저장했습니다.」 JWT `seller_stage_key=SELLER_NDA`. `deal_stage_events` 3번째 행 = `SELLER_TEASER`→`SELLER_NDA`, `transition_source=USER_ACTION`(이전 2행 NULL→DISCOVERY, DISCOVERY→TEASER 유지).
+6. 새로고침 persistence: PASS — 새로고침 후 라벨 「비밀유지계약 체결」, 헤더 Deal=`TEST_DEV_DEAL_A (Seller)` 유지.
+7. 동일 단계 재확정 no-op: PASS — 메시지 「이미 해당 단계입니다. 변경하지 않았습니다.」 `deal_stage_events` 건수 3 유지(4번째 행 없음). 다른 Deal(`TEST_DEV_DEAL_B_NO_EXPERT`, `TEST_DEV_DEAL_Y_COMPANY_AS_BUYER`) `seller_stage_key`는 NULL 유지.
+8. 회귀: PASS — `/seller/teaser`(S05, 상태 작성 전, 한글, HTTP 200), `/seller/valuation`(S02 LEVEL 0/1, 금액 미표시·비교배수 확인 필요, HTTP 200), `/account/profile`(내 프로필, 이메일 읽기 전용, HTTP 200). 500/크래시 없음. NDA 기능 작업은 시작하지 않음.
+
+참고(비차단): 로그인 직후 `/seller`에서 Production RSC `pageerror` digest가 한 번 보였으나 화면은 한글 워크스페이스로 정상 렌더됐다. 8항 회귀 경로와 `/seller/deals` 단계 패널은 정상이었다.
+
 
 
