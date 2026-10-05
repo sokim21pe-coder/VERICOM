@@ -181,5 +181,13 @@ Active Deal은 최신 행으로 자동 선택하지 않고 헤더에서 `TEST_DE
 
 오프라인 게이트: `npm test` 244 PASS, lint 0 errors, `tsc --noEmit` PASS, `npm run build` PASS(`/seller/deals` 포함). Production `/seller/deals` smoke는 main merge 후 배포 확인 단계다.
 
+2026-10-05 PR #15 Seller Teaser LIVE Closeout — Production `https://www.vericom.kr` + 시드 Seller `test.seller.sprint0@vericom.test` + 헤더에서 `TEST_DEV_DEAL_A (Seller)` 명시 선택(최신 Deal 자동 선택 없음). `0021` 재실행·`db push`·`schema_migrations` 수정·신규 Deal/계정·NDA 슬라이스 없음.
+
+**Draft → Review → Explicit Approval 경로 = CLOSED (Production PASS).** `/seller/teaser` 상태 작성 전 → 「초안 만들기」→ 상태 초안 v1(승인 버튼 없음, 「검토 요청」만) → 「검토 요청」→ 상태 검토 중(「승인」버튼 노출, 자동 승인 아님) → 「승인」클릭 → 상태 승인 완료(승인 버전 v1). 새로고침 후에도 승인 완료 유지. JWT: `teasers` 1건 `status=APPROVED`, `identity_masked=true`, `approved_at` 설정, `deal_id` 설정. `teaser_versions` 1건 `status_at_snapshot=APPROVED`. Audit dual-write `TEASER_DRAFT_CREATED` → `TEASER_REVIEWED` → `TEASER_APPROVED` (`audit_logs`+`activities`). 회사 법인명 `TEST_DEV_SELLER_CO`는 헤드라인에 없음. 재무 하이라이트는 매출 구간(약 100~300억 원) + NDA/IM 면책만, EV/배수/WACC 금액 없음. Buyer 배포·매칭 CTA 없음(안내 문구 「이번 단계에서는 Buyer 배포 기능은 제공하지 않습니다」만).
+
+**MASTER_SPEC 13.1 고유정보 마스킹 = FAIL (생성 결과, Production 스냅샷).** 자동 초안 헤드라인/본문이 TOM `USER_CLAIM` 고유 토큰(`이어가기매각-<숫자>`)과 원문 재무 문장(매출 80억·EBITDA 8억)을 그대로 넣었다. 확인된 업종 없이 제품 토큰이 마스킹 descriptor가 됨. 이 내용은 APPROVED v1로 저장되어 있으며, 기존 승인 행을 service_role로 고치지 않았다. 생성기만 작은 안전 수정: `isUnsafeAnonymousFact`가 긴 숫자 ID·`이어가기매각` 토큰·EBITDA/EV/WACC/배수 원문을 걸러 `확인 필요`로 남긴다(사실 창작 없음, RLS 미변경). 단위 테스트 추가, `npm test` 247 PASS. **이 sanitizer는 Production에 아직 미배포**이므로 13.1 재검증은 배포 후 Seller가 편집(승인 해제)하거나 새 초안을 만들 때 한다. 화면 ID는 코드가 S05, 명세 Teaser Editor는 S07 — 매핑 drift는 기록만 하고 이번 슬라이스에서 고치지 않음.
+
+따라서 Teaser **전체 CLOSEOUT은 아직 아니다**(승인 경로는 CLOSED, 13.1은 FAIL·배포 대기). NDA 미착수.
+
 
 
