@@ -194,5 +194,9 @@ Active Deal은 최신 행으로 자동 선택하지 않고 헤더에서 `TEST_DE
 
 참고(비차단): 로그인 직후 `/seller`에서 Production RSC `pageerror` digest가 한 번 보였으나 화면은 한글 워크스페이스로 정상 렌더됐다. 8항 회귀 경로와 `/seller/deals` 단계 패널은 정상이었다.
 
+2026-10-05 PR #15 Seller Teaser LIVE Closeout — Production 재확인, **아직 CLOSED 아님**. PR #15는 이미 MERGED(`10c6ca4`). 현재 Production(`www.vericom.kr`, SHA `4c2e639`에 Teaser 코드 포함)에서 시드 Seller `test.seller.sprint0@vericom.test` + 명시 Deal `TEST_DEV_DEAL_A`로 `/seller/teaser`를 열었다. HTTP 200, S05, 한글 UI, 상태 **작성 전**, `teasers` 0건·`teaser_versions` 0건(이 계정 JWT). 회사명 `TEST_DEV_SELLER_CO`는 헤드라인에 없고 식별정보 비공개 프리뷰다. 재무 하이라이트는 매출 구간(약 100~300억 원)과 「상세 재무·기업가치는 NDA 이후 IM 단계에서 제공」만 있고 EV/배수 금액은 없다. Buyer 배포/매칭/Opportunity는 화면에 없다. NDA 슬라이스는 시작하지 않았고 Sprint 0 보안을 약화하지 않았다.
+
+남은 closeout 갭(증거): (1) 이 시드 Seller는 Draft→Review→명시 승인 경로를 Production에서 아직 실행하지 않았다(버튼 「초안 만들기」만 보임). 과거 LIVE E2E는 다른 Seller(`테스트배터리`) 기준. (2) TOM `USER_CLAIM`이 식별 가능 토큰(`이어가기매각-<숫자>`)·영문 `succession`·원문 재무문장(매출 80억·EBITDA 8억)을 프리뷰 「마스킹 descriptor / 주력 제품 / 거래 개요」에 그대로 넣어 MASTER_SPEC 13.1(식별 가능한 독특한 정보 자동공개 금지)과 Teaser 재무 최소화 원칙에 못 미친다. (3) 업종·지역·임직원·설립·핵심 경쟁력은 「확인 필요」(회사 `industry`도 NULL). (4) 시드 계정 기준 Draft 생성·검토·승인·승인 후 수정 무효·교차 Seller/Buyer RLS를 이 SHA에서 재실행하지 않았다. 다음 작업은 이 갭의 재검증/수정이지 NDA가 아니다.
+
 
 
