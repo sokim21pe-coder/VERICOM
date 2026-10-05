@@ -181,5 +181,22 @@ Active Deal은 최신 행으로 자동 선택하지 않고 헤더에서 `TEST_DE
 
 오프라인 게이트: `npm test` 244 PASS, lint 0 errors, `tsc --noEmit` PASS, `npm run build` PASS(`/seller/deals` 포함). Production `/seller/deals` smoke는 main merge 후 배포 확인 단계다.
 
+2026-10-05 PR #11 Standard Workflow / Seller Stage = **CLOSED**(Production smoke 8/8 PASS). `origin/main` SHA `4c2e639feecf5d2f2323bcd2c5cd48a03da04a95`(Merge PR #11). GitHub Production deployment `6858673065`(ref=해당 SHA, environment=Production). Vercel commit status `state=success`, description=`Deployment has completed`, dashboard `https://vercel.com/sokim21pe-coders-projects/vericom/2kjLWfJU5T87j3BXZGqRj326oNtW`. 사이트 `https://www.vericom.kr`. `0021` 재실행·`supabase db push`·`schema_migrations` 수정·신규 Deal/계정 생성은 없다. computerUse 서브에이전트는 이 VM 도구 목록에 없어 headed Chrome(`DISPLAY=:1`) + `puppeteer-core` + RecordScreen으로 Production UI를 실검증했다.
+
+1. SHA·Vercel Production 완료: PASS — 위 SHA/deployment/Vercel success와 동일. Production에 `/seller/deals` 단계 패널(PR #11 UI)이 살아 있다.
+2. `/seller/deals` 로드: PASS — 미로그인 `GET` HTTP 307, `Location=/login?next=%2Fseller&intent=sell`, `x-matched-path=/seller/deals`. 로그인 후 Deal 선택 시 HTTP 200, 한글 「현재 거래 단계」 패널.
+3. 로그인: PASS — `test.seller.sprint0@vericom.test`(SELLER_OWNER, 회사 `TEST_DEV_SELLER_CO`)로 Production `/login` 성공, `/seller` 매각 워크스페이스(한글) 진입.
+4. Active Deal 명시 선택 + 현재 단계 라벨: PASS — 헤더에서 `TEST_DEV_DEAL_A (Seller)`만 선택(최신 Deal 자동 선택 없음, 선택 전 「거래 미선택」). ContextStrip Active Deal=`TEST_DEV_DEAL_A`, Deal 역할=매각 책임. 전환 전 JWT `seller_stage_key=SELLER_TEASER`, UI 한글 라벨 「티저 작성·배포」.
+5. 다음 미사용 Standard Seller 단계로 1회 전환: PASS — `SELLER_NDA` / 「비밀유지계약 체결」 확정, 메시지 「현재 단계를 저장했습니다.」 JWT `seller_stage_key=SELLER_NDA`. `deal_stage_events` 3번째 행 = `SELLER_TEASER`→`SELLER_NDA`, `transition_source=USER_ACTION`(이전 2행 NULL→DISCOVERY, DISCOVERY→TEASER 유지).
+6. 새로고침 persistence: PASS — 새로고침 후 라벨 「비밀유지계약 체결」, 헤더 Deal=`TEST_DEV_DEAL_A (Seller)` 유지.
+7. 동일 단계 재확정 no-op: PASS — 메시지 「이미 해당 단계입니다. 변경하지 않았습니다.」 `deal_stage_events` 건수 3 유지(4번째 행 없음). 다른 Deal(`TEST_DEV_DEAL_B_NO_EXPERT`, `TEST_DEV_DEAL_Y_COMPANY_AS_BUYER`) `seller_stage_key`는 NULL 유지.
+8. 회귀: PASS — `/seller/teaser`(S05, 상태 작성 전, 한글, HTTP 200), `/seller/valuation`(S02 LEVEL 0/1, 금액 미표시·비교배수 확인 필요, HTTP 200), `/account/profile`(내 프로필, 이메일 읽기 전용, HTTP 200). 500/크래시 없음. NDA 기능 작업은 시작하지 않음.
+
+참고(비차단): 로그인 직후 `/seller`에서 Production RSC `pageerror` digest가 한 번 보였으나 화면은 한글 워크스페이스로 정상 렌더됐다. 8항 회귀 경로와 `/seller/deals` 단계 패널은 정상이었다.
+
+2026-10-05 PR #15 Seller Teaser LIVE Closeout — Production 재확인, **아직 CLOSED 아님**. PR #15는 이미 MERGED(`10c6ca4`). 현재 Production(`www.vericom.kr`, SHA `4c2e639`에 Teaser 코드 포함)에서 시드 Seller `test.seller.sprint0@vericom.test` + 명시 Deal `TEST_DEV_DEAL_A`로 `/seller/teaser`를 열었다. HTTP 200, S05, 한글 UI, 상태 **작성 전**, `teasers` 0건·`teaser_versions` 0건(이 계정 JWT). 회사명 `TEST_DEV_SELLER_CO`는 헤드라인에 없고 식별정보 비공개 프리뷰다. 재무 하이라이트는 매출 구간(약 100~300억 원)과 「상세 재무·기업가치는 NDA 이후 IM 단계에서 제공」만 있고 EV/배수 금액은 없다. Buyer 배포/매칭/Opportunity는 화면에 없다. NDA 슬라이스는 시작하지 않았고 Sprint 0 보안을 약화하지 않았다.
+
+남은 closeout 갭(증거): (1) 이 시드 Seller는 Draft→Review→명시 승인 경로를 Production에서 아직 실행하지 않았다(버튼 「초안 만들기」만 보임). 과거 LIVE E2E는 다른 Seller(`테스트배터리`) 기준. (2) TOM `USER_CLAIM`이 식별 가능 토큰(`이어가기매각-<숫자>`)·영문 `succession`·원문 재무문장(매출 80억·EBITDA 8억)을 프리뷰 「마스킹 descriptor / 주력 제품 / 거래 개요」에 그대로 넣어 MASTER_SPEC 13.1(식별 가능한 독특한 정보 자동공개 금지)과 Teaser 재무 최소화 원칙에 못 미친다. (3) 업종·지역·임직원·설립·핵심 경쟁력은 「확인 필요」(회사 `industry`도 NULL). (4) 시드 계정 기준 Draft 생성·검토·승인·승인 후 수정 무효·교차 Seller/Buyer RLS를 이 SHA에서 재실행하지 않았다. 다음 작업은 이 갭의 재검증/수정이지 NDA가 아니다.
+
 
 
