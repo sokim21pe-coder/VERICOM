@@ -7,7 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-transform-types --disable-warning=ExperimentalWarning --import ./tests/register.mjs --test \"tests/unit/**/*.test.ts\""
+    "test": "node --disable-warning=ExperimentalWarning --experimental-transform-types --import ./scripts/test-register.mjs --test tests/unit/*.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",

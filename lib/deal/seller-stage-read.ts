@@ -32,7 +32,7 @@ export async function readSellerDealStage(
     .eq("id", dealId)
     .maybeSingle();
 
-  // 컬럼 미존재(0018 미적용) 또는 접근 불가 → 미확정(NULL)로 취급한다.
+  // 컬럼 미존재(Seller Stage 마이그레이션 미적용) 또는 접근 불가 → 미확정(NULL)로 취급한다.
   if (error || !data) return EMPTY_SELLER_STAGE;
 
   const raw = (data as { seller_stage_key?: unknown }).seller_stage_key;
