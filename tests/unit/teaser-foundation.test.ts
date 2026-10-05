@@ -3,7 +3,7 @@ import test from "node:test";
 import { PlatformRole } from "@/types/enums";
 import type { CurrentContext } from "@/types/context";
 import { buildTeaserDraft, revenueBand, type TeaserMemoryInput } from "@/lib/teaser/draft";
-import { buildMaskedDescriptor, exposesCompanyName } from "@/lib/teaser/identity";
+import { buildMaskedDescriptor, exposesCompanyName, isUnsafeAnonymousFact } from "@/lib/teaser/identity";
 import {
   actionsForStatus,
   canApprove,
@@ -78,6 +78,13 @@ test("exposesCompanyName detects leaked name", () => {
   assert.equal(exposesCompanyName("국내 배터리 전문기업 주식회사테스트", "주식회사테스트"), true);
   assert.equal(exposesCompanyName("국내 배터리 전문기업", "주식회사테스트"), false);
   assert.equal(exposesCompanyName("아무 텍스트", null), false);
+});
+
+test("isUnsafeAnonymousFact flags unique tokens and raw valuation sentences", () => {
+  assert.equal(isUnsafeAnonymousFact("이어가기매각-1788157237100"), true);
+  assert.equal(isUnsafeAnonymousFact("매출은 80억이고 EBITDA는 8억 정도야."), true);
+  assert.equal(isUnsafeAnonymousFact("산업용 배터리팩"), false);
+  assert.equal(isUnsafeAnonymousFact("succession"), false);
 });
 
 // ---------- Draft builder ----------
@@ -166,6 +173,43 @@ test("draft can expose name only when identity released", () => {
   });
   assert.equal(content.identityMasked, false);
   assert.equal(content.headline, "주식회사테스트");
+});
+
+test("draft drops unique tokens and raw EBITDA sentences (MASTER_SPEC 13.1)", () => {
+  const content = buildTeaserDraft({
+    companyName: "TEST_DEV_SELLER_CO",
+    companyIndustry: null,
+    memories: [
+      mem("industry", "산업용 배터리팩"),
+      mem("key_products_services", "이어가기매각-1788157237100"),
+      mem("preferred_structure", "이어가기매각-1788157691072"),
+      mem("sale_scope", "매출은 80억이고 EBITDA는 8억 정도야."),
+      mem("reason_for_sale", "succession"),
+    ],
+    revenueKrw: 10_000_000_000,
+  });
+  assert.equal(content.headline, "국내 산업용 배터리팩 전문기업");
+  assert.ok(!content.headline.includes("이어가기매각"));
+  assert.ok(!content.headline.includes("TEST_DEV_SELLER_CO"));
+  assert.ok(!sectionBody(content, "business").includes("이어가기매각"));
+  assert.ok(!sectionBody(content, "transaction").includes("이어가기매각"));
+  assert.ok(!sectionBody(content, "transaction").includes("EBITDA"));
+  assert.ok(sectionBody(content, "business").includes("확인 필요"));
+  assert.ok(sectionBody(content, "transaction").includes("거래 목적: succession"));
+  assert.ok(sectionBody(content, "financial").includes("매출 약 100~300억 원"));
+  assert.equal(findPoint(content, "business", "key_products_services")?.state, "UNKNOWN");
+  assert.equal(findPoint(content, "transaction", "sale_scope")?.state, "UNKNOWN");
+});
+
+test("draft does not copy company legal name from USER_CLAIM fields", () => {
+  const content = buildTeaserDraft({
+    companyName: "TEST_DEV_SELLER_CO",
+    companyIndustry: "제조",
+    memories: [mem("key_products_services", "TEST_DEV_SELLER_CO 배터리")],
+  });
+  for (const section of content.sections) {
+    assert.ok(!section.body.includes("TEST_DEV_SELLER_CO"), `leak in ${section.id}`);
+  }
 });
 
 test("revenueBand buckets and rejects invalid", () => {

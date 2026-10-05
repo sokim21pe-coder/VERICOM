@@ -14,11 +14,26 @@ export type MaskedDescriptorInput = {
 
 const GENERIC_DESCRIPTOR = "국내 비상장 중소·중견기업";
 
+/**
+ * NDA 전 익명 Teaser에 넣으면 안 되는 값.
+ * - 긴 숫자 ID/세션 토큰(식별 가능한 독특한 정보, MASTER_SPEC 13.1)
+ * - EBITDA/EV/WACC/배수 등 원문 재무·가치 문장(매출 구간은 revenueBand만 허용)
+ * 해당 값은 창작하지 않고 호출측에서 UNKNOWN/확인 필요로 떨어뜨린다.
+ */
+export function isUnsafeAnonymousFact(value: string): boolean {
+  if (/\d{10,}/.test(value)) return true;
+  if (/이어가기매각/i.test(value)) return true;
+  if (/\bEBITDA\b|\bWACC\b|\bEV\b\s*\/|비교배수/i.test(value)) return true;
+  if (/기업가치\s*\d/.test(value)) return true;
+  return false;
+}
+
 function clean(value: string | null | undefined): string | null {
   const trimmed = (value ?? "").trim();
   if (!trimmed) return null;
   const upper = trimmed.toUpperCase();
   if (upper === "UNKNOWN" || upper === "SKIPPED") return null;
+  if (isUnsafeAnonymousFact(trimmed)) return null;
   return trimmed;
 }
 
