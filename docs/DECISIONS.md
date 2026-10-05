@@ -181,5 +181,21 @@ Active Deal은 최신 행으로 자동 선택하지 않고 헤더에서 `TEST_DE
 
 오프라인 게이트: `npm test` 244 PASS, lint 0 errors, `tsc --noEmit` PASS, `npm run build` PASS(`/seller/deals` 포함). Production `/seller/deals` smoke는 main merge 후 배포 확인 단계다.
 
+2026-10-05 PR #11 Standard Workflow / Seller Stage = **CLOSED**(Production smoke 8/8 PASS). `origin/main` SHA `4c2e639feecf5d2f2323bcd2c5cd48a03da04a95`(Merge PR #11). GitHub Production deployment `6858673065`(environment=Production, Vercel `state=success`, `Deployment has completed`). 사이트 `https://www.vericom.kr`. `0021` 재실행·`supabase db push`·`schema_migrations` 수정·신규 Deal/계정 생성 없음. 시드 Seller `test.seller.sprint0@vericom.test`가 헤더에서 `TEST_DEV_DEAL_A`만 명시 선택(최신 Deal 자동 선택 없음). 전환 전 UI 「티저 작성·배포」→ 1회 확정 `SELLER_NDA` 「비밀유지계약 체결」→ 새로고침 persistence → 동일 단계 재확정 no-op, `deal_stage_events` 3건 유지. `/seller/teaser`·`/seller/valuation`·`/account/profile` 회귀 HTTP 200.
+
+2026-10-05 PR #15 Seller Teaser — Draft→Review→Explicit Approval 경로는 Production PASS(승인 완료 v1, Audit 3건, 회사명 마스킹, EV/배수 없음, Buyer 배포 CTA 없음). **전체 Teaser CLOSEOUT은 아직 아님.** MASTER_SPEC 13.1 고유정보 마스킹은 생성 결과가 FAIL(이어가기매각 토큰·EBITDA 원문이 APPROVED v1에 저장됨). 기존 승인 행은 수정하지 않음. 생성기 sanitizer(`isUnsafeAnonymousFact`)는 이 closeout 브랜치에만 있고 Production 배포 전이다. 화면 ID 코드 S05 vs 명세 S07 drift는 기록만.
+
+2026-10-05 Final Sync & Closeout: 신규 기능 없음. `db push` 없음. `schema_migrations` 수정 없음. `0021` 재실행 없음.
+- GitHub 코드 SoT = `origin/main` `4c2e639`. 로컬 `main` fast-forward로 동일 SHA.
+- 미반영 정상 변경: Teaser sanitizer + 본 closeout 문서(이 브랜치). PR #12(`/about/tom`)·PR #14(base가 이미 merge된 workspace 브랜치)는 이번 종료 범위 밖.
+- Supabase Production(read-only, anon JWT, service_role 우회 아님): `persons.job_title` HTTP 200 → **0019 적용됨**. `teasers`/`teaser_versions` HTTP 200, RPC `create_teaser_draft`/`save_teaser_version`/`submit_teaser_for_review`/`approve_teaser` 존재(anon `not authenticated`) → **0020 적용됨**. `deals.seller_stage_key`·`deal_stage_events`·`transition_seller_deal_stage`·`can_write_seller_deal_stage` 존재 → **Seller Stage 스키마 존재, 0021 재실행 금지**. **CASE A** — 현재 main 기능이 깨지는 미적용 필수 migration 없음. `schema_migrations` history drift(0021 파일 vs 과거 SQL Editor 0018 적용)는 문서화만, repair 안 함.
+- RLS(anon): teasers/deal_stage_events 직접 INSERT `42501`. `transition_seller_deal_stage` `42501 authentication required`. `can_write_seller_deal_stage`=`false`. deals PATCH representation `[]`/`*/0`(0행, 쓰기 성공 아님).
+- RLS(시드 JWT, 이번 closeout 재검증): Seller 본인 teasers 1건 APPROVED v1, `TEST_DEV_DEAL_A` events 3건. 임의 deal_id transition `42501 not permitted`. 가짜 company teaser draft `not permitted: seller of company required`. 직접 INSERT teasers/events `42501`. Buyer A teasers SELECT 0건, approve 거부. service_role 결과를 PASS로 쓰지 않음.
+- Production routes: `/` `/login` `/signup` 200. `/seller` `/seller/deals` `/seller/teaser` `/seller/valuation` `/account/profile` `/consult` 미로그인 307. 시드 Seller 로그인 후 워크스페이스·프로필·거래 단계(비밀유지계약 체결)·티저(승인 완료 v1)·가치평가(비교배수 확인 필요)·TOM `/consult?intent=sell` 로드 PASS. 이번 재검증에서 Stage/Teaser 상태는 변경하지 않음.
+- Vercel Production 최신 배포 SHA = `4c2e639` = `origin/main`(이 sanitizer 머지 전).
+- 오프라인 게이트(이 브랜치, sanitizer 포함): `npm test` **247 PASS**(main 244 + sanitizer 테스트 3). lint 0 errors(기존 warning 1: `scripts/sprint1-discovery-e2e.mjs` unused). `tsc --noEmit` PASS. `npm run build` PASS(`/seller/deals` `/seller/teaser` 포함).
+- Secret: 값 미출력. `.env.local` gitignored. `supabase/.temp` untracked/커밋 금지.
+- pending(optional): sanitizer Production 배포 후 13.1 재검증(승인 해제 또는 새 초안). S05/S07 화면 ID 정합. PR #12 TOM 상세 페이지는 신규 기능이라 종료 범위에서 머지하지 않음. NDA 미착수.
+
 
 
