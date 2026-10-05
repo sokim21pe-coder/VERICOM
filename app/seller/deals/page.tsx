@@ -1,11 +1,29 @@
 import { ContextStrip } from "@/components/workspace/WorkspaceHomeSections";
+import { SellerStagePanel } from "@/components/deal/SellerStagePanel";
 import { getCurrentContext } from "@/lib/auth/session";
+import { canContextTransitionSellerStage } from "@/lib/deal/seller-stage-transition";
+import {
+  EMPTY_SELLER_STAGE,
+  readSellerDealStage,
+} from "@/lib/deal/seller-stage-read";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { dealRoleLabel, platformRoleLabel } from "@/lib/workspace/visibility";
 
 export const dynamic = "force-dynamic";
 
 export default async function SellerDealsPage() {
   const context = await getCurrentContext();
+
+  let stage = EMPTY_SELLER_STAGE;
+  if (context?.deal) {
+    const supabase = await createSupabaseServerClient();
+    if (supabase) {
+      stage = await readSellerDealStage(supabase, context.deal.id);
+    }
+  }
+  const canWriteStage = context?.deal
+    ? canContextTransitionSellerStage(context, context.deal.id)
+    : false;
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-10">
@@ -29,13 +47,18 @@ export default async function SellerDealsPage() {
           }}
         />
       ) : null}
+      {context?.deal ? (
+        <SellerStagePanel
+          currentLabel={stage.label}
+          currentStageKey={stage.stageKey}
+          canWrite={canWriteStage}
+        />
+      ) : (
+        <p className="mt-8 max-w-xl rounded-lg border border-line bg-surface-subtle px-5 py-4 text-sm leading-6 text-muted">
+          거래를 선택하면 현재 거래 단계를 확인할 수 있습니다.
+        </p>
+      )}
       <dl className="mt-10 space-y-3 text-sm">
-        <div className="flex justify-between gap-4 border-b border-line pb-2">
-          <dt className="text-muted">현재 단계</dt>
-          <dd className="text-foreground">
-            {context?.deal ? "현재 단계" : "아직 시작 전"}
-          </dd>
-        </div>
         <div className="flex justify-between gap-4 border-b border-line pb-2">
           <dt className="text-muted">거래 엔진</dt>
           <dd className="text-foreground">준비 중</dd>
