@@ -3,7 +3,12 @@ import test from "node:test";
 import { PlatformRole } from "@/types/enums";
 import type { CurrentContext } from "@/types/context";
 import { buildTeaserDraft, revenueBand, type TeaserMemoryInput } from "@/lib/teaser/draft";
-import { buildMaskedDescriptor, exposesCompanyName, isUnsafeAnonymousFact } from "@/lib/teaser/identity";
+import {
+  buildMaskedDescriptor,
+  exposesCompanyName,
+  isUnsafeAnonymousFact,
+  sanitizeAnonymousTeaserText,
+} from "@/lib/teaser/identity";
 import {
   actionsForStatus,
   canApprove,
@@ -85,6 +90,46 @@ test("isUnsafeAnonymousFact flags unique tokens and raw valuation sentences", ()
   assert.equal(isUnsafeAnonymousFact("매출은 80억이고 EBITDA는 8억 정도야."), true);
   assert.equal(isUnsafeAnonymousFact("산업용 배터리팩"), false);
   assert.equal(isUnsafeAnonymousFact("succession"), false);
+});
+
+test("isUnsafeAnonymousFact allows MASTER_SPEC 13.1 categorical phrases", () => {
+  assert.equal(isUnsafeAnonymousFact("국내 산업용 배터리팩 전문기업"), false);
+  assert.equal(isUnsafeAnonymousFact("매출 약 50~100억 원"), false);
+  assert.equal(isUnsafeAnonymousFact("수도권 소재"), false);
+  assert.equal(isUnsafeAnonymousFact("B2B 제조기업"), false);
+  assert.equal(isUnsafeAnonymousFact("영업이익 흑자"), false);
+  assert.equal(isUnsafeAnonymousFact("자체 BMS 기술"), false);
+});
+
+test("isUnsafeAnonymousFact blocks identifying names, address, raw KRW, patent, exclusive supply", () => {
+  assert.equal(isUnsafeAnonymousFact("테스트배터리 주식회사"), true);
+  assert.equal(isUnsafeAnonymousFact("서울 강남구 테헤란로 123"), true);
+  assert.equal(isUnsafeAnonymousFact("POSCO 단독 공급사"), true);
+  assert.equal(isUnsafeAnonymousFact("매출 8,742,183,221원"), true);
+  assert.equal(isUnsafeAnonymousFact("영업이익 712,345,982원"), true);
+  assert.equal(isUnsafeAnonymousFact("특허 제10-1234567호"), true);
+  assert.equal(isUnsafeAnonymousFact("SuperPack-9000"), true);
+  assert.equal(isUnsafeAnonymousFact("기업가치 12000000000"), true);
+});
+
+test("sanitizeAnonymousTeaserText keeps labels and drops unsafe values", () => {
+  const body = [
+    "국내 산업용 배터리팩 전문기업",
+    "주력 제품·서비스: SuperPack-9000",
+    "주요 고객: POSCO 단독 공급사",
+    "지역: 수도권 소재",
+    "매출 규모: 매출 약 50~100억 원",
+    "※ 상세 재무·기업가치는 NDA 이후 IM 단계에서 제공합니다.",
+  ].join("\n");
+  const cleaned = sanitizeAnonymousTeaserText(body, "테스트배터리 주식회사");
+  assert.ok(cleaned.includes("국내 산업용 배터리팩 전문기업"));
+  assert.ok(cleaned.includes("주력 제품·서비스: 확인 필요"));
+  assert.ok(cleaned.includes("주요 고객: 확인 필요"));
+  assert.ok(cleaned.includes("지역: 수도권 소재"));
+  assert.ok(cleaned.includes("매출 약 50~100억 원"));
+  assert.ok(cleaned.includes("NDA 이후 IM 단계"));
+  assert.ok(!cleaned.includes("SuperPack-9000"));
+  assert.ok(!cleaned.includes("POSCO"));
 });
 
 // ---------- Draft builder ----------
@@ -199,6 +244,40 @@ test("draft drops unique tokens and raw EBITDA sentences (MASTER_SPEC 13.1)", ()
   assert.ok(sectionBody(content, "financial").includes("매출 약 100~300억 원"));
   assert.equal(findPoint(content, "business", "key_products_services")?.state, "UNKNOWN");
   assert.equal(findPoint(content, "transaction", "sale_scope")?.state, "UNKNOWN");
+});
+
+test("draft drops legal name, address, raw KRW, patent, exclusive customer (13.1)", () => {
+  const content = buildTeaserDraft({
+    companyName: "테스트배터리 주식회사",
+    companyIndustry: "제조",
+    memories: [
+      mem("industry", "B2B 제조기업"),
+      mem("location", "서울 강남구 테헤란로 123"),
+      mem("key_products_services", "테스트배터리 주식회사"),
+      mem("key_customers", "POSCO 단독 공급사"),
+      mem("competitive_advantage", "특허 제10-1234567호"),
+      mem("sale_scope", "매출 8,742,183,221원"),
+      mem("reason_for_sale", "영업이익 712,345,982원"),
+      mem("preferred_structure", "영업이익 흑자"),
+      mem("employees", "수도권 소재"),
+    ],
+    revenueKrw: 7_000_000_000,
+  });
+  const joined = content.sections.map((s) => s.body).join("\n");
+  assert.equal(content.headline, "국내 B2B 제조기업 전문기업");
+  assert.ok(!joined.includes("테스트배터리"));
+  assert.ok(!joined.includes("주식회사"));
+  assert.ok(!joined.includes("테헤란로"));
+  assert.ok(!joined.includes("8,742,183,221"));
+  assert.ok(!joined.includes("712,345,982"));
+  assert.ok(!joined.includes("10-1234567"));
+  assert.ok(!joined.includes("POSCO"));
+  assert.ok(sectionBody(content, "overview").includes("확인 필요"));
+  assert.ok(sectionBody(content, "financial").includes("매출 약 50~100억 원"));
+  assert.ok(sectionBody(content, "transaction").includes("영업이익 흑자"));
+  assert.equal(findPoint(content, "overview", "location")?.state, "UNKNOWN");
+  assert.equal(findPoint(content, "business", "key_customers")?.state, "UNKNOWN");
+  assert.equal(findPoint(content, "highlights", "competitive_advantage")?.state, "UNKNOWN");
 });
 
 test("draft does not copy company legal name from USER_CLAIM fields", () => {

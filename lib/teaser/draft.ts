@@ -162,9 +162,19 @@ export function buildTeaserDraft(input: TeaserDraftInput): TeaserContent {
     businessKeyword: productsPoint.value,
   });
 
+  // Identity Release가 있을 때만 상호를 헤드라인에 쓴다.
+  // 법인격이 있는 상호는 익명 sanitizer에서 unsafe이므로 이 경로에서는 통과시킨다.
+  const releasedName = (() => {
+    const name = (input.companyName ?? "").trim();
+    if (!name) return null;
+    const upper = name.toUpperCase();
+    if (upper === "UNKNOWN" || upper === "SKIPPED") return null;
+    return name;
+  })();
+
   const headline = identityMasked
     ? maskedDescriptor
-    : cleanValue(input.companyName) ?? maskedDescriptor;
+    : releasedName ?? maskedDescriptor;
 
   const sections: TeaserSectionContent[] = TEASER_SECTIONS.map((def) => {
     let dataPoints: TeaserDataPoint[] = [];
