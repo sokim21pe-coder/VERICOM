@@ -197,5 +197,15 @@ Active Deal은 최신 행으로 자동 선택하지 않고 헤더에서 `TEST_DE
 - Secret: 값 미출력. `.env.local` gitignored. `supabase/.temp` untracked/커밋 금지.
 - pending(optional): sanitizer Production 배포 후 13.1 재검증(승인 해제 또는 새 초안). S05/S07 화면 ID 정합. PR #12 TOM 상세 페이지는 신규 기능이라 종료 범위에서 머지하지 않음. NDA 미착수.
 
+2026-10-06 PR #18 Seller Teaser 13.1 sanitizer — **MERGED + Production 배포 PASS, LIVE Seller E2E는 BLOCKED**. 신규 기능·NDA·0021 재실행·`db push`·`schema_migrations` 수정·신규 Deal/계정 없음.
+- GitHub: PR #18 Ready for Review 후 merge commit `0958941c053de11d43ffcc665a4c1a1589835d74`. force merge/history rewrite 없음. local `main` = `origin/main` = `0958941`.
+- Diff 범위: Teaser sanitizer(`lib/teaser/identity.ts`·`draft.ts`·`actions.ts` 저장 경로), unit 테스트, `docs/DECISIONS.md` closeout, `supabase/.temp/` gitignore. Workspace/Profile·Seller Stage·TOM·Valuation·migration 파일 변경 없음. secret/env 커밋 없음.
+- Sanitizer(코드+unit): 고유 토큰, 법인격 상호, 정확주소, 콤마 KRW, 원문 매출/영업이익/EBITDA/WACC/EV, 특허번호, 단독공급, 모델명 → `확인 필요`. 허용: 매출 약 50~100억 원, 수도권 소재, B2B 제조기업, 영업이익 흑자, 국내 산업용 배터리팩 전문기업. 저장 폼 원문 우회를 `sanitizeAnonymousTeaserText`로 차단.
+- 오프라인 게이트(머지 전 브랜치): `npm test` **251 PASS**, lint 0 errors(기존 warning 1), `tsc --noEmit` PASS, `npm run build` PASS(`/seller/teaser` 포함).
+- Vercel: Production deployment `6885228141` SHA `0958941` = `origin/main`, state=success. 사이트 `https://www.vericom.kr`. 공개 스모크: `/` `/login` 200, `/seller` `/seller/teaser` `/seller/deals` `/seller/valuation` `/account/profile` 미로그인 307→로그인.
+- Supabase Production(anon JWT, service_role 우회 아님): teasers/teaser_versions SELECT 200 `[]`. teasers INSERT `42501` RLS. RPC `create_teaser_draft`/`save_teaser_version`/`submit_teaser_for_review`/`approve_teaser` = `not authenticated`. `persons.job_title` SELECT 200 → 0019 유지. `deals.seller_stage_key` SELECT 200 → Seller Stage 스키마 유지. `deal_stage_events` INSERT `42501`. **0020 적용됨. 0021 재실행 안 함.**
+- **BLOCKER**: 이 Cloud Agent VM에 `VERICOM_TEST_SEED_PASSWORD`가 Secret으로 **주입되어 있지 않음**(값은 미출력). 기존 test Seller JWT 세션(Draft/Review/Approve/승인후수정/cross-company/Buyer/Staff/audit/valuation 비의존/Seller Stage 무자동변경) LIVE E2E는 미실시. **Seller Teaser = 아직 CLOSED 아님.**
+- NDA 미착수.
+
 
 
