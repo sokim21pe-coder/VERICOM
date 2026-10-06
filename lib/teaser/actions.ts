@@ -11,7 +11,16 @@ import {
   canEditTeaser,
 } from "@/lib/teaser/access";
 import { loadSellerTeaserView } from "@/lib/teaser/data";
-import type { TeaserContent, TeaserSectionContent } from "@/lib/teaser/types";
+import {
+  exposesCompanyName,
+  isUnsafeAnonymousFact,
+  sanitizeAnonymousTeaserText,
+} from "@/lib/teaser/identity";
+import type {
+  TeaserContent,
+  TeaserDataPoint,
+  TeaserSectionContent,
+} from "@/lib/teaser/types";
 
 // Teaser 서버 액션. 모든 쓰기는 security-definer RPC를 통해서만 수행한다.
 // 승인은 approve_teaser RPC 호출(IN_REVIEW → APPROVED)로만 일어난다. 저장=승인 아님.
@@ -37,17 +46,52 @@ function formString(formData: FormData, key: string): string {
   return typeof value === "string" ? value : "";
 }
 
-/** 폼 입력(섹션 본문/헤드라인)으로 기존 content를 갱신한다. dataPoints/missing은 보존. */
-function contentFromForm(base: TeaserContent, formData: FormData): TeaserContent {
-  const headline = formString(formData, "headline").trim();
+function sanitizeDataPoint(
+  point: TeaserDataPoint,
+  companyName: string | null,
+): TeaserDataPoint {
+  if (!point.value) return point;
+  if (
+    isUnsafeAnonymousFact(point.value) ||
+    exposesCompanyName(point.value, companyName)
+  ) {
+    return { ...point, value: null, state: "UNKNOWN" };
+  }
+  return point;
+}
+
+/** 폼 입력(섹션 본문/헤드라인)으로 기존 content를 갱신한다. 13.1 unsafe 값은 저장 시 확인 필요로 치환. */
+function contentFromForm(
+  base: TeaserContent,
+  formData: FormData,
+  companyName: string | null,
+): TeaserContent {
+  const rawHeadline = formString(formData, "headline").trim() || base.headline;
+  const sanitizedHeadline = sanitizeAnonymousTeaserText(rawHeadline, companyName);
+  const headlineUnsafe =
+    !sanitizedHeadline ||
+    sanitizedHeadline === "확인 필요" ||
+    isUnsafeAnonymousFact(sanitizedHeadline) ||
+    exposesCompanyName(sanitizedHeadline, companyName);
+  const headline = headlineUnsafe
+    ? base.maskedDescriptor || sanitizedHeadline
+    : sanitizedHeadline;
+
   const sections: TeaserSectionContent[] = base.sections.map((section) => {
     const edited = formData.get(`section_${section.id}`);
-    if (typeof edited !== "string") return section;
-    return { ...section, body: edited.trim() };
+    const body =
+      typeof edited === "string" ? edited.trim() : section.body;
+    return {
+      ...section,
+      body: sanitizeAnonymousTeaserText(body, companyName),
+      dataPoints: section.dataPoints.map((point) =>
+        sanitizeDataPoint(point, companyName),
+      ),
+    };
   });
   return {
     ...base,
-    headline: headline || base.headline,
+    headline,
     sections,
   };
 }
@@ -106,7 +150,11 @@ export async function saveTeaserAction(
   const supabase = await createSupabaseServerClient();
   if (!supabase) return fail(ENV_NOT_READY);
 
-  const nextContent = contentFromForm(view.record.content, formData);
+  const nextContent = contentFromForm(
+    view.record.content,
+    formData,
+    view.companyName,
+  );
 
   const { error } = await supabase.rpc("save_teaser_version", {
     p_teaser_id: view.record.id,

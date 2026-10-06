@@ -5,7 +5,11 @@ import type {
   TeaserSectionContent,
 } from "@/lib/teaser/types";
 import { TEASER_SECTIONS } from "@/lib/teaser/sections";
-import { buildMaskedDescriptor } from "@/lib/teaser/identity";
+import {
+  buildMaskedDescriptor,
+  exposesCompanyName,
+  isUnsafeAnonymousFact,
+} from "@/lib/teaser/identity";
 
 // Teaser Draft 생성기(Rule 기반, LLM 아님).
 // 확인된 구조화 사실만 사용한다. 없는 정보는 창작하지 않고 "확인 필요"로 남긴다.
@@ -29,12 +33,17 @@ export type TeaserDraftInput = {
 
 const UNKNOWN_TEXT = "확인 필요";
 
-function cleanValue(value: string | null | undefined): string | null {
+function cleanValue(
+  value: string | null | undefined,
+  companyName?: string | null,
+): string | null {
   const trimmed = (value ?? "").trim();
   if (!trimmed) return null;
   const upper = trimmed.toUpperCase();
   if (upper === "UNKNOWN" || upper === "SKIPPED") return null;
   if (trimmed.startsWith("{") || trimmed.startsWith("[")) return null;
+  if (isUnsafeAnonymousFact(trimmed)) return null;
+  if (exposesCompanyName(trimmed, companyName ?? null)) return null;
   return trimmed;
 }
 
@@ -48,9 +57,10 @@ function pointFromMemory(
   memories: TeaserMemoryInput[],
   key: string,
   label: string,
+  companyName?: string | null,
 ): TeaserDataPoint {
   const row = memories.find((item) => item.key === key);
-  const value = cleanValue(row?.value);
+  const value = cleanValue(row?.value, companyName);
   if (!row || !value || toDataState(row.informationState) === "UNKNOWN") {
     return { id: key, label, value: null, state: "UNKNOWN" };
   }
@@ -83,25 +93,61 @@ export function buildTeaserDraft(input: TeaserDraftInput): TeaserContent {
   const identityMasked = !input.identityReleased;
 
   // 업종: 메모리 우선, 없으면 companies.industry(저장된 사실)로 보완.
+  const companyName = input.companyName;
   const industryPoint = (() => {
-    const fromMemory = pointFromMemory(memories, "industry", "업종");
+    const fromMemory = pointFromMemory(memories, "industry", "업종", companyName);
     if (fromMemory.state !== "UNKNOWN") return fromMemory;
-    const stored = cleanValue(input.companyIndustry);
+    const stored = cleanValue(input.companyIndustry, companyName);
     if (stored) {
       return { id: "industry", label: "업종", value: stored, state: "CONFIRMED" as const };
     }
     return fromMemory;
   })();
 
-  const regionPoint = pointFromMemory(memories, "location", "지역");
-  const employeesPoint = pointFromMemory(memories, "employees", "임직원 규모");
-  const establishmentPoint = pointFromMemory(memories, "establishment", "설립");
-  const productsPoint = pointFromMemory(memories, "key_products_services", "주력 제품·서비스");
-  const customersPoint = pointFromMemory(memories, "key_customers", "주요 고객");
-  const advantagePoint = pointFromMemory(memories, "competitive_advantage", "핵심 경쟁력");
-  const scopePoint = pointFromMemory(memories, "sale_scope", "매각 범위");
-  const reasonPoint = pointFromMemory(memories, "reason_for_sale", "거래 목적");
-  const structurePoint = pointFromMemory(memories, "preferred_structure", "희망 거래 구조");
+  const regionPoint = pointFromMemory(memories, "location", "지역", companyName);
+  const employeesPoint = pointFromMemory(
+    memories,
+    "employees",
+    "임직원 규모",
+    companyName,
+  );
+  const establishmentPoint = pointFromMemory(
+    memories,
+    "establishment",
+    "설립",
+    companyName,
+  );
+  const productsPoint = pointFromMemory(
+    memories,
+    "key_products_services",
+    "주력 제품·서비스",
+    companyName,
+  );
+  const customersPoint = pointFromMemory(
+    memories,
+    "key_customers",
+    "주요 고객",
+    companyName,
+  );
+  const advantagePoint = pointFromMemory(
+    memories,
+    "competitive_advantage",
+    "핵심 경쟁력",
+    companyName,
+  );
+  const scopePoint = pointFromMemory(memories, "sale_scope", "매각 범위", companyName);
+  const reasonPoint = pointFromMemory(
+    memories,
+    "reason_for_sale",
+    "거래 목적",
+    companyName,
+  );
+  const structurePoint = pointFromMemory(
+    memories,
+    "preferred_structure",
+    "희망 거래 구조",
+    companyName,
+  );
 
   // 재무: 매출 구간만. 기업가치/배수는 포함하지 않는다.
   const revenuePoint: TeaserDataPoint = (() => {
@@ -116,9 +162,19 @@ export function buildTeaserDraft(input: TeaserDraftInput): TeaserContent {
     businessKeyword: productsPoint.value,
   });
 
+  // Identity Release가 있을 때만 상호를 헤드라인에 쓴다.
+  // 법인격이 있는 상호는 익명 sanitizer에서 unsafe이므로 이 경로에서는 통과시킨다.
+  const releasedName = (() => {
+    const name = (input.companyName ?? "").trim();
+    if (!name) return null;
+    const upper = name.toUpperCase();
+    if (upper === "UNKNOWN" || upper === "SKIPPED") return null;
+    return name;
+  })();
+
   const headline = identityMasked
     ? maskedDescriptor
-    : cleanValue(input.companyName) ?? maskedDescriptor;
+    : releasedName ?? maskedDescriptor;
 
   const sections: TeaserSectionContent[] = TEASER_SECTIONS.map((def) => {
     let dataPoints: TeaserDataPoint[] = [];
