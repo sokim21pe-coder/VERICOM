@@ -35,9 +35,12 @@ export type AdminUserRow = {
 export type AdminCompanyRow = {
   id: string;
   name: string;
+  legal_name?: string | null;
+  business_registration_number?: string | null;
   company_status: string;
   verification_status: string;
   created_at: string;
+  last_activity_at?: string | null;
   member_count: number;
   deal_count: number;
   owner_name: string | null;
@@ -181,6 +184,7 @@ export async function loadAdminUser(id: string): Promise<Record<string, unknown>
 
 export async function loadAdminCompanies(input: {
   query?: string;
+  verification?: string;
   limit?: number;
   offset?: number;
 }): Promise<AdminListResult<AdminCompanyRow>> {
@@ -191,6 +195,7 @@ export async function loadAdminCompanies(input: {
   if (!supabase) return emptyList(NOT_READY, limit, offset);
   const { data, error } = await supabase.rpc("admin_list_companies", {
     p_query: input.query || null,
+    p_verification: input.verification || null,
     p_limit: limit,
     p_offset: offset,
   });

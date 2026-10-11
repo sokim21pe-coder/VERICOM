@@ -31,3 +31,17 @@ export function roleLabels(roles: string[] | null | undefined): string {
 export function kpiOrUnknown(value: number | null): string {
   return value == null ? "확인 필요" : String(value);
 }
+
+export function companyVerificationLabel(value: string | null | undefined): string {
+  if (value === "unverified") return "미확인";
+  if (value === "pending") return "검토 중";
+  if (value === "verified") return "확인됨";
+  return value || "확인 필요";
+}
+
+export function companyStatusLabel(value: string | null | undefined): string {
+  if (value === "draft") return "초안";
+  if (value === "active") return "활성";
+  if (value === "inactive") return "비활성";
+  return value || "확인 필요";
+}

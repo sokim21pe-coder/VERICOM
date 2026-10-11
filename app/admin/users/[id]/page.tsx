@@ -84,7 +84,14 @@ export default async function AdminUserDetailPage({
             const m = item as Record<string, string>;
             return (
               <li key={`${m.company_id}-${m.membership_role}`}>
-                {m.company_name} · {m.membership_role} · {m.status}
+                {m.company_id ? (
+                  <Link href={`/admin/companies/${m.company_id}`} className="text-navy underline">
+                    {m.company_name}
+                  </Link>
+                ) : (
+                  m.company_name
+                )}{" "}
+                · {m.membership_role} · {m.status}
               </li>
             );
           })}
