@@ -18,6 +18,7 @@ const workspaceHome: Record<WorkspaceKind, string> = {
   buyer: "/buyer",
   expert: "/expert",
   internal: "/internal",
+  admin: "/admin/dashboard",
 };
 
 export async function requireWorkspace(

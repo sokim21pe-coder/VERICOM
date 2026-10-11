@@ -99,11 +99,26 @@ const internalSidebar: SidebarGroup[] = [
   accountGroup,
 ];
 
+const adminSidebar: SidebarGroup[] = [
+  {
+    title: "관리",
+    items: [
+      { href: "/admin/dashboard", label: "Dashboard" },
+      { href: "/admin/users", label: "Users" },
+      { href: "/admin/companies", label: "Companies" },
+      { href: "/admin/deals", label: "Deals" },
+      { href: "/admin/audit-logs", label: "Audit Logs" },
+    ],
+  },
+  accountGroup,
+];
+
 const byWorkspace: Record<WorkspaceKind, SidebarGroup[]> = {
   seller: sellerSidebar,
   buyer: buyerSidebar,
   expert: expertSidebar,
   internal: internalSidebar,
+  admin: adminSidebar,
 };
 
 export function sidebarForWorkspace(kind: WorkspaceKind): SidebarGroup[] {

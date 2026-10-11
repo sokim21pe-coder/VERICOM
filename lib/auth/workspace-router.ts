@@ -2,6 +2,7 @@ import { PlatformRole } from "@/types/enums";
 import type { CurrentContext } from "@/types/context";
 
 export function workspacePathForRole(role: PlatformRole | null): string {
+  if (role === PlatformRole.PLATFORM_SUPER_ADMIN) return "/admin/dashboard";
   if (role === PlatformRole.SELLER_USER) return "/seller";
   if (role === PlatformRole.BUYER_USER) return "/buyer";
   if (role === PlatformRole.EXPERT_USER) return "/expert";
@@ -23,6 +24,10 @@ export function needsCompany(role: PlatformRole | null): boolean {
 export function resolvePostAuthPath(context: CurrentContext | null): string {
   if (!context) return "/login";
   if (context.platformRoles.length === 0) return "/onboarding/purpose";
+  // Super Admin은 회사/Deal Active Context 없이 관리 영역에 들어간다.
+  if (context.platformRole === PlatformRole.PLATFORM_SUPER_ADMIN) {
+    return "/admin/dashboard";
+  }
   const needsCompanyLink = context.platformRoles.some((role) =>
     needsCompany(role),
   );
@@ -32,7 +37,7 @@ export function resolvePostAuthPath(context: CurrentContext | null): string {
   return workspacePathForRole(context.platformRole);
 }
 
-export type WorkspaceKind = "seller" | "buyer" | "expert" | "internal";
+export type WorkspaceKind = "seller" | "buyer" | "expert" | "internal" | "admin";
 
 /** 현재 활성 platformRole에 해당하는 Workspace 종류. 계정 공통 페이지 등에서 사용. */
 export function workspaceKindForRole(
@@ -47,6 +52,7 @@ export function workspaceKindForRole(
   ) {
     return "internal";
   }
+  if (role === PlatformRole.PLATFORM_SUPER_ADMIN) return "admin";
   return null;
 }
 
@@ -57,6 +63,9 @@ export function userCanAccessWorkspace(
   if (workspace === "seller") return roles.includes(PlatformRole.SELLER_USER);
   if (workspace === "buyer") return roles.includes(PlatformRole.BUYER_USER);
   if (workspace === "expert") return roles.includes(PlatformRole.EXPERT_USER);
+  if (workspace === "admin") {
+    return roles.includes(PlatformRole.PLATFORM_SUPER_ADMIN);
+  }
   return (
     roles.includes(PlatformRole.INTERNAL_DEAL_MANAGER) ||
     roles.includes(PlatformRole.ADMIN)
@@ -79,6 +88,9 @@ export function workspaceSwitcherLinks(context: CurrentContext) {
     context.platformRoles.includes(PlatformRole.ADMIN)
   ) {
     links.push({ href: "/internal", label: "Internal" });
+  }
+  if (context.platformRoles.includes(PlatformRole.PLATFORM_SUPER_ADMIN)) {
+    links.push({ href: "/admin/dashboard", label: "슈퍼 관리자" });
   }
   return links;
 }

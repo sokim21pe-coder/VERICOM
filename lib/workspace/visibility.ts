@@ -137,6 +137,7 @@ export function platformRoleLabel(role: PlatformRole | null): string {
   if (role === PlatformRole.EXPERT_USER) return "전문가";
   if (role === PlatformRole.INTERNAL_DEAL_MANAGER) return "Internal";
   if (role === PlatformRole.ADMIN) return "Admin";
+  if (role === PlatformRole.PLATFORM_SUPER_ADMIN) return "슈퍼 관리자";
   return "미선택";
 }
 
