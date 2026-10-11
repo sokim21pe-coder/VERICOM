@@ -7,6 +7,8 @@ import {
   buildMaskedDescriptor,
   exposesCompanyName,
   isUnsafeAnonymousFact,
+  resolveAnonymousHeadline,
+  safeAnonymousDescriptor,
   sanitizeAnonymousTeaserText,
 } from "@/lib/teaser/identity";
 import {
@@ -110,6 +112,30 @@ test("isUnsafeAnonymousFact blocks identifying names, address, raw KRW, patent, 
   assert.equal(isUnsafeAnonymousFact("특허 제10-1234567호"), true);
   assert.equal(isUnsafeAnonymousFact("SuperPack-9000"), true);
   assert.equal(isUnsafeAnonymousFact("기업가치 12000000000"), true);
+});
+
+test("safeAnonymousDescriptor replaces a leaked token with a categorical phrase", () => {
+  const leaked = "국내 이어가기매각-1788157237100 전문기업";
+  const safe = safeAnonymousDescriptor(leaked, "TEST_DEV_SELLER_CO");
+  assert.equal(safe, "국내 비상장 중소·중견기업");
+  assert.equal(safeAnonymousDescriptor("국내 산업용 배터리팩 전문기업", "TEST_DEV_SELLER_CO"), "국내 산업용 배터리팩 전문기업");
+});
+
+test("resolveAnonymousHeadline does not fall back to an unsafe descriptor", () => {
+  const leaked = "국내 이어가기매각-1788157237100 전문기업";
+  const resolved = resolveAnonymousHeadline(leaked, leaked, "TEST_DEV_SELLER_CO");
+  assert.equal(resolved.headline, "국내 비상장 중소·중견기업");
+  assert.equal(resolved.maskedDescriptor, "국내 비상장 중소·중견기업");
+  assert.equal(resolved.headline.includes("이어가기매각"), false);
+  assert.equal(resolved.headline.includes("TEST_DEV_SELLER_CO"), false);
+
+  const kept = resolveAnonymousHeadline(
+    "국내 산업용 배터리팩 전문기업",
+    leaked,
+    "TEST_DEV_SELLER_CO",
+  );
+  assert.equal(kept.headline, "국내 산업용 배터리팩 전문기업");
+  assert.equal(kept.maskedDescriptor, "국내 비상장 중소·중견기업");
 });
 
 test("sanitizeAnonymousTeaserText keeps labels and drops unsafe values", () => {
