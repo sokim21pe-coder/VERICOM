@@ -2,8 +2,10 @@ import { redirect } from "next/navigation";
 import { PurposeForm } from "@/components/auth/PurposeForm";
 import { EnvNotice } from "@/components/system/EnvNotice";
 import { getCurrentContext } from "@/lib/auth/session";
+import { resolvePostAuthPath } from "@/lib/auth/workspace-router";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { authQuery } from "@/lib/tom/paths";
+import { PlatformRole } from "@/types/enums";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +30,9 @@ export default async function PurposePage() {
   const context = await getCurrentContext();
   if (!context) {
     redirect(`/login${authQuery("/onboarding/purpose", null)}`);
+  }
+  if (context.platformRoles.includes(PlatformRole.PLATFORM_SUPER_ADMIN)) {
+    redirect(resolvePostAuthPath(context));
   }
 
   return (

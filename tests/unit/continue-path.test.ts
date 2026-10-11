@@ -73,6 +73,20 @@ test("intent without next continues to consult after onboarding", () => {
   assert.equal(ready.pendingNext, null);
 });
 
+test("super admin continue path ignores seller next and company pending", () => {
+  const ready = resolveContinuePath({
+    next: "/seller",
+    intent: "sell",
+    onboardedPath: "/admin/dashboard",
+  });
+  assert.equal(ready.redirectTo, "/admin/dashboard");
+  assert.equal(ready.pendingNext, null);
+  assert.equal(
+    resolveOnboardedContinuePath("/admin/dashboard", "/onboarding/company"),
+    "/admin/dashboard",
+  );
+});
+
 test("generic login without intent stays on workspace after onboarding", () => {
   const ready = resolveContinuePath({
     next: null,

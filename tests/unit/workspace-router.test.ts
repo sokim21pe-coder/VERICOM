@@ -135,6 +135,26 @@ test("super admin without company goes to admin dashboard", () => {
   assert.equal(path, "/admin/dashboard");
 });
 
+test("super admin skips company onboarding even with seller role and no company", () => {
+  const path = resolvePostAuthPath(
+    context([PlatformRole.SELLER_USER, PlatformRole.PLATFORM_SUPER_ADMIN], {
+      company: null,
+      platformRole: PlatformRole.SELLER_USER,
+    }),
+  );
+  assert.equal(path, "/admin/dashboard");
+});
+
+test("seller without company still goes to company onboarding", () => {
+  const path = resolvePostAuthPath(
+    context([PlatformRole.SELLER_USER], {
+      company: null,
+      platformRole: PlatformRole.SELLER_USER,
+    }),
+  );
+  assert.equal(path, "/onboarding/company");
+});
+
 test("seller cannot open admin workspace", () => {
   assert.equal(userCanAccessWorkspace("admin", [PlatformRole.SELLER_USER]), false);
   assert.equal(userCanAccessWorkspace("admin", [PlatformRole.ADMIN]), false);

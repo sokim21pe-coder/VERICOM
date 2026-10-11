@@ -23,11 +23,12 @@ export function needsCompany(role: PlatformRole | null): boolean {
 
 export function resolvePostAuthPath(context: CurrentContext | null): string {
   if (!context) return "/login";
-  if (context.platformRoles.length === 0) return "/onboarding/purpose";
-  // Super Admin은 회사/Deal Active Context 없이 관리 영역에 들어간다.
-  if (context.platformRole === PlatformRole.PLATFORM_SUPER_ADMIN) {
+  // Super Admin은 회사/온보딩/Active Deal과 무관하게 관리 영역으로 간다.
+  // 다른 Role을 같이 가져도 Company 등록을 강제하지 않는다.
+  if (context.platformRoles.includes(PlatformRole.PLATFORM_SUPER_ADMIN)) {
     return "/admin/dashboard";
   }
+  if (context.platformRoles.length === 0) return "/onboarding/purpose";
   const needsCompanyLink = context.platformRoles.some((role) =>
     needsCompany(role),
   );
