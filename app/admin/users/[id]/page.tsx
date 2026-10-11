@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AdminPage } from "@/components/admin/AdminPage";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
 import { AdminUserOperations } from "@/components/admin/AdminUserOperations";
 import { loadAdminPlatformRoles, loadAdminUser } from "@/lib/admin/data";
@@ -50,12 +51,15 @@ export default async function AdminUserDetailPage({
   });
 
   return (
-    <main className="mx-auto max-w-4xl px-5 py-8 sm:px-8">
-      <p className="text-[11px] tracking-[0.18em] text-navy">A02</p>
-      <h1 className="mt-2 text-2xl font-semibold">{String(row.display_name)}</h1>
-      <p className="mt-3 text-sm text-muted">
-        Platform Role과 계정 상태만 변경합니다. Company / Deal Role은 변경하지 않습니다.
-      </p>
+    <AdminPage
+      screenId="A02"
+      title={String(row.display_name)}
+      description="Platform Role과 계정 상태만 변경합니다. Company / Deal Role은 변경하지 않습니다."
+      crumbs={[
+        { href: "/admin/users", label: "Users" },
+        { label: String(row.display_name) },
+      ]}
+    >
 
       <section className="mt-8">
         <h2 className="text-sm font-semibold">Identity</h2>
@@ -133,6 +137,6 @@ export default async function AdminUserDetailPage({
       <Link href="/admin/users" className="mt-8 inline-flex text-sm text-navy underline">
         목록으로
       </Link>
-    </main>
+    </AdminPage>
   );
 }

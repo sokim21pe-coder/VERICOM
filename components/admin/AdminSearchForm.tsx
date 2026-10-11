@@ -2,21 +2,25 @@ export function AdminSearchForm({
   action,
   query,
   extra,
+  hideQuery = false,
 }: {
   action: string;
   query: string;
   extra?: React.ReactNode;
+  hideQuery?: boolean;
 }) {
   return (
     <form action={action} className="mt-5 flex flex-wrap items-end gap-3">
-      <label className="text-sm">
-        <span className="mb-1 block text-muted">검색</span>
-        <input
-          name="q"
-          defaultValue={query}
-          className="w-64 rounded-md border border-line px-3 py-2 text-sm"
-        />
-      </label>
+      {hideQuery ? null : (
+        <label className="text-sm">
+          <span className="mb-1 block text-muted">검색</span>
+          <input
+            name="q"
+            defaultValue={query}
+            className="w-64 rounded-md border border-line px-3 py-2 text-sm"
+          />
+        </label>
+      )}
       {extra}
       <button
         type="submit"

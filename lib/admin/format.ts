@@ -45,3 +45,23 @@ export function companyStatusLabel(value: string | null | undefined): string {
   if (value === "inactive") return "비활성";
   return value || "확인 필요";
 }
+
+export function teaserStatusLabel(value: string | null | undefined): string {
+  if (value === "DRAFT") return "초안";
+  if (value === "IN_REVIEW") return "검토 중";
+  if (value === "APPROVED") return "승인";
+  return value || "확인 필요";
+}
+
+export function tomIntentLabel(value: string | null | undefined): string {
+  if (value === "sell") return "매각(sell)";
+  if (value === "buy") return "인수(buy)";
+  return value || "확인 필요";
+}
+
+export function valuationStatusLabel(value: string | null | undefined): string {
+  if (value === "APPROVED") return "승인";
+  if (value === "TEST_ONLY") return "테스트 전용";
+  if (value === "UNVERIFIED") return "미확인";
+  return value || "확인 필요";
+}

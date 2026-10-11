@@ -1,3 +1,4 @@
+import { AdminPage } from "@/components/admin/AdminPage";
 import { AdminPager, AdminSearchForm } from "@/components/admin/AdminSearchForm";
 import { loadAdminAuditLogs } from "@/lib/admin/data";
 import { formatWhen } from "@/lib/admin/format";
@@ -16,17 +17,13 @@ export default async function AdminAuditLogsPage({
   const href = query ? `/admin/audit-logs?q=${encodeURIComponent(query)}` : "/admin/audit-logs";
 
   return (
-    <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
-      <p className="text-[11px] tracking-[0.18em] text-navy">A05</p>
-      <h1 className="mt-2 text-2xl font-semibold">Audit Logs</h1>
-      <p className="mt-3 text-sm text-muted">
-        일반 사용자는 기존 actor-scoped 정책을 유지합니다. 이 목록은 Super Admin RPC만 사용합니다.
-      </p>
-      {result.message ? (
-        <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          {result.message}
-        </p>
-      ) : null}
+    <AdminPage
+      screenId="A05"
+      title="Audit Logs"
+      description="일반 사용자는 기존 actor-scoped 정책을 유지합니다. 이 목록은 Super Admin RPC만 사용합니다."
+      crumbs={[{ label: "Audit Logs" }]}
+      notice={result.message}
+    >
       <AdminSearchForm action="/admin/audit-logs" query={query} />
       <div className="mt-5 overflow-x-auto">
         <table className="min-w-full text-left text-sm">
@@ -40,25 +37,33 @@ export default async function AdminAuditLogsPage({
             </tr>
           </thead>
           <tbody>
-            {result.rows.map((row) => (
-              <tr key={row.id} className="border-b border-line">
-                <td className="py-2 pr-3">{formatWhen(row.created_at)}</td>
-                <td className="py-2 pr-3">{row.action}</td>
-                <td className="py-2 pr-3">{row.actor_email ?? row.actor_user_id ?? "확인 필요"}</td>
-                <td className="py-2 pr-3">
-                  {row.entity_type ?? "-"} {row.entity_id ?? ""}
-                </td>
-                <td className="py-2 pr-3">
-                  {typeof row.metadata?.reason_detail === "string"
-                    ? row.metadata.reason_detail
-                    : "—"}
+            {result.rows.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="py-8 text-muted">
+                  기록된 관리자 작업이 없습니다.
                 </td>
               </tr>
-            ))}
+            ) : (
+              result.rows.map((row) => (
+                <tr key={row.id} className="border-b border-line">
+                  <td className="py-2 pr-3">{formatWhen(row.created_at)}</td>
+                  <td className="py-2 pr-3">{row.action}</td>
+                  <td className="py-2 pr-3">{row.actor_email ?? row.actor_user_id ?? "확인 필요"}</td>
+                  <td className="py-2 pr-3">
+                    {row.entity_type ?? "-"} {row.entity_id ?? ""}
+                  </td>
+                  <td className="py-2 pr-3">
+                    {typeof row.metadata?.reason_detail === "string"
+                      ? row.metadata.reason_detail
+                      : "—"}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
       <AdminPager href={href} total={result.total} limit={result.limit} offset={result.offset} />
-    </main>
+    </AdminPage>
   );
 }

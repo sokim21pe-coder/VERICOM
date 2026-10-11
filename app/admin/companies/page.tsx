@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminPage } from "@/components/admin/AdminPage";
 import { AdminPager, AdminSearchForm } from "@/components/admin/AdminSearchForm";
 import { loadAdminCompanies } from "@/lib/admin/data";
 import {
@@ -25,17 +26,13 @@ export default async function AdminCompaniesPage({
   const href = `/admin/companies${qs.toString() ? `?${qs}` : ""}`;
 
   return (
-    <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
-      <p className="text-[11px] tracking-[0.18em] text-navy">A03</p>
-      <h1 className="mt-2 text-2xl font-semibold">회사</h1>
-      <p className="mt-3 text-sm text-muted">
-        Company는 중립 객체입니다. Seller/Buyer Type은 표시하지 않습니다.
-      </p>
-      {result.message ? (
-        <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          {result.message}
-        </p>
-      ) : null}
+    <AdminPage
+      screenId="A03"
+      title="회사"
+      description="Company는 중립 객체입니다. Seller/Buyer Type은 표시하지 않습니다."
+      crumbs={[{ label: "Companies" }]}
+      notice={result.message}
+    >
       <AdminSearchForm
         action="/admin/companies"
         query={query}
@@ -71,27 +68,35 @@ export default async function AdminCompaniesPage({
             </tr>
           </thead>
           <tbody>
-            {result.rows.map((row) => (
-              <tr key={row.id} className="border-b border-line">
-                <td className="py-2 pr-3">
-                  <Link href={`/admin/companies/${row.id}`} className="text-navy underline">
-                    {row.name}
-                  </Link>
+            {result.rows.length === 0 ? (
+              <tr>
+                <td colSpan={9} className="py-8 text-muted">
+                  등록된 회사가 없습니다.
                 </td>
-                <td className="py-2 pr-3">중립</td>
-                <td className="py-2 pr-3">{row.owner_name ?? "확인 필요"}</td>
-                <td className="py-2 pr-3">{row.member_count}</td>
-                <td className="py-2 pr-3">{row.deal_count}</td>
-                <td className="py-2 pr-3">{companyVerificationLabel(row.verification_status)}</td>
-                <td className="py-2 pr-3">{companyStatusLabel(row.company_status)}</td>
-                <td className="py-2 pr-3">{formatWhen(row.last_activity_at)}</td>
-                <td className="py-2 pr-3">{formatWhen(row.created_at)}</td>
               </tr>
-            ))}
+            ) : (
+              result.rows.map((row) => (
+                <tr key={row.id} className="border-b border-line">
+                  <td className="py-2 pr-3">
+                    <Link href={`/admin/companies/${row.id}`} className="text-navy underline">
+                      {row.name}
+                    </Link>
+                  </td>
+                  <td className="py-2 pr-3">중립</td>
+                  <td className="py-2 pr-3">{row.owner_name ?? "확인 필요"}</td>
+                  <td className="py-2 pr-3">{row.member_count}</td>
+                  <td className="py-2 pr-3">{row.deal_count}</td>
+                  <td className="py-2 pr-3">{companyVerificationLabel(row.verification_status)}</td>
+                  <td className="py-2 pr-3">{companyStatusLabel(row.company_status)}</td>
+                  <td className="py-2 pr-3">{formatWhen(row.last_activity_at)}</td>
+                  <td className="py-2 pr-3">{formatWhen(row.created_at)}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
       <AdminPager href={href} total={result.total} limit={result.limit} offset={result.offset} />
-    </main>
+    </AdminPage>
   );
 }

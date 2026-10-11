@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AdminGlobalSearch } from "@/components/admin/AdminGlobalSearch";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 import { UserMenu } from "@/components/layout/UserMenu";
 import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
@@ -14,12 +15,14 @@ export function AdminShell({
   user,
   platformRoles,
   currentRole,
+  userHomeHref,
   children,
 }: {
   nav: AdminNavGroup[];
   user: { name: string; email: string | null; initials: string; roleLabel: string };
   platformRoles: PlatformRole[];
   currentRole: PlatformRole | null;
+  userHomeHref: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -53,18 +56,20 @@ export function AdminShell({
               <p className="text-sm font-semibold">SUPER ADMIN</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
+            <AdminGlobalSearch />
             <WorkspaceSwitcher roles={platformRoles} current={currentRole} />
             <UserMenu
               name={user.name}
               email={user.email}
               initials={user.initials}
               roleLabel={user.roleLabel}
+              userHomeHref={userHomeHref}
             />
           </div>
         </div>
       </header>
-      <div className="lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
+      <div className="lg:grid lg:grid-cols-[264px_minmax(0,1fr)]">
         <aside className="hidden border-r border-line lg:block">
           <AdminNavList nav={nav} pathname={pathname} />
         </aside>

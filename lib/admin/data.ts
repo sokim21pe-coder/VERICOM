@@ -1,5 +1,15 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import {
+  asRecord,
+  asRows,
+  mapAdminSearch,
+  mapDashboardKpis,
+  type AdminRecentAction,
+  type AdminRecentDeal,
+  type AdminRecentUser,
+  type AdminSearchHit,
+} from "@/lib/admin/parse";
 
 export type AdminListResult<T> = {
   storageReady: boolean;
@@ -18,6 +28,13 @@ export type AdminDashboardKpis = {
   totalDeals: number | null;
   dealsBySellerStage: Record<string, number>;
   teasersByStatus: Record<string, number>;
+  usersByRole: Record<string, number>;
+  tomConversations: number | null;
+  tomActive: number | null;
+  valuationBenchmarks: number | null;
+  recentUsers: AdminRecentUser[];
+  recentDeals: AdminRecentDeal[];
+  recentAdminActions: AdminRecentAction[];
   message: string | null;
 };
 
@@ -71,14 +88,6 @@ export type AdminAuditRow = {
 const NOT_READY =
   "관리자 저장소가 아직 준비되지 않았습니다. 마이그레이션(0022) 적용 후 이용할 수 있습니다.";
 
-function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-}
-
-function asRows<T>(value: unknown): T[] {
-  return Array.isArray(value) ? (value as T[]) : [];
-}
-
 function listFromPayload<T>(payload: unknown, fallbackLimit: number, fallbackOffset: number): AdminListResult<T> {
   const row = asRecord(payload);
   return {
@@ -116,6 +125,13 @@ export async function loadAdminDashboardKpis(): Promise<AdminDashboardKpis> {
     totalDeals: null,
     dealsBySellerStage: {},
     teasersByStatus: {},
+    usersByRole: {},
+    tomConversations: null,
+    tomActive: null,
+    valuationBenchmarks: null,
+    recentUsers: [],
+    recentDeals: [],
+    recentAdminActions: [],
     message: NOT_READY,
   };
   if (!isSupabaseConfigured()) return empty;
@@ -126,15 +142,9 @@ export async function loadAdminDashboardKpis(): Promise<AdminDashboardKpis> {
   if (error) {
     return { ...empty, message: isMissingRpc(error) ? NOT_READY : "관리자 지표를 읽지 못했습니다." };
   }
-  const row = asRecord(data);
   return {
     storageReady: true,
-    totalUsers: Number(row.total_users ?? 0),
-    activeUsers: Number(row.active_users ?? 0),
-    totalCompanies: Number(row.total_companies ?? 0),
-    totalDeals: Number(row.total_deals ?? 0),
-    dealsBySellerStage: (row.deals_by_seller_stage as Record<string, number>) ?? {},
-    teasersByStatus: (row.teasers_by_status as Record<string, number>) ?? {},
+    ...mapDashboardKpis(asRecord(data)),
     message: null,
   };
 }
@@ -257,4 +267,134 @@ export async function loadAdminAuditLogs(input: {
   });
   if (error) return emptyList(isMissingRpc(error) ? NOT_READY : "감사 로그를 읽지 못했습니다.", limit, offset);
   return listFromPayload<AdminAuditRow>(data, limit, offset);
+}
+
+export type AdminTeaserRow = {
+  id: string;
+  company_id: string;
+  company_name: string | null;
+  deal_id: string | null;
+  status: string;
+  current_version: number;
+  approved_version: number | null;
+  identity_masked: boolean;
+  masked_descriptor: string | null;
+  headline: string | null;
+  created_at: string;
+};
+
+export type AdminTomConversationRow = {
+  id: string;
+  user_id: string;
+  display_name: string | null;
+  email: string | null;
+  company_id: string | null;
+  company_name: string | null;
+  deal_id: string | null;
+  intent: string;
+  status: string;
+  created_at: string;
+  last_message_at: string | null;
+  message_count: number;
+};
+
+export type AdminValuationRow = {
+  id: string;
+  company_id: string;
+  company_name: string | null;
+  deal_id: string | null;
+  method: string;
+  source: string;
+  source_type: string;
+  as_of_date: string;
+  industry: string | null;
+  confidence: string;
+  approval_status: string;
+  created_at: string;
+};
+
+export async function loadAdminTeasers(input: {
+  status?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<AdminListResult<AdminTeaserRow>> {
+  const limit = input.limit ?? 20;
+  const offset = input.offset ?? 0;
+  if (!isSupabaseConfigured()) return emptyList(NOT_READY, limit, offset);
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return emptyList(NOT_READY, limit, offset);
+  const { data, error } = await supabase.rpc("admin_list_teasers", {
+    p_status: input.status || null,
+    p_limit: limit,
+    p_offset: offset,
+  });
+  if (error) return emptyList(isMissingRpc(error) ? NOT_READY : "문서 목록을 읽지 못했습니다.", limit, offset);
+  return listFromPayload<AdminTeaserRow>(data, limit, offset);
+}
+
+export async function loadAdminTomConversations(input: {
+  intent?: string;
+  status?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<AdminListResult<AdminTomConversationRow>> {
+  const limit = input.limit ?? 20;
+  const offset = input.offset ?? 0;
+  if (!isSupabaseConfigured()) return emptyList(NOT_READY, limit, offset);
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return emptyList(NOT_READY, limit, offset);
+  const { data, error } = await supabase.rpc("admin_list_tom_conversations", {
+    p_intent: input.intent || null,
+    p_status: input.status || null,
+    p_limit: limit,
+    p_offset: offset,
+  });
+  if (error) return emptyList(isMissingRpc(error) ? NOT_READY : "TOM 상담 목록을 읽지 못했습니다.", limit, offset);
+  return listFromPayload<AdminTomConversationRow>(data, limit, offset);
+}
+
+export async function loadAdminValuations(input: {
+  status?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<AdminListResult<AdminValuationRow>> {
+  const limit = input.limit ?? 20;
+  const offset = input.offset ?? 0;
+  if (!isSupabaseConfigured()) return emptyList(NOT_READY, limit, offset);
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return emptyList(NOT_READY, limit, offset);
+  const { data, error } = await supabase.rpc("admin_list_valuation_benchmarks", {
+    p_status: input.status || null,
+    p_limit: limit,
+    p_offset: offset,
+  });
+  if (error) return emptyList(isMissingRpc(error) ? NOT_READY : "가치평가 목록을 읽지 못했습니다.", limit, offset);
+  return listFromPayload<AdminValuationRow>(data, limit, offset);
+}
+
+export async function loadAdminSearch(query: string): Promise<{
+  storageReady: boolean;
+  users: AdminSearchHit[];
+  companies: AdminSearchHit[];
+  deals: AdminSearchHit[];
+  message: string | null;
+}> {
+  const empty = {
+    storageReady: false,
+    users: [] as AdminSearchHit[],
+    companies: [] as AdminSearchHit[],
+    deals: [] as AdminSearchHit[],
+    message: NOT_READY,
+  };
+  if (!isSupabaseConfigured()) return empty;
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return empty;
+  const { data, error } = await supabase.rpc("admin_search", { p_query: query });
+  if (error) {
+    return {
+      ...empty,
+      message: isMissingRpc(error) ? NOT_READY : "검색 결과를 읽지 못했습니다.",
+    };
+  }
+  return { storageReady: true, ...mapAdminSearch(asRecord(data)), message: null };
 }

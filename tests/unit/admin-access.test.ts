@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { isPlatformSuperAdmin } from "@/lib/admin/access";
 import { adminHeaderIdentity } from "@/lib/admin/header";
-import { ADMIN_NAV } from "@/lib/admin/nav";
+import { ADMIN_NAV, liveAdminHrefs } from "@/lib/admin/nav";
 import { resolveActivePlatformRole } from "@/lib/auth/active-role";
 import { workspaceSwitcherLinks } from "@/lib/auth/workspace-router";
 import { PlatformRole } from "@/types/enums";
@@ -76,26 +76,28 @@ test("spoofed super admin cookie is ignored", () => {
   );
 });
 
-test("v1 coming soon admin items stay out of live routes", () => {
-  const live = ADMIN_NAV.flatMap((group) => group.items)
-    .filter((item) => !item.comingSoon)
-    .map((item) => item.href);
+test("control tower live admin items stay out of coming-soon routes", () => {
   const soon = ADMIN_NAV.flatMap((group) => group.items)
     .filter((item) => item.comingSoon)
     .map((item) => item.label);
-  assert.deepEqual(live, [
+  assert.deepEqual(liveAdminHrefs(), [
     "/admin/dashboard",
     "/admin/users",
     "/admin/companies",
     "/admin/deals",
+    "/admin/tom",
+    "/admin/documents",
+    "/admin/valuations",
     "/admin/audit-logs",
   ]);
-  assert.ok(soon.includes("Documents"));
-  assert.ok(soon.includes("Buyers"));
+  assert.ok(soon.includes("Roles & Permissions"));
+  assert.ok(soon.includes("Deal Pipeline"));
   assert.ok(soon.includes("Investors / FI"));
-  assert.ok(soon.includes("Experts"));
-  assert.ok(soon.includes("TOM AI"));
+  assert.ok(soon.includes("Workflows"));
   assert.ok(soon.includes("Settings"));
+  assert.ok(soon.includes("VDR"));
+  assert.ok(!soon.includes("Documents"));
+  assert.ok(!soon.includes("AI Overview"));
 });
 
 test("switcher includes admin only when role is owned", () => {
