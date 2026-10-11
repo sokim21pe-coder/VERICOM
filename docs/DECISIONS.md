@@ -211,5 +211,7 @@ Desktop 1280·Mobile 375에서 초안·검토·승인·편집·미리보기·확
 
 오프라인: `npm test` 253 PASS, `npm run lint` 0 errors(기존 warning 1), `tsc --noEmit` PASS, `npm run build` PASS(`/seller/teaser` 포함). Production `https://www.vericom.kr` 미로그인 smoke: `/` `/login` 200, `/seller` `/seller/teaser` `/seller/deals` `/seller/valuation` `/account/profile` 307. GitHub Production deployment SHA는 `0958941`이다. 이 브랜치의 descriptor fallback 수정은 그 배포에 아직 없다. 현재 저장된 헤드라인·descriptor는 이미 범주형이라, 그 배포가 현재 행을 다시 그릴 때 v1 토큰을 현재 헤드라인으로 쓰지 않는다. 화면 ID는 코드 S05, 명세 S07로 남아 있다(동작 변경 없음). NDA는 시작하지 않았다.
 
+과거 Teaser 버전 스냅샷 운영주의: `teaser_versions`는 불변 이력이다. closeout 이전 v1 APPROVED 스냅샷에 남은 식별 토큰·EBITDA 원문은 silent overwrite·삭제하지 않는다. 현재 화면은 헤더의 현재 버전(v3 DRAFT)만 보여 주고, 최신 승인 포인터는 sanitized v2다. v1을 현재 헤드라인이나 기본 미리보기로 되돌리지 않는다. 나중에 버전 이력 UI를 만들면, 과거 unsafe 스냅샷은 별도 권한과 redaction 정책 없이 기본 노출하지 않는다.
+
 
 
