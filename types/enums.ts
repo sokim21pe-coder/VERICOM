@@ -4,6 +4,8 @@ export enum PlatformRole {
   EXPERT_USER = "EXPERT_USER",
   INTERNAL_DEAL_MANAGER = "INTERNAL_DEAL_MANAGER",
   ADMIN = "ADMIN",
+  /** 플랫폼 총관리. 기존 ADMIN(/internal Staff)과 별개. 자가부여 금지. */
+  PLATFORM_SUPER_ADMIN = "PLATFORM_SUPER_ADMIN",
 }
 
 export enum DealRole {

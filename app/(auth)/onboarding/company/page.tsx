@@ -7,6 +7,7 @@ import { consumePendingNextPath } from "@/lib/auth/pending-next";
 import { resolveOnboardedContinuePath } from "@/lib/auth/continue-path";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { authQuery } from "@/lib/tom/paths";
+import { PlatformRole } from "@/types/enums";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,9 @@ export default async function CompanyOnboardingPage() {
   const context = await getCurrentContext();
   if (!context) {
     redirect(`/login${authQuery("/onboarding/company", null)}`);
+  }
+  if (context.platformRoles.includes(PlatformRole.PLATFORM_SUPER_ADMIN)) {
+    redirect(resolvePostAuthPath(context));
   }
   if (context.platformRoles.length === 0) {
     redirect("/onboarding/purpose");

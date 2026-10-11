@@ -48,6 +48,11 @@ test("workspace paths match platform roles", () => {
     workspacePathForRole(PlatformRole.INTERNAL_DEAL_MANAGER),
     "/internal",
   );
+  assert.equal(
+    workspacePathForRole(PlatformRole.PLATFORM_SUPER_ADMIN),
+    "/admin/dashboard",
+  );
+  assert.equal(workspacePathForRole(PlatformRole.ADMIN), "/internal");
 });
 
 test("cookie role spoof is ignored", () => {
@@ -118,4 +123,48 @@ test("internal without company goes to internal workspace", () => {
     }),
   );
   assert.equal(path, "/internal");
+});
+
+test("super admin without company goes to admin dashboard", () => {
+  const path = resolvePostAuthPath(
+    context([PlatformRole.PLATFORM_SUPER_ADMIN], {
+      company: null,
+      platformRole: PlatformRole.PLATFORM_SUPER_ADMIN,
+    }),
+  );
+  assert.equal(path, "/admin/dashboard");
+});
+
+test("super admin skips company onboarding even with seller role and no company", () => {
+  const path = resolvePostAuthPath(
+    context([PlatformRole.SELLER_USER, PlatformRole.PLATFORM_SUPER_ADMIN], {
+      company: null,
+      platformRole: PlatformRole.SELLER_USER,
+    }),
+  );
+  assert.equal(path, "/admin/dashboard");
+});
+
+test("seller without company still goes to company onboarding", () => {
+  const path = resolvePostAuthPath(
+    context([PlatformRole.SELLER_USER], {
+      company: null,
+      platformRole: PlatformRole.SELLER_USER,
+    }),
+  );
+  assert.equal(path, "/onboarding/company");
+});
+
+test("seller cannot open admin workspace", () => {
+  assert.equal(userCanAccessWorkspace("admin", [PlatformRole.SELLER_USER]), false);
+  assert.equal(userCanAccessWorkspace("admin", [PlatformRole.ADMIN]), false);
+  assert.equal(
+    userCanAccessWorkspace("admin", [PlatformRole.PLATFORM_SUPER_ADMIN]),
+    true,
+  );
+});
+
+test("existing ADMIN still opens internal, not admin", () => {
+  assert.equal(userCanAccessWorkspace("internal", [PlatformRole.ADMIN]), true);
+  assert.equal(workspacePathForRole(PlatformRole.ADMIN), "/internal");
 });

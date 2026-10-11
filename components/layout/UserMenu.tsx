@@ -71,6 +71,7 @@ export function UserMenu({
           {email ? (
             <span className="block truncate text-xs text-muted">{email}</span>
           ) : null}
+          <span className="block truncate text-[11px] text-muted">{roleLabel}</span>
         </span>
         <svg
           aria-hidden

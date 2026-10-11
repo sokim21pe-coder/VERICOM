@@ -34,6 +34,8 @@ test("safeNextPath allows consult and workspace, rejects open redirects", () => 
   assert.equal(safeNextPath("/seller/valuation"), "/seller/valuation");
   assert.equal(safeNextPath("/buyer/criteria"), "/buyer/criteria");
   assert.equal(safeNextPath("/internal"), "/internal");
+  assert.equal(safeNextPath("/admin/dashboard"), "/admin/dashboard");
+  assert.equal(safeNextPath("/admin/users"), "/admin/users");
   assert.equal(safeNextPath("//evil.example"), null);
   assert.equal(safeNextPath("https://evil.example"), null);
   assert.equal(safeNextPath("/login"), null);
@@ -71,6 +73,20 @@ test("intent without next continues to consult after onboarding", () => {
   assert.equal(ready.pendingNext, null);
 });
 
+test("super admin continue path ignores seller next and company pending", () => {
+  const ready = resolveContinuePath({
+    next: "/seller",
+    intent: "sell",
+    onboardedPath: "/admin/dashboard",
+  });
+  assert.equal(ready.redirectTo, "/admin/dashboard");
+  assert.equal(ready.pendingNext, null);
+  assert.equal(
+    resolveOnboardedContinuePath("/admin/dashboard", "/onboarding/company"),
+    "/admin/dashboard",
+  );
+});
+
 test("generic login without intent stays on workspace after onboarding", () => {
   const ready = resolveContinuePath({
     next: null,
@@ -96,6 +112,18 @@ test("unauthenticated workspace guard keeps return path", () => {
   assert.equal(
     loginHrefForWorkspace("buyer"),
     "/login?next=%2Fbuyer&intent=buy",
+  );
+  assert.equal(
+    loginHrefForWorkspace("admin"),
+    "/login?next=%2Fadmin%2Fdashboard",
+  );
+  assert.equal(
+    loginHrefForWorkspace("internal"),
+    "/login?next=%2Finternal",
+  );
+  assert.equal(
+    loginHrefForWorkspace("expert"),
+    "/login?next=%2Fexpert",
   );
 });
 

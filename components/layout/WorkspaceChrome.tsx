@@ -14,6 +14,7 @@ const roleLabel: Record<WorkspaceKind, string> = {
   buyer: "인수 워크스페이스",
   expert: "전문가 워크스페이스",
   internal: "Internal 워크스페이스",
+  admin: "슈퍼 관리자",
 };
 
 export async function WorkspaceChrome({

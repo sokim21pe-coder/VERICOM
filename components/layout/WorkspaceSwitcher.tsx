@@ -10,6 +10,7 @@ const labels: { role: PlatformRole; label: string }[] = [
   { role: PlatformRole.BUYER_USER, label: "Buyer" },
   { role: PlatformRole.EXPERT_USER, label: "전문가" },
   { role: PlatformRole.INTERNAL_DEAL_MANAGER, label: "Internal" },
+  { role: PlatformRole.PLATFORM_SUPER_ADMIN, label: "슈퍼 관리자" },
 ];
 
 export function WorkspaceSwitcher({

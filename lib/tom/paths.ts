@@ -30,6 +30,8 @@ function isAllowedNextPath(path: string): boolean {
     path.startsWith("/expert/") ||
     path === "/internal" ||
     path.startsWith("/internal/") ||
+    path === "/admin" ||
+    path.startsWith("/admin/") ||
     path.startsWith("/onboarding/")
   );
 }
@@ -78,11 +80,12 @@ export function signupHref(
 }
 
 export function loginHrefForWorkspace(
-  workspace: "seller" | "buyer" | "expert" | "internal",
+  workspace: "seller" | "buyer" | "expert" | "internal" | "admin",
 ): string {
   if (workspace === "seller") return loginHref("/seller", "sell");
   if (workspace === "buyer") return loginHref("/buyer", "buy");
   if (workspace === "expert") return loginHref("/expert", null);
+  if (workspace === "admin") return loginHref("/admin/dashboard", null);
   return loginHref("/internal", null);
 }
 

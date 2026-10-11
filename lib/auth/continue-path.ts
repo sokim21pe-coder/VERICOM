@@ -22,6 +22,9 @@ export function resolveContinuePath(input: {
   onboardedPath: string;
 }): { redirectTo: string; pendingNext: string | null } {
   const intended = intendedNextPath(input.next, input.intent);
+  if (input.onboardedPath.startsWith("/admin")) {
+    return { redirectTo: input.onboardedPath, pendingNext: null };
+  }
   if (input.onboardedPath.startsWith("/onboarding")) {
     return { redirectTo: input.onboardedPath, pendingNext: intended };
   }
@@ -36,5 +39,6 @@ export function resolveOnboardedContinuePath(
   pendingNext: string | null,
 ): string {
   if (onboardedPath.startsWith("/onboarding")) return onboardedPath;
+  if (onboardedPath.startsWith("/admin")) return onboardedPath;
   return pendingNext ?? onboardedPath;
 }

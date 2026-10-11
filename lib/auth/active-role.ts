@@ -8,5 +8,8 @@ export function resolveActivePlatformRole(
   platformRoles: PlatformRole[],
 ): PlatformRole | null {
   if (cookieRole && platformRoles.includes(cookieRole)) return cookieRole;
+  if (platformRoles.includes(PlatformRole.PLATFORM_SUPER_ADMIN)) {
+    return PlatformRole.PLATFORM_SUPER_ADMIN;
+  }
   return platformRoles[0] ?? null;
 }

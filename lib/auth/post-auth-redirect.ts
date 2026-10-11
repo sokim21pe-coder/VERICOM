@@ -99,6 +99,15 @@ export async function computePostAuthRedirect(options?: {
   const ensured = await ensureAppProfile();
   if (!ensured.ok) return ensured;
 
+  const existing = await getCurrentContext();
+  if (existing?.platformRoles.includes(PlatformRole.PLATFORM_SUPER_ADMIN)) {
+    return {
+      ok: true,
+      message: null,
+      redirectTo: "/admin/dashboard",
+    };
+  }
+
   const next = safeNextPath(options?.next ?? null);
   const intent =
     parseTomIntent(options?.intent) ?? parseIntentFromNext(next);
