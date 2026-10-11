@@ -44,7 +44,7 @@ export async function getCurrentContext(): Promise<CurrentContext | null> {
 
   const { data: appUser } = await supabase
     .from("users")
-    .select("id, auth_user_id, email, display_name")
+    .select("id, auth_user_id, email, display_name, status")
     .eq("auth_user_id", authUser.id)
     .maybeSingle();
 
@@ -140,6 +140,7 @@ export async function getCurrentContext(): Promise<CurrentContext | null> {
       authUserId: appUser.auth_user_id,
       email: appUser.email,
       displayName: appUser.display_name,
+      status: appUser.status === "disabled" ? "disabled" : "active",
     },
     company,
     platformRole: currentRole,

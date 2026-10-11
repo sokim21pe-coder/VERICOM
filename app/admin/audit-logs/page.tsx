@@ -36,6 +36,7 @@ export default async function AdminAuditLogsPage({
               <th className="py-2 pr-3">Action</th>
               <th className="py-2 pr-3">Actor</th>
               <th className="py-2 pr-3">대상</th>
+              <th className="py-2 pr-3">사유</th>
             </tr>
           </thead>
           <tbody>
@@ -46,6 +47,11 @@ export default async function AdminAuditLogsPage({
                 <td className="py-2 pr-3">{row.actor_email ?? row.actor_user_id ?? "확인 필요"}</td>
                 <td className="py-2 pr-3">
                   {row.entity_type ?? "-"} {row.entity_id ?? ""}
+                </td>
+                <td className="py-2 pr-3">
+                  {typeof row.metadata?.reason_detail === "string"
+                    ? row.metadata.reason_detail
+                    : "—"}
                 </td>
               </tr>
             ))}

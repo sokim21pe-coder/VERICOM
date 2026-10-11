@@ -14,6 +14,11 @@ import {
   safeNextPath,
 } from "@/lib/tom/paths";
 import { ErrorCode, PlatformRole } from "@/types/enums";
+import {
+  ACCOUNT_DISABLED_MESSAGE,
+  ACCOUNT_DISABLED_PATH,
+  contextIsDisabled,
+} from "@/lib/auth/account-status";
 
 type ActionResult = {
   ok: boolean;
@@ -30,6 +35,7 @@ function verificationLevel(role: PlatformRole): string {
 
 export async function destinationAfterAuth(): Promise<string> {
   const context = await getCurrentContext();
+  if (contextIsDisabled(context)) return ACCOUNT_DISABLED_PATH;
   const onboarded = resolvePostAuthPath(context);
   if (onboarded.startsWith("/onboarding")) return onboarded;
   const pending = await consumePendingNextPath();
@@ -100,6 +106,13 @@ export async function computePostAuthRedirect(options?: {
   if (!ensured.ok) return ensured;
 
   const existing = await getCurrentContext();
+  if (contextIsDisabled(existing)) {
+    return {
+      ok: false,
+      message: ACCOUNT_DISABLED_MESSAGE,
+      redirectTo: ACCOUNT_DISABLED_PATH,
+    };
+  }
   if (existing?.platformRoles.includes(PlatformRole.PLATFORM_SUPER_ADMIN)) {
     return {
       ok: true,

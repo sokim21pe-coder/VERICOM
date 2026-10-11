@@ -47,6 +47,14 @@ export function LoginForm({
     }
 
     const result = await getPostAuthRedirect({ next, intent });
+    if (result.message && !result.redirectTo) {
+      setPending(false);
+      setMessage(result.message);
+      return;
+    }
+    if (result.message && result.redirectTo) {
+      setMessage(result.message);
+    }
     assignAfterAuth(result.redirectTo, next, intent);
   }
 

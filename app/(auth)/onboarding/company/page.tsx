@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { CompanyOnboardingForm } from "@/components/auth/CompanyOnboardingForm";
 import { EnvNotice } from "@/components/system/EnvNotice";
+import { redirectIfAccountDisabled } from "@/lib/auth/account-status";
 import { getCurrentContext } from "@/lib/auth/session";
 import { needsCompany, resolvePostAuthPath } from "@/lib/auth/workspace-router";
 import { consumePendingNextPath } from "@/lib/auth/pending-next";
@@ -33,6 +34,7 @@ export default async function CompanyOnboardingPage() {
   if (!context) {
     redirect(`/login${authQuery("/onboarding/company", null)}`);
   }
+  redirectIfAccountDisabled(context);
   if (context.platformRoles.includes(PlatformRole.PLATFORM_SUPER_ADMIN)) {
     redirect(resolvePostAuthPath(context));
   }

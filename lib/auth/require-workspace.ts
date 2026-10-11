@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { redirectIfAccountDisabled } from "@/lib/auth/account-status";
 import { getCurrentContext } from "@/lib/auth/session";
 import {
   resolvePostAuthPath,
@@ -30,6 +31,7 @@ export async function requireWorkspace(
   if (!context) {
     redirect(loginHrefForWorkspace(workspace));
   }
+  redirectIfAccountDisabled(context);
 
   const dest = resolvePostAuthPath(context);
   if (dest.startsWith("/onboarding")) {

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { isPlatformSuperAdmin } from "@/lib/admin/access";
+import { redirectIfAccountDisabled } from "@/lib/auth/account-status";
 import { getCurrentContext } from "@/lib/auth/session";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import type { CurrentContext } from "@/types/context";
@@ -15,6 +16,7 @@ export async function requireSuperAdmin(): Promise<CurrentContext | null> {
   if (!context) {
     redirect("/login?next=/admin/dashboard");
   }
+  redirectIfAccountDisabled(context);
   if (!isPlatformSuperAdmin(context.platformRoles)) {
     redirect("/unauthorized");
   }

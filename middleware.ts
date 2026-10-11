@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { ACCOUNT_DISABLED_PATH, isDisabledBlockedPath } from "@/lib/admin/operations";
 
 const GUEST_COOKIE = "vericom_guest_session";
 
@@ -42,7 +43,24 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    const { data: appUser } = await supabase
+      .from("users")
+      .select("status")
+      .eq("auth_user_id", user.id)
+      .maybeSingle();
+    if (appUser?.status === "disabled" && isDisabledBlockedPath(request.nextUrl.pathname)) {
+      const dest = request.nextUrl.clone();
+      dest.pathname = ACCOUNT_DISABLED_PATH;
+      dest.search = "";
+      return withGuestCookie(request, NextResponse.redirect(dest));
+    }
+  }
+
   return withGuestCookie(request, response);
 }
 
