@@ -6,6 +6,7 @@ export type AppUser = {
   authUserId: string;
   email: string;
   displayName: string;
+  status?: "active" | "disabled";
 };
 
 export type AppCompany = {

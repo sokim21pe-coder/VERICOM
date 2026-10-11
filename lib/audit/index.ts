@@ -6,6 +6,7 @@ export async function recordAudit(input: {
   action: string;
   entityType?: string;
   entityId?: string;
+  metadata?: Record<string, unknown>;
 }): Promise<void> {
   try {
     const context = await getCurrentContext();
@@ -16,6 +17,7 @@ export async function recordAudit(input: {
       action: input.action,
       entity_type: input.entityType ?? null,
       entity_id: input.entityId ?? null,
+      metadata: input.metadata ?? null,
     });
     await supabase.from("activities").insert({
       actor_user_id: context.user.id,

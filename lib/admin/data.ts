@@ -62,6 +62,7 @@ export type AdminAuditRow = {
   actor_user_id: string | null;
   actor_email: string | null;
   created_at: string;
+  metadata?: Record<string, unknown> | null;
 };
 
 const NOT_READY =
@@ -135,9 +136,21 @@ export async function loadAdminDashboardKpis(): Promise<AdminDashboardKpis> {
   };
 }
 
+export type AdminRoleOption = { code: string; label_ko: string };
+
+export async function loadAdminPlatformRoles(): Promise<AdminRoleOption[]> {
+  if (!isSupabaseConfigured()) return [];
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase.rpc("admin_get_platform_roles");
+  if (error || !Array.isArray(data)) return [];
+  return data as AdminRoleOption[];
+}
+
 export async function loadAdminUsers(input: {
   query?: string;
   status?: string;
+  role?: string;
   limit?: number;
   offset?: number;
 }): Promise<AdminListResult<AdminUserRow>> {
@@ -149,6 +162,7 @@ export async function loadAdminUsers(input: {
   const { data, error } = await supabase.rpc("admin_list_users", {
     p_query: input.query || null,
     p_status: input.status || null,
+    p_role: input.role || null,
     p_limit: limit,
     p_offset: offset,
   });

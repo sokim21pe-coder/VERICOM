@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { PurposeForm } from "@/components/auth/PurposeForm";
 import { EnvNotice } from "@/components/system/EnvNotice";
+import { redirectIfAccountDisabled } from "@/lib/auth/account-status";
 import { getCurrentContext } from "@/lib/auth/session";
 import { resolvePostAuthPath } from "@/lib/auth/workspace-router";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -31,6 +32,7 @@ export default async function PurposePage() {
   if (!context) {
     redirect(`/login${authQuery("/onboarding/purpose", null)}`);
   }
+  redirectIfAccountDisabled(context);
   if (context.platformRoles.includes(PlatformRole.PLATFORM_SUPER_ADMIN)) {
     redirect(resolvePostAuthPath(context));
   }
