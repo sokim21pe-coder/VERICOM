@@ -197,5 +197,19 @@ Active Deal은 최신 행으로 자동 선택하지 않고 헤더에서 `TEST_DE
 - Secret: 값 미출력. `.env.local` gitignored. `supabase/.temp` untracked/커밋 금지.
 - pending(optional): sanitizer Production 배포 후 13.1 재검증(승인 해제 또는 새 초안). S05/S07 화면 ID 정합. PR #12 TOM 상세 페이지는 신규 기능이라 종료 범위에서 머지하지 않음. NDA 미착수.
 
+2026-10-11 Seller Teaser LIVE Final Closeout = **CLOSED**. 기준 커밋은 `origin/main` `0958941`(Merge PR #18). 이 기록의 코드 수정은 저장 시 위험한 `maskedDescriptor`를 헤드라인 fallback으로 다시 쓰지 않도록 한 것이다. `0021` 재실행·`supabase db push`·`schema_migrations` 수정·신규 Production 계정/회사/Deal 생성·NDA 구현은 없다. service_role 결과로 PASS를 쓰지 않았다. Secret 값은 기록하지 않는다.
+
+LIVE는 로컬 Next(이 브랜치) + Production Supabase, 시드 Seller `test.seller.sprint0@vericom.test` 실제 JWT다. CurrentContext: 사용자 `TEST_DEV_SELLER`, 플랫폼 역할 `SELLER_USER`, 회사 `TEST_DEV_SELLER_CO`(OWNER, active). UI는 `TEST_DEV_*` 표시를 가려 회사명을 "미등록"으로 보여 준다. Active Deal은 자동 선택되지 않았고, 헤더에서 `TEST_DEV_DEAL_A`만 명시 선택했다. Deal 역할 `SELLER_OWNER`, permission `VIEW_DEAL`. 같은 사용자는 `TEST_DEV_DEAL_B_NO_EXPERT`의 `SELLER_OWNER`, `TEST_DEV_DEAL_Y_COMPANY_AS_BUYER`의 `BUYER_OWNER`이기도 하다.
+
+기존 Teaser 1건(회사+상담 대화당 1건)은 APPROVED v1이었다. `create_teaser_draft`는 기존 id를 반환하므로 초안을 다시 만들지 않았다. 기존 `TEASER_DRAFT_CREATED` 1건과 v1 스냅샷은 유지된다. v1 스냅샷에는 closeout 이전 식별 토큰·모델명·EBITDA 원문이 남아 있으며, 이번 작업에서 그 스냅샷은 덮어쓰지 않았다. 화면의 현재본은 v1이 아니다.
+
+저장(서버 액션, sanitizer 경로): APPROVED v1 → DRAFT v2, `approved_version`은 1로 유지, `TEASER_UPDATED`. 헤드라인은 범주형 "국내 비상장 중소·중견기업"이 되었다. 본문에 넣은 회사명·식별 토큰·정확 주소·고객사·단독 공급·모델명·특허번호·원문 매출·영업이익·EBITDA·WACC·EV·계약금액은 값만 "확인 필요"로 바뀌었고, "매출 약 50~100억 원"과 "수도권 소재"는 남았다. 검토: DRAFT → IN_REVIEW, `TEASER_REVIEWED`. 승인: IN_REVIEW → APPROVED, `approved_version=2`, `approved_at` 있음, `approved_by`는 해당 Seller, v2 스냅샷 `APPROVED`, `TEASER_APPROVED`. 승인본 수정: 헤드라인을 "국내 산업용 부품 전문기업"으로 저장 → DRAFT v3, `approved_version`은 2, v2 스냅샷은 APPROVED로 유지, `TEASER_UPDATED`. 버전은 v1 APPROVED(이력), v2 APPROVED(최신 승인), v3 DRAFT(현재). 삭제는 없다. Audit와 activities 모두 draft 1 / updated 2 / reviewed 2 / approved 2(과거 1회 + 이번 1회).
+
+RLS(시드 JWT): 본인 Seller SELECT 1건. Seller가 Buyer 회사 id로 `create_teaser_draft` 호출 시 `not permitted: seller of company required`. Buyer A·Buyer B SELECT 0건, Buyer 승인·생성 RPC 거부. Expert·Internal SELECT 가능, save/approve RPC 거부. 직접 INSERT `42501`. 직접 UPDATE는 0행이고 상태 DRAFT v3·헤드라인이 유지됐다. anon RPC `not authenticated`. `valuations` 테이블은 없고 `approved_valuation_benchmarks`는 이 Seller 기준 0건이다. 비교배수가 없어도 Teaser 초안·저장이 됐다. 화면 재무는 매출 구간과 NDA 이후 IM 안내만 있다. `TEST_DEV_DEAL_A.seller_stage_key`는 `SELLER_NDA`, `deal_stage_events`는 3건이며 Teaser 저장·검토·승인·수정 전후로 변하지 않았다.
+
+Desktop 1280·Mobile 375에서 초안·검토·승인·편집·미리보기·확인 필요·식별정보 비공개·승인 해제 안내를 봤다. 가로 overflow는 없었다(1280에서 scrollWidth=clientWidth, 375에서 375=375). 모바일 메뉴는 열렸다.
+
+오프라인: `npm test` 253 PASS, `npm run lint` 0 errors(기존 warning 1), `tsc --noEmit` PASS, `npm run build` PASS(`/seller/teaser` 포함). Production `https://www.vericom.kr` 미로그인 smoke: `/` `/login` 200, `/seller` `/seller/teaser` `/seller/deals` `/seller/valuation` `/account/profile` 307. GitHub Production deployment SHA는 `0958941`이다. 이 브랜치의 descriptor fallback 수정은 그 배포에 아직 없다. 현재 저장된 헤드라인·descriptor는 이미 범주형이라, 그 배포가 현재 행을 다시 그릴 때 v1 토큰을 현재 헤드라인으로 쓰지 않는다. 화면 ID는 코드 S05, 명세 S07로 남아 있다(동작 변경 없음). NDA는 시작하지 않았다.
+
 
 
