@@ -213,5 +213,7 @@ Desktop 1280·Mobile 375에서 초안·검토·승인·편집·미리보기·확
 
 과거 Teaser 버전 스냅샷 운영주의: `teaser_versions`는 불변 이력이다. closeout 이전 v1 APPROVED 스냅샷에 남은 식별 토큰·EBITDA 원문은 silent overwrite·삭제하지 않는다. 현재 화면은 헤더의 현재 버전(v3 DRAFT)만 보여 주고, 최신 승인 포인터는 sanitized v2다. v1을 현재 헤드라인이나 기본 미리보기로 되돌리지 않는다. 나중에 버전 이력 UI를 만들면, 과거 unsafe 스냅샷은 별도 권한과 redaction 정책 없이 기본 노출하지 않는다.
 
+2026-10-11 Seller Teaser Final Sync = **COMPLETE**. PR #20은 Draft가 아닌 Ready 상태에서 merge commit `723010d65b451b5b920d84427e8d2d5eaf8b3db2`로 main에 반영됐다. force merge·history rewrite는 없다. Vercel Production deployment `6994662904`(environment=Production, `Deployment has completed`)의 SHA는 `723010d`이고, 그 시점의 `origin/main`과 같다. 사이트 `https://www.vericom.kr`. 미로그인 smoke: `/` `/login` 200, `/seller` `/seller/teaser` `/seller/deals` `/seller/valuation` `/account/profile` 307. 시드 Seller 로그인 후 Production `/seller/teaser`는 상태 초안, 현재 v3, 승인 버전 v2, 헤드라인 `국내 산업용 부품 전문기업`, 식별정보 비공개, 확인 필요. 화면의 현재본에 이어가기매각 토큰·EBITDA·`TEST_DEV_SELLER_CO`·모델명은 없다. 코드 변경은 headline/descriptor 재사용 차단과 이 문서뿐이며 migration·`db push`·`schema_migrations` 수정·`0021` 재실행은 없다. Seller Teaser = **CLOSED**. NDA는 시작하지 않았다.
+
 
 
