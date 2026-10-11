@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { isPlatformSuperAdmin } from "@/lib/admin/access";
+import { ADMIN_NAV } from "@/lib/admin/nav";
 import { resolveActivePlatformRole } from "@/lib/auth/active-role";
 import { workspaceSwitcherLinks } from "@/lib/auth/workspace-router";
 import { PlatformRole } from "@/types/enums";
@@ -57,6 +58,28 @@ test("spoofed super admin cookie is ignored", () => {
     ]),
     PlatformRole.SELLER_USER,
   );
+});
+
+test("v1 coming soon admin items stay out of live routes", () => {
+  const live = ADMIN_NAV.flatMap((group) => group.items)
+    .filter((item) => !item.comingSoon)
+    .map((item) => item.href);
+  const soon = ADMIN_NAV.flatMap((group) => group.items)
+    .filter((item) => item.comingSoon)
+    .map((item) => item.label);
+  assert.deepEqual(live, [
+    "/admin/dashboard",
+    "/admin/users",
+    "/admin/companies",
+    "/admin/deals",
+    "/admin/audit-logs",
+  ]);
+  assert.ok(soon.includes("Documents"));
+  assert.ok(soon.includes("Buyers"));
+  assert.ok(soon.includes("Investors / FI"));
+  assert.ok(soon.includes("Experts"));
+  assert.ok(soon.includes("TOM AI"));
+  assert.ok(soon.includes("Settings"));
 });
 
 test("switcher includes admin only when role is owned", () => {
