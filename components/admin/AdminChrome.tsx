@@ -5,8 +5,8 @@ import { BrandLogo } from "@/components/layout/BrandLogo";
 import { requireSuperAdmin } from "@/lib/admin/guard";
 import { ADMIN_NAV } from "@/lib/admin/nav";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { platformRoleLabel } from "@/lib/workspace/visibility";
-import { initialsFrom, resolveUserName } from "@/lib/workspace/user-display";
+import { adminHeaderIdentity } from "@/lib/admin/header";
+import { initialsFrom } from "@/lib/workspace/user-display";
 
 export async function AdminChrome({ children }: { children: React.ReactNode }) {
   const configured = isSupabaseConfigured();
@@ -35,19 +35,20 @@ export async function AdminChrome({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const name = resolveUserName({
+  const header = adminHeaderIdentity({
     displayName: context.user.displayName,
     email: context.user.email,
+    platformRole: context.platformRole,
   });
 
   return (
     <AdminShell
       nav={ADMIN_NAV}
       user={{
-        name,
-        email: context.user.email,
-        initials: initialsFrom(name),
-        roleLabel: platformRoleLabel(context.platformRole),
+        name: header.name,
+        email: header.email,
+        initials: initialsFrom(header.name),
+        roleLabel: header.roleLabel,
       }}
       platformRoles={context.platformRoles}
       currentRole={context.platformRole}

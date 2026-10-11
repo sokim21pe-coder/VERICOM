@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { isPlatformSuperAdmin } from "@/lib/admin/access";
+import { adminHeaderIdentity } from "@/lib/admin/header";
 import { ADMIN_NAV } from "@/lib/admin/nav";
 import { resolveActivePlatformRole } from "@/lib/auth/active-role";
 import { workspaceSwitcherLinks } from "@/lib/auth/workspace-router";
@@ -24,6 +25,21 @@ function ctx(roles: PlatformRole[]): CurrentContext {
     permissions: [],
   };
 }
+
+test("admin header uses context values, never email-based admin", () => {
+  const header = adminHeaderIdentity({
+    displayName: "admin",
+    email: "admin@vericom.kr",
+    platformRole: PlatformRole.PLATFORM_SUPER_ADMIN,
+  });
+  assert.equal(header.name, "admin");
+  assert.equal(header.email, "admin@vericom.kr");
+  assert.equal(header.roleLabel, PlatformRole.PLATFORM_SUPER_ADMIN);
+  assert.equal(
+    isPlatformSuperAdmin([PlatformRole.SELLER_USER]),
+    false,
+  );
+});
 
 test("isPlatformSuperAdmin is role-based, not email-based", () => {
   assert.equal(isPlatformSuperAdmin([PlatformRole.SELLER_USER]), false);
