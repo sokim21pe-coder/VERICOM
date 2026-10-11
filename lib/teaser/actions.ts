@@ -14,6 +14,7 @@ import { loadSellerTeaserView } from "@/lib/teaser/data";
 import {
   exposesCompanyName,
   isUnsafeAnonymousFact,
+  resolveAnonymousHeadline,
   sanitizeAnonymousTeaserText,
 } from "@/lib/teaser/identity";
 import type {
@@ -67,15 +68,11 @@ function contentFromForm(
   companyName: string | null,
 ): TeaserContent {
   const rawHeadline = formString(formData, "headline").trim() || base.headline;
-  const sanitizedHeadline = sanitizeAnonymousTeaserText(rawHeadline, companyName);
-  const headlineUnsafe =
-    !sanitizedHeadline ||
-    sanitizedHeadline === "확인 필요" ||
-    isUnsafeAnonymousFact(sanitizedHeadline) ||
-    exposesCompanyName(sanitizedHeadline, companyName);
-  const headline = headlineUnsafe
-    ? base.maskedDescriptor || sanitizedHeadline
-    : sanitizedHeadline;
+  const resolved = resolveAnonymousHeadline(
+    rawHeadline,
+    base.maskedDescriptor,
+    companyName,
+  );
 
   const sections: TeaserSectionContent[] = base.sections.map((section) => {
     const edited = formData.get(`section_${section.id}`);
@@ -91,7 +88,8 @@ function contentFromForm(
   });
   return {
     ...base,
-    headline,
+    headline: resolved.headline,
+    maskedDescriptor: resolved.maskedDescriptor,
     sections,
   };
 }

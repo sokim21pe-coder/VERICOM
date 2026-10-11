@@ -15,6 +15,15 @@ export type MaskedDescriptorInput = {
 const GENERIC_DESCRIPTOR = "국내 비상장 중소·중견기업";
 export const ANONYMOUS_FACT_FALLBACK = "확인 필요";
 
+function isUnsafeAnonymousLine(
+  value: string,
+  companyName?: string | null,
+): boolean {
+  const text = value.trim();
+  if (!text || text === ANONYMOUS_FACT_FALLBACK) return true;
+  return isUnsafeAnonymousFact(text) || exposesCompanyName(text, companyName ?? null);
+}
+
 /** 허용된 매출 구간 표현(정확한 원문 금액이 아님). */
 function hasSafeRevenueBand(text: string): boolean {
   return /매출\s*약\s*[\d,]+(?:억\s*원\s*미만|~[\d,]+\s*억(?:\s*원)?|억\s*원\s*이상)/.test(
@@ -123,6 +132,36 @@ export function buildMaskedDescriptor(input: MaskedDescriptorInput): string {
   }
   const prefix = normalizeRegion(region);
   return `${prefix} ${core} 전문기업`;
+}
+
+/**
+ * 저장본 descriptor가 13.1 위반이면 범주형 일반 표현으로 바꾼다.
+ * 기존 승인본에 남은 식별 토큰을 헤드라인 fallback으로 다시 쓰지 않기 위함이다.
+ */
+export function safeAnonymousDescriptor(
+  value: string | null | undefined,
+  companyName?: string | null,
+): string {
+  const cleaned = sanitizeAnonymousTeaserText(value ?? "", companyName).trim();
+  if (isUnsafeAnonymousLine(cleaned, companyName)) return GENERIC_DESCRIPTOR;
+  return cleaned;
+}
+
+/**
+ * 익명 헤드라인. 입력이 안전하면 그 값을 쓰고, 아니면 정제된 descriptor를 쓴다.
+ * descriptor까지 위험하면 범주형 일반 표현만 남긴다.
+ */
+export function resolveAnonymousHeadline(
+  rawHeadline: string,
+  maskedDescriptor: string | null | undefined,
+  companyName?: string | null,
+): { headline: string; maskedDescriptor: string } {
+  const descriptor = safeAnonymousDescriptor(maskedDescriptor, companyName);
+  const sanitizedHeadline = sanitizeAnonymousTeaserText(rawHeadline, companyName).trim();
+  if (isUnsafeAnonymousLine(sanitizedHeadline, companyName)) {
+    return { headline: descriptor, maskedDescriptor: descriptor };
+  }
+  return { headline: sanitizedHeadline, maskedDescriptor: descriptor };
 }
 
 /**
