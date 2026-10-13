@@ -29,17 +29,17 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#E4E7EC] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
-      <div className="mx-auto flex h-[4.25rem] w-full max-w-[1200px] items-center justify-between gap-4 px-6 sm:px-8 lg:h-[4.75rem] lg:px-10">
+      <div className="mx-auto flex h-[4.5rem] w-full max-w-[1200px] items-center justify-between gap-6 px-6 sm:px-8 lg:h-[5.25rem] lg:px-10">
         <Link
           href="/#top"
-          className="shrink-0 bg-[#FFFFFF]"
+          className="flex shrink-0 items-center bg-[#FFFFFF]"
           aria-label="베리컴 홈"
         >
-          <BrandLogo className="h-11 sm:h-[3.15rem]" priority />
+          <BrandLogo className="h-12 sm:h-[3.4rem]" priority />
         </Link>
         <nav
           aria-label="주요 메뉴"
-          className="hidden items-center gap-9 text-[13px] font-medium tracking-wide text-[#475467] lg:flex xl:gap-10"
+          className="hidden items-center gap-8 text-[13px] font-medium tracking-wide text-[#475467] lg:flex xl:gap-10"
         >
           {nav.map((item) => (
             <Link

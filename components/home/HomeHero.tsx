@@ -19,11 +19,11 @@ export function HomeHero() {
             M&amp;A, Your Way.
           </h1>
           <p className="mt-5 max-w-lg text-lg font-medium leading-8 text-[#101828] sm:text-xl sm:leading-8">
-            기업 매각·인수·가치평가·딜 실행을 하나의 AI 기반 워크스페이스에서.
+            기업 매각과 인수를, 하나의 AI 워크스페이스에서.
           </p>
           <p className="mt-4 max-w-lg text-[16px] leading-7 text-[#475467] sm:text-[17px] sm:leading-8">
             VERICOM은 기업 매각과 인수의 전 과정을 연결합니다. TOM(AI)이 거래 상황을
-            이해하고 다음 행동을 제안합니다.
+            이해하고, 가치평가·문서·다음 행동을 지원합니다.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link href={HOME_HERO_CTA.primary.href} className={primaryClass}>

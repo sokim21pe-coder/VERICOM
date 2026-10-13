@@ -6,19 +6,19 @@ const modes = [
     index: "01",
     title: "Self-Service",
     lead: "직접 진행",
-    copy: "플랫폼에서 매각·인수 상담과 워크스페이스를 직접 진행합니다.",
+            copy: "매각·인수 상담과 워크스페이스를 직접 진행합니다.",
   },
   {
     index: "02",
     title: "AI-Assisted",
     lead: "TOM과 함께 진행",
-    copy: "TOM이 Deal Context를 정리하고 다음 단계를 제안합니다.",
+            copy: "거래 상황을 정리하고 다음 단계를 제안합니다.",
   },
   {
     index: "03",
     title: "Advisor-Assisted",
     lead: "필요할 때 전문가 개입",
-    copy: "회계·법률·세무 판단이 필요할 때 Expert를 배정합니다.",
+    copy: "회계·법률·세무 판단이 필요할 때 전문가를 배정합니다.",
   },
 ] as const;
 

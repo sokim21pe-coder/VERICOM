@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { SELLER_WORKFLOW_STAGES } from "@/lib/deal/standard-workflow";
 import {
+  HOME_AVAILABILITY,
   HOME_FINAL_CTA,
   HOME_HERO_CTA,
   HOME_WORKFLOW_PHASES,
@@ -33,4 +34,10 @@ test("homepage workflow phases keep all 13 seller labels in order", () => {
 test("sell and buy info routes stay unchanged", () => {
   assert.equal(LANDING_SELL_HREF, "/about/sell");
   assert.equal(LANDING_BUY_HREF, "/about/buy");
+});
+
+test("homepage availability labels stay honest", () => {
+  assert.equal(HOME_AVAILABILITY.live, "현재 제공");
+  assert.equal(HOME_AVAILABILITY.planned, "개발 예정");
+  assert.notEqual(HOME_AVAILABILITY.planned, HOME_AVAILABILITY.live);
 });

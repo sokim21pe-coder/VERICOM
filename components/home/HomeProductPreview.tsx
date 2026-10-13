@@ -8,39 +8,48 @@ export function HomeProductPreview() {
         className="absolute inset-x-6 top-6 bottom-2 rounded-xl border border-[#E4E7EC] bg-[#F7F8FA] sm:inset-x-8"
       />
       <div className="relative">
-        <AppWindow title="DEAL WORKSPACE" meta="Seller · Teaser">
-          <div className="grid min-h-[300px] sm:min-h-[360px] sm:grid-cols-[12rem_minmax(0,1fr)]">
+        <AppWindow title="DEAL WORKSPACE" meta="Seller Workspace">
+          <div className="grid min-h-[320px] sm:min-h-[380px] sm:grid-cols-[11.5rem_minmax(0,1fr)]">
             <aside className="border-b border-[#E4E7EC] bg-[#F7F8FA] px-3 py-5 sm:border-b-0 sm:border-r">
-              <ul className="space-y-1 text-[13px] leading-5 text-[#475467]">
+              <p className="px-2.5 text-[10px] tracking-[0.16em] text-[#475467]">WORKSPACE</p>
+              <ul className="mt-2 space-y-1 text-[13px] leading-5 text-[#475467]">
                 <RailItem label="Deal Stage" active />
-                <RailItem label="TOM(AI)" />
+                <RailItem label="TOM" />
                 <RailItem label="Valuation" />
                 <RailItem label="Teaser" />
-                <RailItem label="Documents" planned />
-                <RailItem label="Buyer Matching" planned />
               </ul>
             </aside>
-            <div className="space-y-5 p-6">
-              <p className="text-[11px] tracking-[0.16em] text-[#475467]">NEXT ACTION</p>
-              <p className="text-[16px] font-medium leading-6 text-[#101828]">
-                티저 초안을 검토하고 승인을 요청합니다.
-              </p>
-              <p className="max-w-sm text-[13px] leading-6 text-[#475467]">
-                Deal Stage는 티저 작성입니다. TOM은 초안을 제안하고, 게시 전 사람 승인이
-                필요합니다.
-              </p>
+            <div className="space-y-4 p-5 sm:p-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-sm bg-navy px-2 py-0.5 text-[10px] font-medium tracking-wide text-white">
+                  Active
+                </span>
+                <span className="text-[11px] tracking-[0.14em] text-[#475467]">DEAL STATUS</span>
+              </div>
               <div className="grid grid-cols-2 gap-3">
-                <MiniStat label="Deal Stage" value="02 티저" />
-                <MiniStat label="Valuation" value="LEVEL 0 / 1" />
+                <MiniStat label="Current Stage" value="02 / 13" />
+                <MiniStat label="Valuation Status" value="LEVEL 0 / 1" />
+              </div>
+              <div>
+                <p className="text-[11px] tracking-[0.16em] text-[#475467]">NEXT ACTION</p>
+                <p className="mt-1.5 text-[15px] font-medium leading-6 text-[#101828]">
+                  Teaser Review
+                </p>
+                <p className="mt-1 text-[12px] text-navy">Approval Required</p>
+              </div>
+              <div className="border-t border-[#E4E7EC] pt-3">
+                <p className="text-[11px] tracking-[0.16em] text-[#475467]">TOM RECOMMENDATION</p>
+                <p className="mt-1.5 text-[13px] font-medium text-[#101828]">승인 게이트로 이동</p>
+                <p className="mt-1 text-[12px] text-[#475467]">Last Activity · Updated 10 min ago</p>
               </div>
             </div>
           </div>
         </AppWindow>
       </div>
       <div className="absolute right-3 -bottom-1 w-[min(100%,19rem)] rounded-lg border border-[#E4E7EC] bg-white px-4 py-3.5 shadow-[0_18px_40px_-18px_rgba(0,33,71,0.42)] sm:right-2">
-        <p className="text-[11px] tracking-[0.14em] text-navy">TOM · Next Action</p>
-        <p className="mt-1 text-[13px] font-medium leading-5 text-[#101828]">승인 게이트로 이동</p>
-        <p className="mt-1 text-[12px] leading-5 text-[#475467]">AI recommends. You approve.</p>
+        <p className="text-[11px] tracking-[0.14em] text-navy">Human Approval</p>
+        <p className="mt-1 text-[13px] font-medium leading-5 text-[#101828]">티저 게시 전 승인이 필요합니다.</p>
+        <p className="mt-1 text-[12px] leading-5 text-[#475467]">제안은 AI, 결정은 사람.</p>
       </div>
     </div>
   );
@@ -49,27 +58,24 @@ export function HomeProductPreview() {
 function RailItem({
   label,
   active = false,
-  planned = false,
 }: {
   label: string;
   active?: boolean;
-  planned?: boolean;
 }) {
   return (
     <li
-      className={`flex items-center justify-between gap-2 rounded-md px-2.5 py-2 ${
+      className={`rounded-md px-2.5 py-2 ${
         active ? "bg-white font-medium text-[#101828] shadow-sm" : ""
       }`}
     >
-      <span>{label}</span>
-      {planned ? <span className="shrink-0 text-[10px] text-[#475467]">준비 중</span> : null}
+      {label}
     </li>
   );
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-[#E4E7EC] bg-[#F7F8FA] px-3 py-3">
+    <div className="rounded-md border border-[#E4E7EC] bg-[#F7F8FA] px-3 py-2.5">
       <p className="text-[10px] tracking-wide text-[#475467]">{label}</p>
       <p className="mt-1 text-[13px] font-medium text-[#101828]">{value}</p>
     </div>

@@ -3,32 +3,32 @@ import { OutlineIcon } from "@/components/home/home-ui";
 const items = [
   {
     icon: "role" as const,
-    title: "Role",
-    copy: "Platform Role과 Workspace를 서버 Context로 확인합니다.",
+    title: "Role-based Access",
+    copy: "역할과 Workspace를 서버에서 확인합니다.",
   },
   {
     icon: "deal" as const,
-    title: "Deal Permission",
-    copy: "Deal 참여자와 권한만 해당 거래 데이터에 접근합니다.",
+    title: "Deal-based Permission",
+    copy: "해당 거래 참여자만 접근합니다.",
   },
   {
     icon: "isolation" as const,
     title: "Buyer Isolation",
-    copy: "Buyer는 허용된 Opportunity 범위만 봅니다. 상호 정보 접근은 없습니다.",
+    copy: "허용된 범위만 열람합니다. 상호 정보 접근은 없습니다.",
   },
   {
     icon: "gate" as const,
-    title: "Approval Gate",
-    copy: "Draft → Review → Explicit Approval → Execute 순서를 지킵니다.",
+    title: "Approval Gates",
+    copy: "초안, 검토, 명시적 승인, 실행 순서를 지킵니다.",
   },
   {
     icon: "storage" as const,
     title: "Private Storage",
-    copy: "문서 저장은 비공개 스토리지를 사용합니다.",
+    copy: "문서는 비공개 저장소를 사용합니다.",
   },
   {
     icon: "audit" as const,
-    title: "Audit",
+    title: "Audit Trail",
     copy: "중요 변경은 행위자, 대상, 사유를 남깁니다.",
   },
 ] as const;
@@ -42,7 +42,7 @@ export function HomeSecurity() {
           Confidential by Design
         </h2>
         <p className="mt-4 max-w-2xl text-[16px] leading-7 text-white/70">
-          인증 배지는 표시하지 않습니다. 현재 제품의 접근 통제만 설명합니다.
+          민감한 M&amp;A 정보는 역할, Deal, 승인 상태에 따라 접근이 통제됩니다.
         </p>
         <div className="mt-14 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => (

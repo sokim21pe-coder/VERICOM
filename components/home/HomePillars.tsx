@@ -11,7 +11,7 @@ const pillars = [
     index: "01",
     kicker: "SELL",
     title: "기업 매각",
-    copy: "매각 준비부터 가치평가, 티저, 거래 실행까지 Seller Workspace에서 진행합니다.",
+    copy: "매각 준비부터 거래 실행까지.",
     href: LANDING_SELL_HREF,
   },
   {
@@ -19,7 +19,7 @@ const pillars = [
     index: "02",
     kicker: "BUY",
     title: "기업 인수",
-    copy: "인수조건을 정리하고 후보를 검토합니다. 신원 자동 공개와 가짜 추천은 하지 않습니다.",
+    copy: "인수조건 설정부터 후보 검토까지.",
     href: LANDING_BUY_HREF,
   },
   {
@@ -27,7 +27,7 @@ const pillars = [
     index: "03",
     kicker: "TOM",
     title: "AI Deal Agent",
-    copy: "Deal Context를 이해하고 다음 행동을 제안합니다. 중요한 결정은 사람이 승인합니다.",
+    copy: "거래 상황을 이해하고 다음 행동을 제안합니다.",
     href: LANDING_TOM_HREF,
   },
 ] as const;

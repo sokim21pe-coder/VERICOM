@@ -13,7 +13,7 @@ export function HomeWorkflow() {
           Standard M&amp;A Workflow
         </h2>
         <p className="mt-4 max-w-2xl text-[16px] leading-7 text-[#475467]">
-          매각 측 표준 13단계는 바꾸지 않습니다. 네 개의 Phase로 운영 순서를 읽습니다.
+          VERICOM은 매각 표준 13단계를 네 개의 Phase로 운영합니다.
         </p>
         <ol className="mt-14 grid gap-10 lg:grid-cols-4 lg:gap-0">
           {phases.map((phase, index) => (
@@ -35,11 +35,14 @@ export function HomeWorkflow() {
                   <span aria-hidden="true" className="hidden flex-1 lg:block" />
                 )}
               </div>
-              <h3 className="text-sm font-semibold tracking-wide text-navy">{phase.title}</h3>
-              <ol className="mt-4 space-y-2">
+              <p className="font-mono text-[11px] tracking-[0.16em] text-navy">{phase.phase}</p>
+              <h3 className="mt-1 text-base font-semibold tracking-tight text-[#101828]">
+                {phase.label}
+              </h3>
+              <ol className="mt-4 space-y-2.5">
                 {phase.steps.map((step) => (
                   <li key={step.key} className="text-[14px] leading-6 text-[#101828]">
-                    <span className="mr-2 font-mono text-[11px] text-navy">
+                    <span className="mr-2 font-mono text-[11px] font-medium text-navy">
                       {String(step.order).padStart(2, "0")}
                     </span>
                     {step.label}

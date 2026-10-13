@@ -1,7 +1,15 @@
 const steps = [
-  { title: "AI", items: ["Analyze", "Recommend", "Draft"] },
-  { title: "Human Approval", items: ["Review", "Edit", "Approve"] },
-  { title: "VERICOM Record", items: ["Permission", "Audit", "History"] },
+  { title: "AI", copy: "분석하고 제안하고 초안을 만듭니다.", items: ["Analyze", "Recommend", "Draft"] },
+  {
+    title: "Human Approval",
+    copy: "사람이 검토하고 수정한 뒤 승인합니다.",
+    items: ["Review", "Edit", "Approve"],
+  },
+  {
+    title: "VERICOM Record",
+    copy: "권한, 감사, 이력을 남깁니다.",
+    items: ["Permission", "Audit", "History"],
+  },
 ] as const;
 
 export function HomeApproval() {
@@ -29,7 +37,8 @@ export function HomeApproval() {
                 ) : null}
               </div>
               <h3 className="mt-4 text-lg font-semibold text-[#101828]">{step.title}</h3>
-              <ul className="mt-4 space-y-1.5 text-[15px] text-[#475467]">
+              <p className="mt-2 text-[14px] leading-6 text-[#475467]">{step.copy}</p>
+              <ul className="mt-4 space-y-1.5 text-[13px] tracking-wide text-[#475467]">
                 {step.items.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
