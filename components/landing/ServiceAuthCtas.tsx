@@ -8,7 +8,7 @@ const buttonClass = {
   primary:
     "inline-flex h-11 items-center justify-center rounded-md bg-navy px-6 text-sm font-medium text-white hover:bg-navy-hover",
   secondary:
-    "inline-flex h-11 items-center justify-center rounded-md border border-line bg-white px-6 text-sm font-medium text-foreground hover:border-navy",
+    "inline-flex h-11 items-center justify-center rounded-md border border-[#E4E7EC] bg-white px-6 text-sm font-medium text-[#101828] hover:border-navy",
 };
 
 function continueLabel(intent: TomIntent | null): string {
