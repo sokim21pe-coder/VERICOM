@@ -6,7 +6,7 @@ export function HomeProductPreview() {
           <p className="text-[11px] font-medium tracking-[0.16em] text-navy">DEAL WORKSPACE</p>
           <p className="text-[11px] text-[#475467]">Seller · Teaser</p>
         </div>
-        <div className="grid sm:grid-cols-[9.5rem_minmax(0,1fr)]">
+        <div className="grid sm:grid-cols-[10.25rem_minmax(0,1fr)]">
           <aside className="border-b border-[#E4E7EC] bg-[#F7F8FA] px-3 py-3 sm:border-b-0 sm:border-r">
             <ul className="space-y-1 text-[12px] leading-5 text-[#475467]">
               <RailItem label="Deal Stage" active />
@@ -55,7 +55,9 @@ function RailItem({
       }`}
     >
       <span>{label}</span>
-      {planned ? <span className="text-[10px] text-[#475467]">준비 중</span> : null}
+      {planned ? (
+        <span className="shrink-0 text-[10px] text-[#475467]">준비 중</span>
+      ) : null}
     </li>
   );
 }
