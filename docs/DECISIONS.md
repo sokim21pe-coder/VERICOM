@@ -219,5 +219,7 @@ Desktop 1280·Mobile 375에서 초안·검토·승인·편집·미리보기·확
 
 2026-10-13 Homepage Brand/UI Refresh — Preview 디자인 동결: 사용자는 Vercel Preview를 확인한 뒤 현재 홈 표현을 유지하고 개발을 이어가기로 했다. 범위는 Public Homepage presentation만이다. Header 메뉴명·href·로그인/회원가입 route, Seller/Buyer/Admin/TOM/Valuation/Teaser/Supabase는 변경하지 않는다. 가짜 고객 로고·거래 건수·성공률·인증 배지는 넣지 않는다. Production merge는 별도 명시 전까지 하지 않는다.
 
+2026-10-13 Homepage Brand/UI Refresh v3 = **COMPLETE**. PR #27 `Homepage Brand/UI Refresh — Institutional AI M&A Platform`이 merge commit `899b562c3e65cea0b4b6f48429f7d426190be406`로 main에 반영됐다. head SHA는 `842cd3b`(v3 polish)다. Vercel Production deployment `7041882633`은 Success이고 SHA `899b562`는 그 시점의 `origin/main`과 같다. 사이트 `https://www.vericom.kr`. 범위는 Homepage visual refresh only다. 기존 메뉴명·route·CTA href·backend·Auth·Seller/Buyer/Admin·TOM logic·Valuation·Teaser·Supabase·RLS·API·DB·migrations는 변경하지 않았다. Seller 13-stage workflow 문구와 순서는 그대로다. 가짜 수치·로고·인증 badge는 없다. NDA / Buyer Matching은 시작하지 않았다.
+
 
 
