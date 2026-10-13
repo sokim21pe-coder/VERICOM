@@ -1,0 +1,52 @@
+import Link from "next/link";
+import { LANDING_TOM_HREF } from "@/lib/landing/service-pages";
+
+const capabilities = [
+  { label: "Deal Context 이해", live: true },
+  { label: "기업정보 구조화", live: true },
+  { label: "가치평가 지원", live: true },
+  { label: "Teaser Draft", live: true },
+  { label: "Next Action 제안", live: true },
+  { label: "Buyer / Target 추천", live: false },
+  { label: "Risk Flag", live: false },
+];
+
+export function HomeTom() {
+  return (
+    <section className="border-b border-[#E4E7EC] bg-white">
+      <div className="mx-auto grid w-full max-w-[1200px] gap-12 px-6 py-20 sm:px-8 sm:py-24 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-16 lg:px-10 lg:py-28">
+        <div>
+          <p className="text-[11px] font-medium tracking-[0.2em] text-navy">TOM(AI)</p>
+          <h2 className="mt-4 max-w-xl text-[1.75rem] font-semibold leading-tight tracking-tight text-[#101828] sm:text-[2.25rem]">
+            Meet TOM.
+            <span className="mt-2 block font-medium text-[#475467]">Your AI M&amp;A Deal Agent</span>
+          </h2>
+          <p className="mt-6 max-w-xl text-[16px] leading-7 text-[#475467] sm:text-[17px] sm:leading-8">
+            TOM은 단순 챗봇이 아닙니다. 기업정보, 재무정보, Deal Stage, 문서와 승인
+            이력을 바탕으로 거래의 현재 상태를 이해하고 다음 행동을 제안합니다.
+          </p>
+          <p className="mt-10 text-[15px] font-medium tracking-wide text-[#101828]">
+            AI recommends. You approve. VERICOM records.
+          </p>
+          <Link
+            href={LANDING_TOM_HREF}
+            className="mt-8 inline-flex text-sm font-medium text-navy underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+          >
+            TOM 자세히 보기
+          </Link>
+        </div>
+        <ul className="border-t border-[#E4E7EC] lg:border-t-0 lg:border-l lg:pl-12">
+          {capabilities.map((item) => (
+            <li
+              key={item.label}
+              className="flex items-center justify-between gap-4 border-b border-[#E4E7EC] py-4 text-[15px] text-[#101828]"
+            >
+              <span>{item.label}</span>
+              <span className="text-[12px] text-[#475467]">{item.live ? "사용 가능" : "준비 중"}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}

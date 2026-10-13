@@ -28,8 +28,8 @@ export function Header({
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-[#FFFFFF]/95 backdrop-blur supports-[backdrop-filter]:bg-[#FFFFFF]/80">
-      <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-4 px-6 py-3.5 sm:px-8 lg:px-10 lg:py-4">
+    <header className="sticky top-0 z-40 border-b border-[#E4E7EC] bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
+      <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center justify-between gap-4 px-6 sm:px-8 lg:h-[4.25rem] lg:px-10">
         <Link
           href="/#top"
           className="shrink-0 bg-[#FFFFFF]"
@@ -39,13 +39,13 @@ export function Header({
         </Link>
         <nav
           aria-label="주요 메뉴"
-          className="hidden items-center gap-7 text-[13px] tracking-wide text-muted lg:flex xl:gap-9"
+          className="hidden items-center gap-8 text-[13px] font-medium tracking-wide text-[#475467] lg:flex xl:gap-9"
         >
           {nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="transition-colors hover:text-foreground"
+              className="transition-colors hover:text-[#101828] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
               {item.label}
             </Link>
@@ -53,14 +53,14 @@ export function Header({
           {signedIn ? (
             <Link
               href={workspaceHref}
-              className="transition-colors hover:text-foreground"
+              className="transition-colors hover:text-[#101828] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
               워크스페이스
             </Link>
           ) : (
             <Link
               href="/login"
-              className="transition-colors hover:text-foreground"
+              className="transition-colors hover:text-[#101828] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
               로그인
             </Link>
@@ -68,7 +68,7 @@ export function Header({
           {signedIn ? null : (
             <Link
               href="/signup"
-              className="inline-flex h-10 items-center rounded-md border border-line px-4 text-[13px] font-medium text-foreground transition-colors hover:border-navy hover:text-navy focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
+              className="inline-flex h-10 items-center rounded-md bg-navy px-4 text-[13px] font-semibold text-white transition-colors hover:bg-navy-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
             >
               회원가입
             </Link>
@@ -129,7 +129,7 @@ export function Header({
           {signedIn ? null : (
             <Link
               href="/signup"
-              className="mt-2 mb-1 inline-flex h-11 items-center justify-center rounded-md border border-line text-sm font-medium text-foreground"
+              className="mt-2 mb-1 inline-flex h-11 items-center justify-center rounded-md bg-navy text-sm font-semibold text-white"
               onClick={() => setOpen(false)}
             >
               회원가입
