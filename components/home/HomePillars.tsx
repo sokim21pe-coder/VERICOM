@@ -32,7 +32,7 @@ const pillars = [
 export function HomePillars() {
   return (
     <section id="service" className="border-b border-[#E4E7EC] bg-[#F7F8FA]">
-      <div className="mx-auto w-full max-w-[1200px] px-6 py-20 sm:px-8 sm:py-24 lg:px-10 lg:py-28">
+      <div className="mx-auto w-full max-w-[1200px] px-6 py-20 sm:px-8 sm:py-24 lg:px-10 lg:py-[7.5rem]">
         <h2 className="max-w-3xl text-[1.75rem] font-semibold leading-tight tracking-tight text-[#101828] sm:text-[2.25rem] sm:leading-[1.2]">
           하나의 플랫폼에서 M&amp;A를 시작하고, 분석하고, 실행합니다.
         </h2>

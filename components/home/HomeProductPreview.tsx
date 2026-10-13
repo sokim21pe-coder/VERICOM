@@ -1,49 +1,70 @@
 export function HomeProductPreview() {
   return (
-    <div aria-hidden="true" className="relative mx-auto w-full max-w-lg lg:max-w-none">
-      <div className="rounded-xl border border-[#E4E7EC] bg-white p-4 shadow-[0_18px_40px_-24px_rgba(0,33,71,0.28)] sm:p-5">
-        <div className="flex items-center justify-between border-b border-[#E4E7EC] pb-3">
+    <div className="relative mx-auto w-full max-w-lg pb-10 lg:max-w-none lg:pb-8">
+      <div className="overflow-hidden rounded-xl border border-[#E4E7EC] bg-white shadow-[0_18px_40px_-24px_rgba(0,33,71,0.28)]">
+        <div className="flex items-center justify-between border-b border-[#E4E7EC] px-4 py-3">
           <p className="text-[11px] font-medium tracking-[0.16em] text-navy">DEAL WORKSPACE</p>
           <p className="text-[11px] text-[#475467]">Seller · Teaser</p>
         </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <PreviewCard title="Deal Stage" value="티저 작성" note="13단계 표준 흐름" />
-          <PreviewCard title="TOM(AI)" value="다음 행동 제안" note="Deal Context 기반" />
-          <PreviewCard title="Valuation" value="LEVEL 0 / LEVEL 1" note="승인 배수만 계산" />
-          <PreviewCard title="Teaser" value="Draft → Review → 승인" note="현재 사용 가능" />
+        <div className="grid sm:grid-cols-[9.5rem_minmax(0,1fr)]">
+          <aside className="border-b border-[#E4E7EC] bg-[#F7F8FA] px-3 py-3 sm:border-b-0 sm:border-r">
+            <ul className="space-y-1 text-[12px] leading-5 text-[#475467]">
+              <RailItem label="Deal Stage" active />
+              <RailItem label="TOM(AI)" />
+              <RailItem label="Valuation" />
+              <RailItem label="Teaser" />
+              <RailItem label="Documents" planned />
+              <RailItem label="Buyer Matching" planned />
+            </ul>
+          </aside>
+          <div className="space-y-3 p-4">
+            <p className="text-[11px] tracking-[0.14em] text-[#475467]">NEXT ACTION</p>
+            <p className="text-sm font-medium text-[#101828]">티저 초안을 검토하고 승인을 요청합니다.</p>
+            <p className="text-[12px] leading-5 text-[#475467]">
+              Deal Stage는 티저 작성입니다. TOM은 초안을 제안하고, 게시 전 사람 승인이 필요합니다.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <MiniStat label="Deal Stage" value="02 티저" />
+              <MiniStat label="Valuation" value="LEVEL 0 / 1" />
+            </div>
+          </div>
         </div>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <PreviewCard title="Documents" value="Teaser 메타·버전" note="NDA / IM은 준비 중" planned />
-          <PreviewCard title="Buyer Matching" value="조건 정리" note="추천 엔진은 준비 중" planned />
-        </div>
+      </div>
+      <div className="absolute bottom-0 right-3 w-[min(100%,16.5rem)] rounded-lg border border-[#E4E7EC] bg-white px-3.5 py-3 shadow-[0_12px_28px_-18px_rgba(0,33,71,0.35)] sm:right-0">
+        <p className="text-[11px] tracking-[0.14em] text-navy">TOM · Next Action</p>
+        <p className="mt-1 text-[13px] font-medium leading-5 text-[#101828]">승인 게이트로 이동</p>
+        <p className="mt-1 text-[12px] leading-5 text-[#475467]">AI recommends. You approve.</p>
       </div>
     </div>
   );
 }
 
-function PreviewCard({
-  title,
-  value,
-  note,
+function RailItem({
+  label,
+  active = false,
   planned = false,
 }: {
-  title: string;
-  value: string;
-  note: string;
+  label: string;
+  active?: boolean;
   planned?: boolean;
 }) {
   return (
-    <div className="rounded-md border border-[#E4E7EC] bg-[#F7F8FA] px-3 py-3">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] tracking-wide text-[#475467]">{title}</p>
-        {planned ? (
-          <span className="rounded-full border border-[#E4E7EC] bg-white px-1.5 py-0.5 text-[10px] text-[#475467]">
-            준비 중
-          </span>
-        ) : null}
-      </div>
-      <p className="mt-1.5 text-sm font-medium text-[#101828]">{value}</p>
-      <p className="mt-1 text-[12px] leading-5 text-[#475467]">{note}</p>
+    <li
+      className={`flex items-center justify-between gap-2 rounded-md px-2 py-1.5 ${
+        active ? "bg-white font-medium text-[#101828] shadow-sm" : ""
+      }`}
+    >
+      <span>{label}</span>
+      {planned ? <span className="text-[10px] text-[#475467]">준비 중</span> : null}
+    </li>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border border-[#E4E7EC] bg-[#F7F8FA] px-2.5 py-2">
+      <p className="text-[10px] text-[#475467]">{label}</p>
+      <p className="mt-0.5 text-[12px] font-medium text-[#101828]">{value}</p>
     </div>
   );
 }

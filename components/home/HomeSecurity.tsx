@@ -28,7 +28,7 @@ const items = [
 export function HomeSecurity() {
   return (
     <section className="border-b border-[#E4E7EC] bg-white">
-      <div className="mx-auto w-full max-w-[1200px] px-6 py-20 sm:px-8 sm:py-24 lg:px-10 lg:py-28">
+      <div className="mx-auto w-full max-w-[1200px] px-6 py-20 sm:px-8 sm:py-24 lg:px-10 lg:py-[7.5rem]">
         <h2 className="text-[1.75rem] font-semibold tracking-tight text-[#101828] sm:text-[2.25rem]">
           Confidential by Design
         </h2>

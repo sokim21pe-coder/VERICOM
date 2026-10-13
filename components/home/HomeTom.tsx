@@ -14,7 +14,7 @@ const capabilities = [
 export function HomeTom() {
   return (
     <section className="border-b border-[#E4E7EC] bg-white">
-      <div className="mx-auto grid w-full max-w-[1200px] gap-12 px-6 py-20 sm:px-8 sm:py-24 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-16 lg:px-10 lg:py-28">
+      <div className="mx-auto grid w-full max-w-[1200px] gap-12 px-6 py-20 sm:px-8 sm:py-24 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-16 lg:px-10 lg:py-[7.5rem]">
         <div>
           <p className="text-[11px] font-medium tracking-[0.2em] text-navy">TOM(AI)</p>
           <h2 className="mt-4 max-w-xl text-[1.75rem] font-semibold leading-tight tracking-tight text-[#101828] sm:text-[2.25rem]">
@@ -25,8 +25,12 @@ export function HomeTom() {
             TOM은 단순 챗봇이 아닙니다. 기업정보, 재무정보, Deal Stage, 문서와 승인
             이력을 바탕으로 거래의 현재 상태를 이해하고 다음 행동을 제안합니다.
           </p>
-          <p className="mt-10 text-[15px] font-medium tracking-wide text-[#101828]">
-            AI recommends. You approve. VERICOM records.
+          <p className="mt-10 max-w-md border-l-2 border-navy pl-5 text-[1.35rem] font-medium leading-8 tracking-tight text-[#101828] sm:text-[1.5rem] sm:leading-9">
+            AI recommends.
+            <br />
+            You approve.
+            <br />
+            VERICOM records.
           </p>
           <Link
             href={LANDING_TOM_HREF}

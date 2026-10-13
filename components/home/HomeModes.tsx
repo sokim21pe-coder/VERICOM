@@ -19,7 +19,7 @@ const modes = [
 export function HomeModes() {
   return (
     <section id="expert" className="border-b border-[#E4E7EC] bg-[#F7F8FA]">
-      <div className="mx-auto w-full max-w-[1200px] px-6 py-20 sm:px-8 sm:py-24 lg:px-10 lg:py-28">
+      <div className="mx-auto w-full max-w-[1200px] px-6 py-20 sm:px-8 sm:py-24 lg:px-10 lg:py-[7.5rem]">
         <h2 className="text-[1.75rem] font-semibold tracking-tight text-[#101828] sm:text-[2.25rem]">
           필요한 만큼만 사람과 함께합니다.
         </h2>
