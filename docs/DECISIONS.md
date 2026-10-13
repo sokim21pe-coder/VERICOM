@@ -217,5 +217,7 @@ Desktop 1280·Mobile 375에서 초안·검토·승인·편집·미리보기·확
 
 2026-10-11 SUPER ADMIN MODE v1 Foundation(코드): 기존 `ADMIN`(/internal Staff)은 유지하고 `PLATFORM_SUPER_ADMIN`을 `platform_roles` + `user_platform_roles` 다대다에 추가한다. `users.platform_role` 컬럼은 없다. CurrentContext 타입은 변경하지 않았다. `/admin/*`는 서버 `requireSuperAdmin()`가 막고, 비로그인은 `/login`, 일반 사용자는 `/unauthorized`다. 로그인 후 Active Role이 Super Admin이면 `/admin/dashboard`다. 기존 Seller/Buyer/Expert/Internal Redirect는 유지한다. 전체 조회는 기존 RLS SELECT를 넓히지 않고 `has_platform_super_admin()` + security-definer RPC(`admin_dashboard_kpis`, `admin_list_*`, `admin_get_*`)만 사용한다. 자가부여 차단은 0012와 같이 Seller/Buyer/Expert만 허용한다. Company Type 컬럼·새 Deal 상태 enum·Auth User 생성·비밀번호 하드코딩·`db push`·`0021` 재실행·`schema_migrations` 수정은 없다. 최초 `admin@vericom.kr` 지정은 사람이 Supabase Dashboard에서 Auth User를 만든 뒤 SQL로 Role만 부여한다. Production 적용·LIVE Super Admin E2E는 이 기록 시점의 후속 게이트다.
 
+2026-10-13 Homepage Brand/UI Refresh — Preview 디자인 동결: 사용자는 Vercel Preview를 확인한 뒤 현재 홈 표현을 유지하고 개발을 이어가기로 했다. 범위는 Public Homepage presentation만이다. Header 메뉴명·href·로그인/회원가입 route, Seller/Buyer/Admin/TOM/Valuation/Teaser/Supabase는 변경하지 않는다. 가짜 고객 로고·거래 건수·성공률·인증 배지는 넣지 않는다. Production merge는 별도 명시 전까지 하지 않는다.
+
 
 
