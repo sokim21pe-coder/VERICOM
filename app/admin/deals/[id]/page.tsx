@@ -22,7 +22,21 @@ export default async function AdminDealDetailPage({
         기밀 문서·Teaser 본문·Buyer 식별 정보는 열지 않습니다. 향후 break-glass가 필요합니다.
       </p>
       <dl className="mt-6 space-y-2 text-sm">
-        <div>Seller 회사: {row.seller_company_name ? String(row.seller_company_name) : "확인 필요"}</div>
+        <div>
+          Seller 회사:{" "}
+          {row.seller_company_id ? (
+            <Link
+              href={`/admin/companies/${String(row.seller_company_id)}`}
+              className="text-navy underline"
+            >
+              {row.seller_company_name ? String(row.seller_company_name) : "회사"}
+            </Link>
+          ) : row.seller_company_name ? (
+            String(row.seller_company_name)
+          ) : (
+            "확인 필요"
+          )}
+        </div>
         <div>Seller Stage: {sellerStageLabel(row.seller_stage_key as string | null)}</div>
         <div>기존 status: {row.status ? String(row.status) : "확인 필요"}</div>
         <div>참여자 수: {row.participant_count != null ? String(row.participant_count) : "확인 필요"}</div>

@@ -134,7 +134,42 @@ export function mapAdminRpcError(message: string | null | undefined): string {
     return "확인 문구를 정확히 입력해 주세요.";
   }
   if (text.includes("ADMIN_INVALID_STATUS")) return "허용되지 않은 계정 상태입니다.";
+  if (text.includes("ADMIN_INVALID_VERIFICATION")) return "허용되지 않은 확인 상태입니다.";
+  if (text.includes("ADMIN_INVALID_COMPANY_STATUS")) return "허용되지 않은 회사 상태입니다.";
+  if (text.includes("ADMIN_COMPANY_NOT_FOUND")) return "회사를 찾을 수 없습니다.";
+  if (text.includes("ADMIN_VERIFICATION_UNCHANGED")) return "이미 같은 확인 상태입니다.";
+  if (text.includes("ADMIN_STATUS_UNCHANGED")) return "이미 같은 회사 상태입니다.";
   return "요청을 처리하지 못했습니다.";
+}
+
+export const COMPANY_VERIFICATION_VALUES = [
+  "unverified",
+  "pending",
+  "verified",
+] as const;
+
+export const COMPANY_STATUS_VALUES = ["draft", "active", "inactive"] as const;
+
+export function evaluateCompanyVerificationChange(input: {
+  current: string;
+  next: string;
+}): { ok: true } | { ok: false; code: string } {
+  if (!COMPANY_VERIFICATION_VALUES.includes(input.next as (typeof COMPANY_VERIFICATION_VALUES)[number])) {
+    return { ok: false, code: "ADMIN_INVALID_VERIFICATION" };
+  }
+  if (input.current === input.next) return { ok: false, code: "ADMIN_VERIFICATION_UNCHANGED" };
+  return { ok: true };
+}
+
+export function evaluateCompanyStatusChange(input: {
+  current: string;
+  next: string;
+}): { ok: true } | { ok: false; code: string } {
+  if (!COMPANY_STATUS_VALUES.includes(input.next as (typeof COMPANY_STATUS_VALUES)[number])) {
+    return { ok: false, code: "ADMIN_INVALID_COMPANY_STATUS" };
+  }
+  if (input.current === input.next) return { ok: false, code: "ADMIN_STATUS_UNCHANGED" };
+  return { ok: true };
 }
 
 export function adminStaffStillInternalOnly(roles: string[]): boolean {

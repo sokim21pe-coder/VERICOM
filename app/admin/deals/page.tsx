@@ -48,7 +48,18 @@ export default async function AdminDealsPage({
                     {row.title || "제목 없음"}
                   </Link>
                 </td>
-                <td className="py-2 pr-3">{row.seller_company_name ?? "확인 필요"}</td>
+                <td className="py-2 pr-3">
+                  {row.seller_company_id ? (
+                    <Link
+                      href={`/admin/companies/${row.seller_company_id}`}
+                      className="text-navy underline"
+                    >
+                      {row.seller_company_name ?? "회사"}
+                    </Link>
+                  ) : (
+                    row.seller_company_name ?? "확인 필요"
+                  )}
+                </td>
                 <td className="py-2 pr-3">{sellerStageLabel(row.seller_stage_key)}</td>
                 <td className="py-2 pr-3">{row.status ?? "확인 필요"}</td>
                 <td className="py-2 pr-3">{formatWhen(row.created_at)}</td>

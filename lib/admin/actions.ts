@@ -96,3 +96,53 @@ export async function removeAdminPlatformRole(input: {
   return { ok: true, message: null };
 }
 
+export async function updateAdminCompanyVerification(input: {
+  companyId: string;
+  verification: string;
+  reasonType: string;
+  reasonDetail: string;
+}): Promise<AdminActionResult> {
+  if (!isSupabaseConfigured()) return fail("저장소가 준비되지 않았습니다.");
+  const context = await requireSuperAdmin();
+  if (!context) return fail("이 작업을 수행할 권한이 없습니다.");
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return fail("저장소가 준비되지 않았습니다.");
+
+  const { error } = await supabase.rpc("admin_update_company_verification", {
+    p_company_id: input.companyId,
+    p_verification: input.verification,
+    p_reason_type: input.reasonType,
+    p_reason_detail: input.reasonDetail,
+  });
+  if (error) return fail(rpcMessage(error));
+  revalidatePath("/admin/companies");
+  revalidatePath(`/admin/companies/${input.companyId}`);
+  revalidatePath("/admin/audit-logs");
+  return { ok: true, message: null };
+}
+
+export async function updateAdminCompanyStatus(input: {
+  companyId: string;
+  status: string;
+  reasonType: string;
+  reasonDetail: string;
+}): Promise<AdminActionResult> {
+  if (!isSupabaseConfigured()) return fail("저장소가 준비되지 않았습니다.");
+  const context = await requireSuperAdmin();
+  if (!context) return fail("이 작업을 수행할 권한이 없습니다.");
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return fail("저장소가 준비되지 않았습니다.");
+
+  const { error } = await supabase.rpc("admin_update_company_status", {
+    p_company_id: input.companyId,
+    p_status: input.status,
+    p_reason_type: input.reasonType,
+    p_reason_detail: input.reasonDetail,
+  });
+  if (error) return fail(rpcMessage(error));
+  revalidatePath("/admin/companies");
+  revalidatePath(`/admin/companies/${input.companyId}`);
+  revalidatePath("/admin/audit-logs");
+  return { ok: true, message: null };
+}
+
