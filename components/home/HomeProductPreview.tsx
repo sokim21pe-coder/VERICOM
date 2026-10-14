@@ -49,7 +49,7 @@ export function HomeProductPreview() {
       <div className="absolute right-3 -bottom-1 w-[min(100%,19rem)] rounded-lg border border-[#E4E7EC] bg-white px-4 py-3.5 shadow-[0_18px_40px_-18px_rgba(0,33,71,0.42)] sm:right-2">
         <p className="text-[11px] tracking-[0.14em] text-navy">Human Approval</p>
         <p className="mt-1 text-[13px] font-medium leading-5 text-[#101828]">티저 게시 전 승인이 필요합니다.</p>
-        <p className="mt-1 text-[12px] leading-5 text-[#475467]">제안은 AI, 결정은 사람.</p>
+        <p className="mt-1 text-[12px] leading-5 text-[#475467]">제안은 AI, 결정은 VERICOM.</p>
       </div>
     </div>
   );
