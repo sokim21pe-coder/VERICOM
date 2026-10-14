@@ -4,9 +4,11 @@ import { EnvNotice } from "@/components/system/EnvNotice";
 import { BrandLogo } from "@/components/layout/BrandLogo";
 import { requireSuperAdmin } from "@/lib/admin/guard";
 import { ADMIN_NAV } from "@/lib/admin/nav";
+import { workspacePathForRole } from "@/lib/auth/workspace-router";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { adminHeaderIdentity } from "@/lib/admin/header";
 import { initialsFrom } from "@/lib/workspace/user-display";
+import { PlatformRole } from "@/types/enums";
 
 export async function AdminChrome({ children }: { children: React.ReactNode }) {
   const configured = isSupabaseConfigured();
@@ -41,6 +43,10 @@ export async function AdminChrome({ children }: { children: React.ReactNode }) {
     platformRole: context.platformRole,
   });
 
+  const otherRole = context.platformRoles.find(
+    (role) => role !== PlatformRole.PLATFORM_SUPER_ADMIN,
+  );
+
   return (
     <AdminShell
       nav={ADMIN_NAV}
@@ -52,6 +58,7 @@ export async function AdminChrome({ children }: { children: React.ReactNode }) {
       }}
       platformRoles={context.platformRoles}
       currentRole={context.platformRole}
+      userHomeHref={otherRole ? workspacePathForRole(otherRole) : "/"}
     >
       {children}
     </AdminShell>

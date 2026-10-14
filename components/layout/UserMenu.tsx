@@ -10,11 +10,13 @@ export function UserMenu({
   email,
   initials,
   roleLabel,
+  userHomeHref,
 }: {
   name: string;
   email: string | null;
   initials: string;
   roleLabel: string;
+  userHomeHref?: string;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -107,6 +109,16 @@ export function UserMenu({
           >
             내 프로필
           </Link>
+          {userHomeHref ? (
+            <Link
+              href={userHomeHref}
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="block px-4 py-2 text-sm text-foreground hover:bg-[#F4F6F9]"
+            >
+              사용자 화면으로
+            </Link>
+          ) : null}
           <Link
             href="/account/profile"
             role="menuitem"

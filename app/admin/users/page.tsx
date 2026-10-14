@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminPage } from "@/components/admin/AdminPage";
 import { AdminPager, AdminSearchForm } from "@/components/admin/AdminSearchForm";
 import { AdminStatusBadge } from "@/components/admin/AdminStatusBadge";
 import { loadAdminPlatformRoles, loadAdminUsers } from "@/lib/admin/data";
@@ -27,18 +28,13 @@ export default async function AdminUsersPage({
   const href = `/admin/users${qs.toString() ? `?${qs}` : ""}`;
 
   return (
-    <main className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
-      <p className="text-[11px] tracking-[0.18em] text-navy">A02</p>
-      <h1 className="mt-2 text-2xl font-semibold">사용자</h1>
-      <p className="mt-3 text-sm text-muted">
-        Super Admin RPC로 조회합니다. Last Login은 Auth 값을 안전하게 못 읽으면 확인
-        필요입니다.
-      </p>
-      {result.message ? (
-        <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          {result.message}
-        </p>
-      ) : null}
+    <AdminPage
+      screenId="A02"
+      title="사용자"
+      description="Super Admin RPC로 조회합니다. Last Login은 Auth 값을 안전하게 못 읽으면 확인 필요입니다."
+      crumbs={[{ label: "Users" }]}
+      notice={result.message}
+    >
       <AdminSearchForm
         action="/admin/users"
         query={query}
@@ -89,28 +85,36 @@ export default async function AdminUsersPage({
             </tr>
           </thead>
           <tbody>
-            {result.rows.map((row) => (
-              <tr key={row.id} className="border-b border-line">
-                <td className="py-2 pr-3">
-                  <Link href={`/admin/users/${row.id}`} className="text-navy underline">
-                    {row.display_name}
-                  </Link>
+            {result.rows.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="py-8 text-muted">
+                  등록된 사용자가 없습니다.
                 </td>
-                <td className="py-2 pr-3">{row.email}</td>
-                <td className="py-2 pr-3">{roleLabels(row.platform_roles)}</td>
-                <td className="py-2 pr-3">{row.company_name ?? "없음"}</td>
-                <td className="py-2 pr-3">{row.membership_role ?? "없음"}</td>
-                <td className="py-2 pr-3">
-                  <AdminStatusBadge status={row.status} />
-                </td>
-                <td className="py-2 pr-3">{formatWhen(row.created_at)}</td>
-                <td className="py-2 pr-3">확인 필요</td>
               </tr>
-            ))}
+            ) : (
+              result.rows.map((row) => (
+                <tr key={row.id} className="border-b border-line">
+                  <td className="py-2 pr-3">
+                    <Link href={`/admin/users/${row.id}`} className="text-navy underline">
+                      {row.display_name}
+                    </Link>
+                  </td>
+                  <td className="py-2 pr-3">{row.email}</td>
+                  <td className="py-2 pr-3">{roleLabels(row.platform_roles)}</td>
+                  <td className="py-2 pr-3">{row.company_name ?? "없음"}</td>
+                  <td className="py-2 pr-3">{row.membership_role ?? "없음"}</td>
+                  <td className="py-2 pr-3">
+                    <AdminStatusBadge status={row.status} />
+                  </td>
+                  <td className="py-2 pr-3">{formatWhen(row.created_at)}</td>
+                  <td className="py-2 pr-3">확인 필요</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
       <AdminPager href={href} total={result.total} limit={result.limit} offset={result.offset} />
-    </main>
+    </AdminPage>
   );
 }
